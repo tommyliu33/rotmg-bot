@@ -72,9 +72,7 @@ export default class extends Command {
         await ctx.reply(
           `Setting \`${verifiedRole?.name}\` as the "Verified Raider" role.`
         );
-
-        console.log(verifiedRole);
-
+        
         await client.guilds_db.set(
           ctx.guild?.id!,
           verifiedRole?.id,
