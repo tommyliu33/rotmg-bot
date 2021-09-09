@@ -29,7 +29,7 @@ import { ApplicationCommandOptionType } from "discord-api-types/v9";
       options: [
         {
           name: "role",
-          description: "verified role",
+          description: "the verified role",
           type: ApplicationCommandOptionType.Role,
           required: true,
         },
@@ -55,7 +55,7 @@ export default class extends Command {
     const { client } = ctx;
 
     const subcommand = ctx.interaction.options.getSubcommand();
-
+    console.log(subcommand);
     switch (subcommand) {
       case "button":
       case "manual":
@@ -66,16 +66,18 @@ export default class extends Command {
         );
         await ctx.reply(`Setting \`verificationMethod\` to **${subcommand}**.`);
         break;
-      case "verification_role":
-        const verified_role = ctx.interaction.options.getRole("verified_role");
+      case "verified_role":
+        const verifiedRole = ctx.interaction.options.getRole("role");
 
         await ctx.reply(
-          `Setting \`${verified_role?.name}\` as the "Verified Raider" role.`
+          `Setting \`${verifiedRole?.name}\` as the "Verified Raider" role.`
         );
+
+        console.log(verifiedRole);
 
         await client.guilds_db.set(
           ctx.guild?.id!,
-          verified_role?.id,
+          verifiedRole?.id,
           "verified_role"
         );
         break;
