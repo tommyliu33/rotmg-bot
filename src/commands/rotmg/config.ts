@@ -8,17 +8,17 @@ import { ApplicationCommandOptionType } from "discord-api-types/v9";
     {
       name: "verification_method",
       description: "method user goes through to verify",
-      type: ApplicationCommandOptionType.Subcommand,
+      type: ApplicationCommandOptionType.SubcommandGroup,
       options: [
         {
           name: "button",
           description: "user clicks the button to start verification",
-          type: ApplicationCommandOptionType.Boolean,
+          type: ApplicationCommandOptionType.Subcommand,
         },
         {
           name: "manual",
           description: "user runs /verify command to start verification",
-          type: ApplicationCommandOptionType.Boolean,
+          type: ApplicationCommandOptionType.Subcommand,
         },
       ],
     },
@@ -54,41 +54,49 @@ export default class extends Command {
   public async exec(ctx: CommandContext) {
     const { client } = ctx;
 
-    // TODO: fix options
-    const verified_role = ctx.interaction.options.getRole("verified_role");
-    const verification_channel = ctx.interaction.options.getChannel(
-      "verification_channel"
-    );
+    const subcommand = ctx.interaction.options.getSubcommand();
 
-    if (verified_role) {
-      const verified_role = ctx.interaction.options.getRole("verified_role");
+    switch (subcommand) {
+      case "button":
+      case "manual":
+        await client.guilds_db.set(
+          ctx.guild?.id!,
+          subcommand,
+          "verification_method"
+        );
+        await ctx.reply(`Setting \`verificationMethod\` to **${subcommand}**.`);
+        break;
+      case "verification_role":
+        const verified_role = ctx.interaction.options.getRole("verified_role");
 
-      await ctx.reply(
-        `Setting \`${verified_role?.name}\` as the "Verified Raider" role.`
-      );
-
-      await client.guilds_db.set(
-        ctx.guild?.id!,
-        verified_role?.id,
-        "verified_role"
-      );
-    }
-
-    if (verification_channel) {
-      if (verification_channel?.type !== "GUILD_TEXT")
-        return await ctx.reply(
-          "Verification channel can only be a text channel."
+        await ctx.reply(
+          `Setting \`${verified_role?.name}\` as the "Verified Raider" role.`
         );
 
-      await client.guilds_db.set(
-        ctx.guild?.id!,
-        verification_channel.id,
-        "verification_channel"
-      );
+        await client.guilds_db.set(
+          ctx.guild?.id!,
+          verified_role?.id,
+          "verified_role"
+        );
+        break;
+      case "verification_channel":
+        const verificationChannel =
+          ctx.interaction.options.getChannel("channel");
+        if (verificationChannel?.type !== "GUILD_TEXT")
+          return await ctx.reply(
+            "Verification channel can only be a text channel."
+          );
 
-      await ctx.reply(
-        `Setting ${verification_channel.toString()} as the "Verification Channel".`
-      );
+        await client.guilds_db.set(
+          ctx.guild?.id!,
+          verificationChannel.id,
+          "verification_channel"
+        );
+
+        await ctx.reply(
+          `Setting ${verificationChannel.toString()} as the "Verification Channel".`
+        );
+        break;
     }
   }
 }
