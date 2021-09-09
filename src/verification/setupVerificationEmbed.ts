@@ -5,12 +5,11 @@ import {
   MessageActionRow,
   MessageButton,
 } from "discord.js";
+import { Bot } from "@lib";
 
 export async function setupVerificationEmbed(guild: Guild, channelId: string) {
-  console.log(channelId);
+  const client = guild.client as Bot;
   const channel = (await guild.channels.fetch(channelId)) as TextChannel;
-
-  // console.log(channel);
 
   // TODO: fetch guild requirements for verification
   const embed = new MessageEmbed()
@@ -26,12 +25,24 @@ export async function setupVerificationEmbed(guild: Guild, channelId: string) {
         "• Not an alt.",
       ].join("\n")
     );
-  const buttons = new MessageActionRow().addComponents(
-    new MessageButton()
-      .setCustomId("verify-button")
-      .setLabel("verify me!")
-      .setStyle("PRIMARY")
-  );
 
-  await channel.send({ embeds: [embed], components: [buttons] });
+  const verificationMethod = (await client.guilds_db.get(guild.id))
+    ?.verification_method;
+
+  const options = { embeds: [embed] };
+  if (verificationMethod === "manual") {
+    embed.setDescription(
+      "To verify, you must run the `/verify` command in this channel."
+    );
+    await channel.send(options);
+  } else {
+    const buttons = new MessageActionRow().addComponents(
+      new MessageButton()
+        .setCustomId("verify-button")
+        .setLabel("verify me!")
+        .setStyle("PRIMARY")
+    );
+
+    await channel.send({ ...options, components: [buttons] });
+  }
 }
