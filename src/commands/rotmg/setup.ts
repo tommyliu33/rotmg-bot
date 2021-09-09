@@ -31,6 +31,9 @@ export default class extends Command {
         ctx.guild?.id!,
         "verification_channel"
       )) as string;
+
+      console.log(channel);
+
       await setupVerificationEmbed(ctx.guild!, channel);
       return await ctx.interaction.editReply("Done.");
     }

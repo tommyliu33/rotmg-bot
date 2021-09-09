@@ -1,4 +1,3 @@
-import { Bot } from "@lib";
 import {
   Guild,
   TextChannel,
@@ -8,10 +7,12 @@ import {
 } from "discord.js";
 
 export async function setupVerificationEmbed(guild: Guild, channelId: string) {
-  const client = guild.client as Bot;
-  const channel = (await client.channels.fetch(channelId)) as TextChannel;
+  console.log(channelId);
+  const channel = (await guild.channels.fetch(channelId)) as TextChannel;
 
-	// TODO: fetch guild requirements for verification
+  // console.log(channel);
+
+  // TODO: fetch guild requirements for verification
   const embed = new MessageEmbed()
     .setColor("ORANGE")
     .setTitle(`\`${guild.name} Verification\``)

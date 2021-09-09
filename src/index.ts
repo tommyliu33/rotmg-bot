@@ -1,3 +1,5 @@
+console.log("[bot] init");
+
 import "dotenv/config";
 import "module-alias/register";
 

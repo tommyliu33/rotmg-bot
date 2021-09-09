@@ -1,6 +1,5 @@
 import { Command, command, CommandContext } from "@lib";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
-import { Application } from "discord.js";
 
 @command({
   name: "config",
@@ -22,19 +21,32 @@ import { Application } from "discord.js";
           type: ApplicationCommandOptionType.Boolean,
         },
       ],
-      required: false,
     },
     {
       name: "verified_role",
       description: "role to add when user is verified",
-      type: ApplicationCommandOptionType.Role,
-      required: false,
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "role",
+          description: "verified role",
+          type: ApplicationCommandOptionType.Role,
+          required: true,
+        },
+      ],
     },
     {
       name: "verification_channel",
       description: "channel for users to start verification.",
-      type: ApplicationCommandOptionType.Channel,
-      required: false,
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "channel",
+          description: "channel to set",
+          type: ApplicationCommandOptionType.Channel,
+          required: true,
+        },
+      ],
     },
   ],
 })
@@ -42,6 +54,7 @@ export default class extends Command {
   public async exec(ctx: CommandContext) {
     const { client } = ctx;
 
+    // TODO: fix options
     const verified_role = ctx.interaction.options.getRole("verified_role");
     const verification_channel = ctx.interaction.options.getChannel(
       "verification_channel"
