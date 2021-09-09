@@ -1,11 +1,29 @@
 import { Command, command, CommandContext } from "@lib";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
-import { setupVerificationEmbed } from "@verification";
+import { Application } from "discord.js";
 
 @command({
   name: "config",
   description: "edit server configuration. provide no options to view setup.",
   options: [
+    {
+      name: "verification_method",
+      description: "method user goes through to verify",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "button",
+          description: "user clicks the button to start verification",
+          type: ApplicationCommandOptionType.Boolean,
+        },
+        {
+          name: "manual",
+          description: "user runs /verify command to start verification",
+          type: ApplicationCommandOptionType.Boolean,
+        },
+      ],
+      required: false,
+    },
     {
       name: "verified_role",
       description: "role to add when user is verified",
@@ -58,8 +76,6 @@ export default class extends Command {
       await ctx.reply(
         `Setting ${verification_channel.toString()} as the "Verification Channel".`
       );
-
-      await setupVerificationEmbed(ctx.guild!, verification_channel.id);
     }
   }
 }

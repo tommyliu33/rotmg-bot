@@ -70,6 +70,7 @@ export default class extends Command {
       if (!to_verify) {
         await ctx.interaction.editReply("you are here.");
 
+        // this doesnt work
         const dm_channel = await ctx.user.createDM();
         const collected = await dm_channel.awaitMessages();
 

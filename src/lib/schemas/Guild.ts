@@ -1,7 +1,7 @@
 import { Fields } from "quickmongo";
 
 const GuildSchema = new Fields.ObjectField({
-  /* main verified role */
+  verification_method: new Fields.StringField(),
   verified_role: new Fields.StringField(),
   verification_channel: new Fields.StringField(),
 });

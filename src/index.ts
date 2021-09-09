@@ -15,6 +15,7 @@ client.on("ready", async () => {
   guilds.forEach(async (g) => {
     if (!(await client.guilds_db.get(g.id))) {
       await client.guilds_db.set(g.id, {
+        verification_method: "",
         verification_channel: "",
         verified_role: "",
       });
