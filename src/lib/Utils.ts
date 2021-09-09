@@ -26,6 +26,8 @@ export abstract class Utils {
     return read(directory);
   }
 
+  // TODO: check if in-dev -> use guild id to sync commands and then push globally
+  // we could have specific commands such as /verify globally
   static async syncCommands(bot: Bot): Promise<void> {
     const rest = new REST({ version: "9" }).setToken(process.env.bot_token!);
     const commands: { name: string; description: string; options: any[] }[] =

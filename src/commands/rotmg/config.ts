@@ -1,6 +1,6 @@
-import { Bot, Command, command, CommandContext, Verification } from "@lib";
+import { Command, command, CommandContext } from "@lib";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
-import { MessageEmbed } from "discord.js";
+import { setupVerificationEmbed } from "src/verification/setupVerificationEmbed";
 
 @command({
   name: "config",
@@ -22,7 +22,7 @@ import { MessageEmbed } from "discord.js";
 })
 export default class extends Command {
   public async exec(ctx: CommandContext) {
-    const client = ctx.client as Bot;
+    const { client } = ctx;
 
     const verified_role = ctx.interaction.options.getRole("verified_role");
     const verification_channel = ctx.interaction.options.getChannel(
@@ -59,7 +59,7 @@ export default class extends Command {
         `Setting ${verification_channel.toString()} as the "Verification Channel".`
       );
 
-      await client.verification.setup_embed(verification_channel.id);
+      await setupVerificationEmbed(ctx.guild!, verification_channel);
     }
   }
 }

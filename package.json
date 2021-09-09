@@ -23,6 +23,7 @@
   },
   "_moduleAliases": {
     "@lib": "dist/lib",
-    "@schemas": "dist/lib/schemas"
+    "@schemas": "dist/lib/schemas",
+    "@verification": "dist/verification"
   }
 }

@@ -1,8 +1,9 @@
 import "dotenv/config";
 import "module-alias/register";
 
-import { Bot, CommandContext, Utils, Verification } from "@lib";
+import { Bot, CommandContext, Utils } from "@lib";
 import { Guild, GuildMember } from "discord.js";
+import { verifyMember } from "@verification";
 
 const client = new Bot();
 client.on("ready", async () => {
@@ -51,11 +52,12 @@ client.on("interactionCreate", async (interaction) => {
         `Attempting to verifying you as \`${name}\`.`
       );
 
-      const verified = await client.verification.verify_player(
+      const verified = await verifyMember(
         interaction.member as GuildMember,
         interaction.guild as Guild,
         interaction.values[0]
       );
+
       if (verified) {
         await interaction.editReply(
           `You have been successfully verified in \`${interaction.guild?.name}\`!`

@@ -1,6 +1,6 @@
+import { Bot } from "@lib";
 import type { APIMessage } from "discord-api-types/v9";
 import type {
-  Client,
   CommandInteraction,
   InteractionReplyOptions,
   NewsChannel,
@@ -19,8 +19,8 @@ export class CommandContext {
     this.interaction = interaction;
   }
 
-  public get client(): Client {
-    return this.interaction.client;
+  public get client(): Bot {
+    return this.interaction.client as Bot;
   }
 
   public get guild(): Guild | null {

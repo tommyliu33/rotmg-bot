@@ -1,4 +1,4 @@
-import { Bot, Command, command, CommandContext } from "@lib";
+import { Command, command, CommandContext } from "@lib";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
 import { MessageActionRow, MessageEmbed, MessageSelectMenu } from "discord.js";
 
@@ -20,7 +20,7 @@ export default class extends Command {
 
     const name = ctx.interaction?.options?.getString("name");
 
-    const client = ctx.client as Bot;
+    const { client } = ctx;
     const users = await client.users_db.all();
 
     const to_verify = users.find((c) => c.ID === ctx.user.id);
@@ -68,8 +68,20 @@ export default class extends Command {
 
       // TODO: goto dms and setup
       if (!to_verify) {
-        console.log(name);
         await ctx.interaction.editReply("you are here.");
+
+        const dm_channel = await ctx.user.createDM();
+        const collected = await dm_channel.awaitMessages();
+
+        await dm_channel.send(
+          "Starting your verification process. Enter your `In-game name` below."
+        );
+
+        if (collected.size) {
+          console.log("we received messages", collected);
+        } else {
+          console.log("they did not do anything.", collected);
+        }
       }
     }
   }

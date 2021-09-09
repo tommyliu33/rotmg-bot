@@ -45,6 +45,9 @@
             ],
             "@schemas": [
                 "src/lib/schemas/index.ts"
+            ],
+            "@verification":  [
+			    "src/verification/index.ts" 
             ]
         }
     },
