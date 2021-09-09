@@ -1,6 +1,6 @@
 import { Command, command, CommandContext } from "@lib";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
-import { setupVerificationEmbed } from "src/verification/setupVerificationEmbed";
+import { setupVerificationEmbed } from "@verification";
 
 @command({
   name: "config",
@@ -59,7 +59,7 @@ export default class extends Command {
         `Setting ${verification_channel.toString()} as the "Verification Channel".`
       );
 
-      await setupVerificationEmbed(ctx.guild!, verification_channel);
+      await setupVerificationEmbed(ctx.guild!, verification_channel.id);
     }
   }
 }
