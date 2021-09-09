@@ -69,10 +69,16 @@ export default class extends Command {
       case "verified_role":
         const verifiedRole = ctx.interaction.options.getRole("role");
 
+        if (ctx.guild?.roles.everyone.id === verifiedRole?.id) {
+          await ctx.reply(
+            "Cannot set the `@everyone` role as the 'verified raider' role."
+          );
+        }
+
         await ctx.reply(
           `Setting \`${verifiedRole?.name}\` as the "Verified Raider" role.`
         );
-        
+
         await client.guilds_db.set(
           ctx.guild?.id!,
           verifiedRole?.id,

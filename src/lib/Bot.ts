@@ -16,6 +16,7 @@ export class Bot extends Client {
 
   public constructor() {
     super({
+      // TODO: intents may not be needed
       intents: [Intents.FLAGS.GUILDS],
     });
 
