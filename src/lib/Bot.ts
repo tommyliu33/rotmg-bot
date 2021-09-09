@@ -1,4 +1,4 @@
-import type { Command } from "@lib";
+import { Command, Verification } from "@lib";
 import { Client, Collection, Intents, Snowflake } from "discord.js";
 import { Db, MongoClient } from "mongodb";
 import { Collection as MongoCollection } from "quickmongo";
@@ -14,12 +14,16 @@ export class Bot extends Client {
   public users_db!: MongoCollection<typeof UserSchema>;
   public guilds_db!: MongoCollection<typeof GuildSchema>;
 
+  public verification: Verification;
+
   public constructor() {
     super({
       intents: [Intents.FLAGS.GUILDS],
     });
 
     this.mongo = new MongoClient(process.env.mongo_uri!);
+
+    this.verification = new Verification(this);
 
     this.init();
   }

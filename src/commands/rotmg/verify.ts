@@ -1,6 +1,6 @@
 import { Bot, Command, command, CommandContext } from "@lib";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
-import { MessageActionRow, MessageSelectMenu } from "discord.js";
+import { MessageActionRow, MessageEmbed, MessageSelectMenu } from "discord.js";
 
 @command({
   name: "verify",
@@ -15,14 +15,17 @@ import { MessageActionRow, MessageSelectMenu } from "discord.js";
   ],
 })
 export default class extends Command {
-  public async exec(ctx: CommandContext, { name }: { name: string }) {
+  public async exec(ctx: CommandContext) {
     await ctx.interaction.deferReply();
+
+    const name = ctx.interaction?.options?.getString("name");
 
     const client = ctx.client as Bot;
     const users = await client.users_db.all();
 
     const to_verify = users.find((c) => c.ID === ctx.user.id);
 
+    // TODO: most responses should be ephemeral
     if (name) {
       if (users.find((c) => c.data.names.includes(name))) {
         await ctx.interaction.editReply(
@@ -37,6 +40,9 @@ export default class extends Command {
           );
 
           await client.users_db.push(ctx.user.id, name, "names");
+        } else {
+          console.log(`${ctx.user.tag} does not exist`);
+          await ctx;
         }
       }
     } else {
@@ -47,15 +53,23 @@ export default class extends Command {
         const menu = new MessageActionRow().addComponents(
           new MessageSelectMenu()
             .setCustomId("select-ign-to-verify")
-            .setPlaceholder("Choose a name")
             .addOptions(names.map((c) => ({ label: c, value: c })))
         );
 
+        const embed = new MessageEmbed().setDescription(
+          "Select a name to verify as."
+        );
+
         await ctx.interaction.editReply({
-          content:
-            "Looks like you are verified in another servers, select a name to verify under.",
+          embeds: [embed],
           components: [menu],
         });
+      }
+
+      // TODO: goto dms and setup
+      if (!to_verify) {
+        console.log(name);
+        await ctx.interaction.editReply("you are here.");
       }
     }
   }

@@ -9,12 +9,24 @@ client.on("ready", async () => {
   await client.init();
   await Utils.syncCommands(client);
 
+  const guilds = await client.guilds.fetch();
+  // TODO: refactor
+  guilds.forEach(async (g) => {
+    if (!(await client.guilds_db.get(g.id))) {
+      await client.guilds_db.set(g.id, {
+        verification_channel: "",
+        verified_role: "",
+      });
+    }
+  });
+
   console.log("[discord] ready!");
 });
 
 // todo: refactor
 client.on("interactionCreate", async (interaction) => {
   if (interaction.isCommand()) {
+    // TODO: get options from Interaction#options instead of this
     const options = Object.assign(
       {},
       ...interaction.options.data.map((i) => ({ [i.name]: i.value }))
@@ -39,7 +51,7 @@ client.on("interactionCreate", async (interaction) => {
         `Attempting to verifying you as \`${name}\`.`
       );
 
-      const verified = await Verification.verify_player(
+      const verified = await client.verification.verify_player(
         interaction.member as GuildMember,
         interaction.guild as Guild,
         interaction.values[0]
@@ -50,6 +62,10 @@ client.on("interactionCreate", async (interaction) => {
         );
       }
     }
+  } else if (interaction.isButton() && interaction.inGuild()) {
+    const { user } = interaction;
+    // @ts-ignore
+    await client.commands.get("verify")?.exec(new CommandContext(interaction));
   }
 });
 

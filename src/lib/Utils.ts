@@ -1,12 +1,11 @@
 import { REST } from "@discordjs/rest";
 import type { Bot, Command } from "@lib";
 import { Routes } from "discord-api-types/v9";
-import type { NewsChannel, TextChannel, ThreadChannel } from "discord.js";
 import { lstatSync, readdirSync } from "fs";
 import { join, resolve } from "path";
 
-const user_id = "881663229670064221";
-const guild_id = "884659225224175626";
+const user_id = process.env.application_id;
+const guild_id = process.env.guild_id;
 
 export abstract class Utils {
   static walk(directory: string): string[] {
@@ -40,7 +39,7 @@ export abstract class Utils {
       bot.commands.set(name, command);
     }
 
-    await rest.put(Routes.applicationGuildCommands(user_id, guild_id), {
+    await rest.put(Routes.applicationGuildCommands(user_id!, guild_id!), {
       body: commands,
     });
     console.log("[slash commands] done.");

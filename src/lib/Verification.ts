@@ -1,6 +1,13 @@
 import { Bot, Player } from "@lib";
-import { APIInteractionGuildMember } from "discord-api-types/v9";
-import { Guild, GuildMember } from "discord.js";
+import { APIInteractionGuildMember, ButtonStyle } from "discord-api-types/v9";
+import {
+  Guild,
+  GuildMember,
+  MessageEmbed,
+  TextChannel,
+  MessageActionRow,
+  MessageButton,
+} from "discord.js";
 import petitio from "petitio";
 
 /* see https://github.com/Nightfirecat/RealmEye-API */
@@ -15,7 +22,7 @@ export class Verification {
     Object.defineProperty(this, "client", { value: client });
   }
 
-  public static async fetch_player_data(name: string): Promise<Player | void> {
+  public async fetch_player_data(name: string): Promise<Player | void> {
     const req = await petitio(`${api}?player=${name}`).send();
 
     if (req.statusCode?.toString().startsWith("4")) {
@@ -34,18 +41,18 @@ export class Verification {
   }
 
   /* return whether the verification was successful */
-  public static async verify_player(
+  public async verify_player(
     member: APIInteractionGuildMember | GuildMember,
     guild: Guild,
     name: string
   ): Promise<boolean> {
     /* they exist */
-    if (await Verification.fetch_player_data(name)) {
+    if (await this.fetch_player_data(name)) {
       const client = guild.client as Bot;
 
       const role_id = (await client.guilds_db.get(
         guild.id,
-        "verified_role_id"
+        "verified_role"
       )) as string;
 
       if (!(member instanceof GuildMember)) {
@@ -63,5 +70,33 @@ export class Verification {
     } else {
       return false;
     }
+  }
+
+  public async setup_embed(verification_channel: string) {
+    const channel = (await this.client.channels.fetch(
+      verification_channel
+    )) as TextChannel;
+    const { guild } = channel;
+
+    const embed = new MessageEmbed()
+      .setTitle(`\`${guild.name} verification\``)
+      .setDescription(
+        [
+          "**Follow the steps below:**",
+          "",
+          "`1.` Make sure the bot can send you a **Direct Message**",
+          "",
+          "**Verification Requirements**",
+          "• Not an alt.",
+        ].join("\n")
+      );
+    const buttons = new MessageActionRow().addComponents(
+      new MessageButton()
+        .setCustomId("verify-button")
+        .setLabel("verify me!")
+        .setStyle("PRIMARY")
+    );
+
+    await channel.send({ embeds: [embed], components: [buttons] });
   }
 }
