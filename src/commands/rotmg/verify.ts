@@ -19,18 +19,10 @@ export default class extends Command {
   public async exec(ctx: CommandContext) {
     await ctx.interaction.deferReply({ ephemeral: true });
 
-    const name = ctx.interaction.options.getString("name");
-
-    const verified = await verifyMember(
-      ctx.interaction.member as GuildMember,
-      ctx.channel,
-      ctx.interaction.guild as Guild,
-      name as string,
-      ctx.interaction
-    );
+    const status = await verifyMember(ctx);
 
     let msg: string = "";
-    switch (verified) {
+    switch (status) {
       case -1:
         msg = "The server's setup is invalid.";
         break;
