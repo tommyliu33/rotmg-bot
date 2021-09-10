@@ -55,7 +55,6 @@ export default class extends Command {
     const { client } = ctx;
 
     const subcommand = ctx.interaction.options.getSubcommand();
-    console.log(subcommand);
     switch (subcommand) {
       case "button":
       case "manual":

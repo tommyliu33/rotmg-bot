@@ -10,7 +10,7 @@ import type {
 } from "discord.js";
 import { Guild, Message, MessageEmbed } from "discord.js";
 
-type MessageChannel = TextChannel | ThreadChannel | NewsChannel;
+export type MessageChannel = TextChannel | ThreadChannel | NewsChannel;
 
 export class CommandContext {
   public readonly interaction: CommandInteraction;

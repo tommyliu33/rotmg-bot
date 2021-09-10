@@ -1,6 +1,6 @@
 import { Command, command, CommandContext } from "@lib";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
-import { verifyMember, VerificationStatus } from "@verification";
+import { verifyMember } from "@verification";
 import { Guild, GuildMember } from "discord.js";
 
 @command({
@@ -17,14 +17,18 @@ import { Guild, GuildMember } from "discord.js";
 })
 export default class extends Command {
   public async exec(ctx: CommandContext) {
+    await ctx.interaction.deferReply({ ephemeral: true });
+
     const name = ctx.interaction.options.getString("name");
+
     const verified = await verifyMember(
       ctx.interaction.member as GuildMember,
+      ctx.channel,
       ctx.interaction.guild as Guild,
       name as string
     );
 
-    let msg = "";
+    let msg: string = "";
     switch (verified) {
       case -1:
         msg = "The server's setup is invalid.";
@@ -40,6 +44,6 @@ export default class extends Command {
         break;
     }
 
-    await ctx.reply({ content: msg, ephemeral: true });
+    await ctx.interaction.editReply({ content: msg });
   }
 }
