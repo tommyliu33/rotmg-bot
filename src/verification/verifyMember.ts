@@ -1,6 +1,7 @@
-import { Bot, MessageChannel } from "@lib";
+import { Bot, command, MessageChannel } from "@lib";
 import type { APIInteractionGuildMember } from "discord-api-types/v9";
 import {
+  CommandInteraction,
   Guild,
   GuildMember,
   MessageActionRow,
@@ -23,18 +24,12 @@ export enum VerificationStatus {
   IN_PROGRESS = 3,
 }
 
-/**
- * verify a raider
- * @param member member to verify
- * @param channel channel where interaction was ran
- * @param guild the guild
- * @param name if the name is not given -> assume they have only one saved name and use that
- */
 export async function verifyMember(
   member: APIInteractionGuildMember | GuildMember,
   channel: MessageChannel,
   guild: Guild,
-  name?: string
+  name?: string,
+  commandInteraction?: CommandInteraction
 ): Promise<VerificationStatus> {
   const client = guild.client as Bot;
 
@@ -52,17 +47,13 @@ export async function verifyMember(
       member = await guild.members.fetch(member.user.id);
     if (member.pending) return reject(VerificationStatus.MEMBERSHIP_SCREENING);
 
-    /* a name to verify is given */
     if (name) {
-      /* user already has the nick set */
       if (users.find((c) => c.data.names.includes(name))) {
         return reject(VerificationStatus.ALREADY_VERIFIED);
       } else {
-        /* if they provided a name not saved in db */
         if (target) {
           await client.users_db.push(member.user.id, name, "names");
         } else {
-          /* first time verifying and they provide a name */
           await client.users_db.set(member.user.id, { names: [] });
           await client.users_db.push(member.user.id, name, "names");
         }
@@ -70,9 +61,7 @@ export async function verifyMember(
     } else {
       const names: string[] | undefined = target?.data?.names;
 
-      /* we have some names to pick from */
       if (names) {
-        console.log("starting selection");
         const menu = new MessageActionRow().addComponents(
           new MessageSelectMenu()
             .setCustomId("select-ign-to-verify")
@@ -81,9 +70,13 @@ export async function verifyMember(
 
         const msg = await channel.send({
           embeds: [
-            new MessageEmbed().setDescription(
-              "Select a name to verify as.\nYou have 1 minute."
-            ),
+            new MessageEmbed()
+              .setDescription(
+                ["Select a name to verify under.", "You have 1 minute."].join(
+                  "\n\n"
+                )
+              )
+              .setColor("BLUE"),
           ],
           components: [menu],
         });
@@ -93,30 +86,28 @@ export async function verifyMember(
           return i.user.id === member.user.id;
         };
 
-        msg
+        const interaction = await msg
           .awaitMessageComponent({
             filter,
             componentType: "SELECT_MENU",
-            time: 60000,
+            time: 15000,
           })
-          .then(async (interaction) => {
-            const { values } = interaction as SelectMenuInteraction;
-            if (interaction.customId !== "select-ign-to-verify") return;
+          .catch(() => {});
 
-            const name = values[0];
-            resolve(await finish(member as GuildMember, role, name));
+        if (!interaction) {
+          await msg.delete();
+          await commandInteraction?.editReply("Time ran out.");
+        } else {
+          const { values, customId } = interaction as SelectMenuInteraction;
+          if (customId !== "select-ign-to-verify") return;
 
-            await msg.delete();
-            return;
-          });
+          const name = values[0];
+          resolve(await finish(member as GuildMember, role, name));
+
+          await msg.delete();
+          return;
+        }
       }
-
-      // TODO: goto dms and setup
-      /*if (!target) {
-        console.log("Here");
-      }
-
-      resolve(await finish(member as GuildMember, role, name as string));*/
     }
   });
 }

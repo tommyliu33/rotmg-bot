@@ -25,7 +25,8 @@ export default class extends Command {
       ctx.interaction.member as GuildMember,
       ctx.channel,
       ctx.interaction.guild as Guild,
-      name as string
+      name as string,
+      ctx.interaction
     );
 
     let msg: string = "";
@@ -40,7 +41,7 @@ export default class extends Command {
         msg = "You have been successfully verified!";
         break;
       case 2:
-        msg = "You are already verified";
+        msg = "You are already verified.";
         break;
     }
 
