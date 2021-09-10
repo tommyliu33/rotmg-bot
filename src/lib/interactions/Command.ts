@@ -25,13 +25,11 @@ export class Command {
 
   public constructor(data: CommandOptions) {
     this.name = data.name;
-
-    /* assigning default values are probably not be necessary */
     this.description = data.description ??= "";
     this.options = data.options ??= [];
   }
 
-  public exec(ctx: CommandContext, options?: Record<string, any>): any {
-    void [ctx, options];
+  public exec(ctx: CommandContext): any {
+    void [ctx];
   }
 }

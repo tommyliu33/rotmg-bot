@@ -25,17 +25,11 @@ client.on("ready", async () => {
   console.log("[discord] ready!");
 });
 
-// todo: refactor
 client.on("interactionCreate", async (interaction) => {
   if (interaction.isCommand()) {
-    // TODO: get options from Interaction#options instead of this
-    const options = Object.assign(
-      {},
-      ...interaction.options.data.map((i) => ({ [i.name]: i.value }))
-    );
     client.commands
       .get(interaction.commandName)
-      ?.exec(new CommandContext(interaction), options);
+      ?.exec(new CommandContext(interaction));
   } else if (interaction.isButton() && interaction.inGuild()) {
     // user clicks the button
     const { user } = interaction;
