@@ -2,10 +2,9 @@ console.log("[bot] init");
 
 import "dotenv/config";
 import "module-alias/register";
+import "source-map-support/register";
 
 import { Bot, CommandContext, Utils } from "@lib";
-import { Guild, GuildMember } from "discord.js";
-import { verifyMember } from "@verification";
 
 const client = new Bot();
 client.on("ready", async () => {
@@ -38,39 +37,11 @@ client.on("interactionCreate", async (interaction) => {
     client.commands
       .get(interaction.commandName)
       ?.exec(new CommandContext(interaction), options);
-  } else if (interaction.isSelectMenu() && interaction.inGuild()) {
-    if (interaction.customId === "select-ign-to-verify") {
-      const guild_member = await interaction.guild?.members.fetch(
-        interaction.user.id
-      );
-      if (guild_member?.pending) {
-        await interaction.editReply(
-          "You cannot verify until you complete the server's membership screening."
-        );
-      }
-      const name = interaction.values[0];
-
-      await interaction.deferReply();
-      await interaction.editReply(
-        `Attempting to verifying you as \`${name}\`.`
-      );
-
-      const verified = await verifyMember(
-        interaction.member as GuildMember,
-        interaction.guild as Guild,
-        interaction.values[0]
-      );
-
-      if (verified) {
-        await interaction.editReply(
-          `You have been successfully verified in \`${interaction.guild?.name}\`!`
-        );
-      }
-    }
   } else if (interaction.isButton() && interaction.inGuild()) {
+    // user clicks the button
     const { user } = interaction;
-    // @ts-ignore
-    await client.commands.get("verify")?.exec(new CommandContext(interaction));
+    // TODO:
+    // verifyMember();
   }
 });
 
