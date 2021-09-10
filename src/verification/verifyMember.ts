@@ -1,5 +1,8 @@
-import { CommandContext } from "@lib";
+import { Bot, command, MessageChannel } from "@lib";
+import type { APIInteractionGuildMember } from "discord-api-types/v9";
 import {
+  CommandInteraction,
+  Guild,
   GuildMember,
   MessageActionRow,
   MessageComponentInteraction,
@@ -22,25 +25,26 @@ export enum VerificationStatus {
 }
 
 export async function verifyMember(
-  ctx: CommandContext
+  member: APIInteractionGuildMember | GuildMember,
+  channel: MessageChannel,
+  guild: Guild,
+  name?: string,
+  commandInteraction?: CommandInteraction
 ): Promise<VerificationStatus> {
-  const { client, guild, user, channel } = ctx;
+  const client = guild.client as Bot;
 
   const users = await client.users_db.all();
-  const target = users.find((c) => c.ID === user.id);
-
-  const name = ctx.interaction.options.getString("name");
+  const target = users.find((c) => c.ID === member.user.id);
 
   const role = (await client.guilds_db.get(
-    guild!.id,
+    guild.id,
     "verified_role"
   )) as string;
   return new Promise(async (resolve, reject) => {
     if (!role) return reject(VerificationStatus.INVALID_SETUP);
 
-    const member = await guild?.members.fetch(user.id);
-    if (!member) return reject(VerificationStatus.FAILED);
-
+    if (!(member instanceof GuildMember))
+      member = await guild.members.fetch(member.user.id);
     if (member.pending) return reject(VerificationStatus.MEMBERSHIP_SCREENING);
 
     if (name) {
@@ -92,7 +96,7 @@ export async function verifyMember(
 
         if (!interaction) {
           await msg.delete();
-          await ctx.interaction.editReply("Time ran out.");
+          await commandInteraction?.editReply("Time ran out.");
         } else {
           const { values, customId } = interaction as SelectMenuInteraction;
           if (customId !== "select-ign-to-verify") return;
