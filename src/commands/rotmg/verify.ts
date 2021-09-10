@@ -19,7 +19,8 @@ export default class extends Command {
   public async exec(ctx: CommandContext) {
     await ctx.interaction.deferReply({ ephemeral: true });
 
-    const status = await verifyMember(ctx);
+    const status = await verifyMember(ctx).catch(() => {});
+    console.log("status", status);
 
     let msg: string = "";
     switch (status) {
@@ -29,11 +30,22 @@ export default class extends Command {
       case 0:
         msg = "An error occured while trying to verify you.";
         break;
+      case -2:
+        msg =
+          "You must complete the server's membership screening before starting verification.";
+        break;
+      case -3:
+        msg =
+          "Could not find RealmEye profile, the account is privated or does not exist.";
+        break;
       case 1:
         msg = "You have been successfully verified!";
         break;
       case 2:
         msg = "You are already verified.";
+        break;
+      case 4:
+        msg = "Just added your role, you are already logged!";
         break;
     }
 

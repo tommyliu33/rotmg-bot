@@ -1,4 +1,5 @@
 import { CommandContext } from "@lib";
+import { fetchPlayer } from "@verification";
 import {
   GuildMember,
   MessageActionRow,
@@ -13,10 +14,13 @@ export enum VerificationStatus {
   FAILED = 0,
   INVALID_SETUP = -1,
   MEMBERSHIP_SCREENING = -2,
+  PRIVATE = -3,
 
   // good
   SUCCESSFUL = 1,
   ALREADY_VERIFIED = 2,
+
+  ADDED_ROLE = 4,
 
   IN_PROGRESS = 3,
 }
@@ -35,23 +39,30 @@ export async function verifyMember(
     guild!.id,
     "verified_role"
   )) as string;
-  return new Promise(async (resolve, reject) => {
-    if (!role) return reject(VerificationStatus.INVALID_SETUP);
+  return new Promise(async (resolve) => {
+    if (!role) return resolve(VerificationStatus.INVALID_SETUP);
 
     const member = await guild?.members.fetch(user.id);
-    if (!member) return reject(VerificationStatus.FAILED);
+    if (!member) return resolve(VerificationStatus.FAILED);
 
-    if (member.pending) return reject(VerificationStatus.MEMBERSHIP_SCREENING);
+    if (member.pending) return resolve(VerificationStatus.MEMBERSHIP_SCREENING);
 
     if (name) {
-      if (users.find((c) => c.data.names.includes(name))) {
-        return reject(VerificationStatus.ALREADY_VERIFIED);
+      if (target?.data.names.includes(name)) {
+        target?.data.names.push(name);
+        await finish(member, role, target?.data.names);
+        return resolve(VerificationStatus.ADDED_ROLE);
       } else {
         if (target) {
           await client.users_db.push(member.user.id, name, "names");
         } else {
           await client.users_db.set(member.user.id, { names: [] });
-          await client.users_db.push(member.user.id, name, "names");
+
+          const player = await fetchPlayer(name);
+
+          if (!player) return resolve(VerificationStatus.PRIVATE);
+          else await client.users_db.push(member.user.id, name, "names");
+          await finish(member, role, [name]);
         }
       }
     } else {
@@ -97,8 +108,7 @@ export async function verifyMember(
           const { values, customId } = interaction as SelectMenuInteraction;
           if (customId !== "select-ign-to-verify") return;
 
-          const name = values[0];
-          resolve(await finish(member as GuildMember, role, name));
+          resolve(await finish(member as GuildMember, role, [name as string]));
 
           await msg.delete();
           return;
@@ -111,12 +121,12 @@ export async function verifyMember(
 async function finish(
   member: GuildMember,
   role: string,
-  name: string
+  names: string[]
 ): Promise<VerificationStatus> {
   return new Promise(async (resolve, reject) => {
     try {
       await member.roles.add(role);
-      await member.setNickname(name);
+      await member.setNickname(names.join(" | "));
       resolve(VerificationStatus.SUCCESSFUL);
     } catch (e) {
       reject(VerificationStatus.FAILED);
