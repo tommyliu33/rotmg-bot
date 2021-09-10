@@ -2,7 +2,6 @@ console.log("[bot] init");
 
 import "dotenv/config";
 import "module-alias/register";
-import "source-map-support/register";
 
 import { Bot, CommandContext, Utils } from "@lib";
 
