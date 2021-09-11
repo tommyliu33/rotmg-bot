@@ -28,7 +28,8 @@ const dungeons: Dungeon[] = [
       },
       {
         name: "key",
-        emote: "<:lost_halls_key:886130322964639755>",
+        emote:
+          "<:lost_halls_key:886130322964639755>|<:vial:886326037212966922>",
         limit: 0,
       },
     ],
@@ -66,6 +67,7 @@ const dungeons: Dungeon[] = [
       },
       {
         name: "runes",
+        // we can just split by |
         emote:
           "<:sword_rune:886134621127991337>|<:shield_rune:886134621178331167>|<:helmet_rune:886134621685837824>",
         limit: 2,

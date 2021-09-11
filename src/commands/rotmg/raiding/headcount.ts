@@ -34,14 +34,23 @@ export default class extends Command {
 
     const { thumbnail, color, reacts } = dungeon;
 
-    const runes = reacts[1].emote.includes("|");
+    const multipleKeys = reacts[1].emote.includes("|");
+
+    console.log(subcommand, reacts[1].emote.split("|"));
+
     const description: string[] = [
       `React ${reacts[0].emote} to participate.`,
       `React ${
-        runes
-          ? reacts[1].emote.split("|").join("") // o3 runes
+        multipleKeys
+          ? reacts[1].emote.split("|").join("") // multiple keys
           : reacts[1].emote // default
-      } if you are willing to pop ${runes ? "runes" : "a key"} for the raid.`,
+      } if you are willing to pop ${
+        reacts[1].emote.split("|").length === 2
+          ? "a key & vial"
+          : reacts[1].emote.split("|").length === 3
+          ? "runes"
+          : "a key"
+      } for the raid.`,
       "",
       // TODO: add gear emotes
       `React with gear choices below:`,
