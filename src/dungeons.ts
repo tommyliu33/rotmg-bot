@@ -1,8 +1,11 @@
+import type { ColorResolvable } from "discord.js";
+
 interface Dungeon {
   name: string;
   "full-name": string;
   reacts: DungeonReacts[];
 
+  color?: ColorResolvable;
   thumbnail: string;
 }
 
@@ -11,6 +14,7 @@ interface DungeonReacts {
   limit: number;
 }
 
+/* mainly exaltation dungeons, others can be "misc" with a provided title */
 const dungeons: Dungeon[] = [
   {
     name: "void",
@@ -23,6 +27,7 @@ const dungeons: Dungeon[] = [
     ],
 
     thumbnail: "https://i.imgur.com/kbzthE4.png",
+    color: "#1a026c",
   },
   {
     name: "cult",
@@ -35,6 +40,7 @@ const dungeons: Dungeon[] = [
     ],
 
     thumbnail: "https://i.imgur.com/nPkovWR.png",
+    color: "DARK_RED",
   },
   {
     name: "o3",
@@ -47,6 +53,7 @@ const dungeons: Dungeon[] = [
     ],
 
     thumbnail: "https://i.imgur.com/3Biywi7.png",
+    color: "YELLOW",
   },
 ];
 

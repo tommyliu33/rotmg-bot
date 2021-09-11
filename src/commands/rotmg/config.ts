@@ -51,7 +51,7 @@ import { ApplicationCommandOptionType } from "discord-api-types/v9";
   ],
 })
 export default class extends Command {
-  public async exec(ctx: CommandContext) {
+  public async exec(ctx: CommandContext): Promise<void> {
     const { client } = ctx;
 
     const subcommand = ctx.interaction.options.getSubcommand();
@@ -63,13 +63,14 @@ export default class extends Command {
           subcommand,
           "verification_method"
         );
-        await ctx.reply(`Setting \`verificationMethod\` to **${subcommand}**.`);
-        break;
+        return await ctx.reply(
+          `Setting \`verificationMethod\` to **${subcommand}**.`
+        );
       case "verified_role":
         const verifiedRole = ctx.interaction.options.getRole("role");
 
         if (ctx.guild?.roles.everyone.id === verifiedRole?.id) {
-          await ctx.reply(
+          return await ctx.reply(
             "Cannot set the `@everyone` role as the 'verified raider' role."
           );
         }
@@ -83,7 +84,7 @@ export default class extends Command {
           verifiedRole?.id,
           "verified_role"
         );
-        break;
+        return;
       case "verification_channel":
         const verificationChannel =
           ctx.interaction.options.getChannel("channel");
@@ -98,10 +99,9 @@ export default class extends Command {
           "verification_channel"
         );
 
-        await ctx.reply(
+        return await ctx.reply(
           `Setting ${verificationChannel.toString()} as the "Verification Channel".`
         );
-        break;
     }
   }
 }

@@ -5,7 +5,7 @@ import { Command, command, CommandContext } from "@lib";
   description: "pong.",
 })
 export default class extends Command {
-  public async exec(ctx: CommandContext) {
-    await ctx.reply("pong.");
+  public async exec(ctx: CommandContext): Promise<void> {
+    return await ctx.reply("pong.");
   }
 }

@@ -1,5 +1,4 @@
 import { Command, command, CommandContext } from "@lib";
-import { stripIndents } from "common-tags";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
 import { MessageEmbed } from "discord.js";
 import { dungeons } from "../../../dungeons";
@@ -28,15 +27,19 @@ export default class extends Command {
     const subcommand = ctx.interaction.options.getSubcommand();
 
     const dungeon = dungeons.find((c) => c.name === subcommand);
-    if (!dungeon) await ctx.interaction.editReply("dungeon data not found.");
+    if (!dungeon)
+      return await ctx.interaction.editReply("dungeon data not found.");
+
+    const { thumbnail, color } = dungeon;
 
     const description: string[] = [
-      `React with ${dungeon!.reacts[0].emote} to join.`,
+      `React with ${dungeon.reacts[0].emote} to join.`,
     ];
 
     const embed = new MessageEmbed()
-      .setThumbnail(dungeon!.thumbnail)
-      .setTitle(`\`${dungeon?.["full-name"]}\``)
+      .setColor(color ?? 0)
+      .setThumbnail(thumbnail)
+      .setTitle(`\`${dungeon["full-name"]}\``)
       .setDescription(description.join("\n"));
     await ctx.interaction.editReply({ content: "@here", embeds: [embed] });
   }

@@ -1,7 +1,7 @@
 import { Command, command, CommandContext } from "@lib";
-import { ApplicationCommandOptionType } from "discord-api-types/v9";
 import { verifyMember } from "@verification";
-import { Guild, GuildMember } from "discord.js";
+import { APIMessage, ApplicationCommandOptionType } from "discord-api-types/v9";
+import type { Message } from "discord.js";
 
 @command({
   name: "verify",
@@ -16,7 +16,7 @@ import { Guild, GuildMember } from "discord.js";
   ],
 })
 export default class extends Command {
-  public async exec(ctx: CommandContext) {
+  public async exec(ctx: CommandContext): Promise<Message | APIMessage> {
     await ctx.interaction.deferReply({ ephemeral: true });
 
     const status = await verifyMember(ctx).catch(() => {});
@@ -49,6 +49,6 @@ export default class extends Command {
         break;
     }
 
-    await ctx.interaction.editReply({ content: msg });
+    return await ctx.interaction.editReply({ content: msg });
   }
 }

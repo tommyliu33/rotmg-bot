@@ -1,6 +1,7 @@
 import { Command, command, CommandContext } from "@lib";
 import { setupVerificationEmbed } from "@verification";
-import { ApplicationCommandOptionType } from "discord-api-types/v9";
+import { APIMessage, ApplicationCommandOptionType } from "discord-api-types/v9";
+import type { Message } from "discord.js";
 
 @command({
   name: "setup",
@@ -21,7 +22,7 @@ import { ApplicationCommandOptionType } from "discord-api-types/v9";
   ],
 })
 export default class extends Command {
-  public async exec(ctx: CommandContext) {
+  public async exec(ctx: CommandContext): Promise<Message | APIMessage> {
     const { options } = ctx.interaction;
 
     await ctx.interaction.deferReply();
@@ -36,6 +37,6 @@ export default class extends Command {
       return await ctx.interaction.editReply("Done.");
     }
 
-    await ctx.interaction.editReply("hello world.");
+    return await ctx.interaction.editReply("hello world.");
   }
 }
