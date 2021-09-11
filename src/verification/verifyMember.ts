@@ -48,21 +48,23 @@ export async function verifyMember(
     if (member.pending) return resolve(VerificationStatus.MEMBERSHIP_SCREENING);
 
     if (name) {
+      console.log("started with a name");
       if (target?.data.names.includes(name)) {
         target?.data.names.push(name);
         await finish(member, role, target?.data.names);
         return resolve(VerificationStatus.ADDED_ROLE);
       } else {
+        const player = await fetchPlayer(name);
+
+        console.log("Here");
+        if (!player) return resolve(VerificationStatus.PRIVATE);
         if (target) {
           await client.users_db.push(member.user.id, name, "names");
         } else {
           await client.users_db.set(member.user.id, { names: [] });
+          await client.users_db.push(member.user.id, name, "names");
 
-          const player = await fetchPlayer(name);
-
-          if (!player) return resolve(VerificationStatus.PRIVATE);
-          else await client.users_db.push(member.user.id, name, "names");
-          await finish(member, role, [name]);
+          resolve(await finish(member, role, [name]));
         }
       }
     } else {
@@ -108,7 +110,17 @@ export async function verifyMember(
           const { values, customId } = interaction as SelectMenuInteraction;
           if (customId !== "select-ign-to-verify") return;
 
-          resolve(await finish(member as GuildMember, role, [name as string]));
+          const toAdd = [];
+          if (member.roles.cache.has(role)) {
+            const names = member.nickname?.split(" | ") as string[];
+            console.log("names 1", names);
+            if (!names || names.length === 0) toAdd.push(values[0]); // no nick
+            if (names.length && !names?.includes(values[0]))
+              toAdd.push(...names, values[0]);
+          } else toAdd.push(values[0]);
+
+          console.log("toAdd", toAdd);
+          resolve(await finish(member as GuildMember, role, toAdd));
 
           await msg.delete();
           return;
@@ -121,12 +133,15 @@ export async function verifyMember(
 async function finish(
   member: GuildMember,
   role: string,
-  names: string[]
+  value: string | string[]
 ): Promise<VerificationStatus> {
   return new Promise(async (resolve, reject) => {
+    console.log("names", value);
     try {
       await member.roles.add(role);
-      await member.setNickname(names.join(" | "));
+      await member.setNickname(
+        typeof value === "string" ? value : value.join(" | ")
+      );
       resolve(VerificationStatus.SUCCESSFUL);
     } catch (e) {
       reject(VerificationStatus.FAILED);
