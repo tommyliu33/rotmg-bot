@@ -4,7 +4,6 @@ import { Db, MongoClient } from "mongodb";
 import { Collection as MongoCollection } from "quickmongo";
 
 import { GuildSchema, UserSchema } from "@schemas";
-
 export class Bot extends Client {
   public readonly commands: Collection<Snowflake, Command> = new Collection();
 

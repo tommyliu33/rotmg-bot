@@ -10,6 +10,7 @@ interface Dungeon {
 }
 
 interface DungeonReacts {
+  name: string;
   emote: string;
   limit: number;
 }
@@ -21,8 +22,14 @@ const dungeons: Dungeon[] = [
     "full-name": "The Void",
     reacts: [
       {
+        name: "join",
         emote: "<:void:886066308075114527>",
         limit: 0, // no limit
+      },
+      {
+        name: "key",
+        emote: "<:lost_halls_key:886130322964639755>",
+        limit: 0,
       },
     ],
 
@@ -34,7 +41,13 @@ const dungeons: Dungeon[] = [
     "full-name": "Cultist Hideout",
     reacts: [
       {
+        name: "join",
         emote: "<:malus:886067005659160576>",
+        limit: 0,
+      },
+      {
+        name: "key",
+        emote: "<:lost_halls_key:886130322964639755>",
         limit: 0,
       },
     ],
@@ -47,8 +60,15 @@ const dungeons: Dungeon[] = [
     "full-name": "Oryx Sanctuary",
     reacts: [
       {
+        name: "join",
         emote: "<:o3:886067360820236338>",
         limit: 0,
+      },
+      {
+        name: "runes",
+        emote:
+          "<:sword_rune:886134621127991337>|<:shield_rune:886134621178331167>|<:helmet_rune:886134621685837824>",
+        limit: 2,
       },
     ],
 
