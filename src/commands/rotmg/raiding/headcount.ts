@@ -1,5 +1,5 @@
 import { Command, command, CommandContext } from "@lib";
-import { oneLine } from "common-tags";
+import { oneLine, stripIndents } from "common-tags";
 import { APIMessage, ApplicationCommandOptionType } from "discord-api-types/v9";
 import {
   Message,
@@ -31,7 +31,7 @@ export default class extends Command {
   public async exec(
     ctx: CommandContext
   ): Promise<Message | APIMessage | undefined> {
-    await ctx.interaction.deferReply(/*{ ephemeral: true }*/);
+    await ctx.interaction.deferReply({ ephemeral: true });
 
     let dungeonName = ctx.interaction.options.getString("dungeon");
     let voiceChannel = ctx.interaction.options.getChannel("vc");
@@ -40,6 +40,7 @@ export default class extends Command {
     const channels = await guild?.channels.fetch().catch(() => {});
     const voiceChannels = channels?.filter((c) => c.type === "GUILD_VOICE");
 
+    const embed = new MessageEmbed();
     if (!voiceChannel) {
       const row = new MessageActionRow().addComponents(
         new MessageSelectMenu().setCustomId("select-voice-channel").addOptions(
@@ -50,11 +51,12 @@ export default class extends Command {
         )
       );
 
-      const embed = new MessageEmbed()
-        .setColor("BLURPLE")
-        .setDescription(
-          "Select a voice channel for the raid.\nYou have 1 minute."
-        );
+      embed.setColor("BLURPLE").setDescription(
+        stripIndents`
+          Select a voice channel for the raid.
+          You have 1 minute.
+          `
+      );
 
       const msg = (await ctx.interaction.editReply({
         embeds: [embed],
@@ -101,9 +103,10 @@ export default class extends Command {
         )
       );
 
-      const embed = new MessageEmbed()
-        .setColor("BLURPLE")
-        .setDescription("Select the dungeon the raid.\nYou have 1 minute.");
+      embed.setDescription(
+        stripIndents`Select the dungeon the raid.
+        You have 1 minute.`
+      );
 
       const msg = (await ctx.interaction.editReply({
         embeds: [embed],
@@ -163,18 +166,18 @@ export default class extends Command {
         .join(" ")}`,
       ];
 
-      const embed = new MessageEmbed()
+      embed
         .setTimestamp()
         .setColor(color ?? 0)
         .setThumbnail(thumbnail)
         .setTitle(`\`${dungeon["full-name"]}\``)
-        .setDescription(description.join("\n"));
+        .setDescription(description.join("\n")); // everything gets overwritten anyways
 
-      let msg = (await ctx.interaction.followUp({
+      const msg = await ctx.channel.send({
         content: oneLine`@here ${reacts[0].emote} \`${dungeon["full-name"]}\`
           headcount started by <@${ctx.user.id}> for ${voiceChannel?.name}`,
         embeds: [embed],
-      })) as Message;
+      });
 
       // handle reactions
       await Promise.all(
