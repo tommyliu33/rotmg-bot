@@ -99,7 +99,7 @@ export async function verifyMember(
           .awaitMessageComponent({
             filter,
             componentType: "SELECT_MENU",
-            time: 15000,
+            time: 60000,
           })
           .catch(() => {});
 
