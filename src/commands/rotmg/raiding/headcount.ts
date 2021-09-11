@@ -10,6 +10,7 @@ import {
   SelectMenuInteraction,
 } from "discord.js";
 import { dungeons } from "../../../dungeons";
+import { bold, inlineCode, memberNicknameMention } from "@discordjs/builders";
 
 @command({
   name: "headcount",
@@ -54,8 +55,7 @@ export default class extends Command {
       embed.setColor("BLURPLE").setDescription(
         stripIndents`
           Select a voice channel for the raid.
-          You have 1 minute.
-          `
+          You have 1 minute.`
       );
 
       const msg = (await ctx.interaction.editReply({
@@ -76,19 +76,20 @@ export default class extends Command {
         })
         .catch(() => {});
 
-      if (!interaction) {
-        await ctx.interaction.editReply("failed to select vc, aborting.");
-      } else {
+      if (!interaction)
+        return await ctx.interaction.editReply(
+          "Failed to select voice channel in time, cancelling."
+        );
+      else {
         const { values, customId } = interaction as SelectMenuInteraction;
         if (customId !== "select-voice-channel") return;
 
         voiceChannel = channels?.find((c) => c.name === values[0])!;
-        console.log("done with channel selection");
       }
     } else {
       if (voiceChannel?.type !== "GUILD_VOICE")
         return await ctx.interaction.editReply(
-          "vc channel should actually be a vc."
+          "The targetted channel must be a voice channel."
         );
     }
 
@@ -127,55 +128,84 @@ export default class extends Command {
         .catch(() => {});
 
       if (!interaction) {
-        await ctx.interaction.editReply("failed to select dungeon, aborting.");
+        return await ctx.interaction.editReply(
+          "Failed to select dungeon in time, cancelling."
+        );
       } else {
         const { values, customId } = interaction as SelectMenuInteraction;
         if (customId !== "select-dungeon") return;
 
         dungeonName = values[0];
         dungeon = dungeons.find((c) => c.name === dungeonName);
-
-        console.log("done with dungeon selection");
       }
     }
 
     if (dungeon && voiceChannel && voiceChannel.type === "GUILD_VOICE") {
-      console.log("here.");
       const { thumbnail, color, reacts } = dungeon!;
 
-      const multipleKeys = reacts[1].emote.includes("|");
-
-      const description: string[] = [
+      const description = [
         `React with ${reacts[0].emote} to participate.`,
         `React with ${
-          multipleKeys
-            ? reacts[1].emote.split("|").join("") // multiple keys
-            : reacts[1].emote // default
+          reacts[1].emote.includes("|")
+            ? reacts[1].emote.split("|").join("")
+            : reacts[1].emote
         } if you are willing to pop ${
           reacts[1].emote.split("|").length === 2
-            ? "a key & vial"
+            ? "a key/vial"
             : reacts[1].emote.split("|").length === 4
             ? "runes/inc"
             : "a key"
         } for the raid.`,
-        "",
-        `React below to indiciate **classes/gear** that you're **bringing**:
-      ${reacts
-        .slice(2)
-        .map((e) => e.emote)
-        .join(" ")}`,
-      ];
+        reacts[2].name === "rusher"
+          ? `\nReact with ${reacts[2].emote} if you plan on rushing!`
+          : "",
+        `React below to indiciate ${bold("classes/gear")} that you're ${bold(
+          "bringing"
+        )}\n${reacts
+          .slice(reacts[2].name === "rusher" ? 3 : 2)
+          .map((e) => e.emote)
+          .join(" ")}`,
+      ].join("\n");
 
       embed
-        .setTimestamp()
-        .setColor(color ?? 0)
+        .setTitle(inlineCode(dungeon["full-name"]))
+        .setDescription(description)
         .setThumbnail(thumbnail)
-        .setTitle(`\`${dungeon["full-name"]}\``)
-        .setDescription(description.join("\n")); // everything gets overwritten anyways
+        .setTimestamp()
+        .setColor(color ?? 0);
+
+      /*.setDescription(stripIndents`
+        React with ${reacts[0].emote} to participate.
+        React with ${
+          reacts[1].emote.includes("|")
+            ? reacts[1].emote.split("|").join("")
+            : reacts[1].emote
+        } if you are willing to pop ${
+        reacts[1].emote.split("|").length === 2
+          ? "a key & vial"
+          : reacts[1].emote.split("|").length === 4
+          ? "runes/inc"
+          : "a key"
+      } for the raid.
+        ${
+          reacts[2].name === "rusher"
+            ? `React with ${reacts[2].emote} if you plan on rushing!`
+            : ""
+        }
+
+        React below to indiciate ${bold("classes/gear")} that you're ${bold(
+        "bringing"
+      )}
+        ${reacts
+          .slice(reacts[2].name === "rusher" ? 3 : 2)
+          .map((e) => e.emote)
+          .join(" ")}`);*/
 
       const msg = await ctx.channel.send({
-        content: oneLine`@here ${reacts[0].emote} \`${dungeon["full-name"]}\`
-          headcount started by <@${ctx.user.id}> for ${voiceChannel?.name}`,
+        content: oneLine`@here ${inlineCode(dungeon["full-name"])}
+          headcount started by ${memberNicknameMention(ctx.user.id)} for ${
+          voiceChannel?.name
+        }`,
         embeds: [embed],
       });
 

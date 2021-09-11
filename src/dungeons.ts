@@ -159,21 +159,6 @@ const dungeons: Dungeon[] = [
         limit: 0,
       },
       {
-        name: "warrior",
-        emote: "<:warrior:886328165088231494>",
-        limit: 0,
-      },
-      {
-        name: "paladin",
-        emote: "<:paladin:886328165172129852>",
-        limit: 0,
-      },
-      {
-        name: "knight",
-        emote: "<:knight:886328165142790204>",
-        limit: 0,
-      },
-      {
         name: "wizard",
         emote: "<:wizard:886328165126008852>",
         limit: 0,
