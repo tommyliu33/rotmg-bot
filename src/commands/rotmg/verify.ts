@@ -5,11 +5,11 @@ import type { Message } from "discord.js";
 
 @command({
   name: "verify",
-  description: "verify your ingame name.",
+  description: "Verify your ingame name.",
   options: [
     {
       name: "name",
-      description: "name to verify under",
+      description: "Name to verify under",
       type: ApplicationCommandOptionType.String,
       required: false,
     },
@@ -17,6 +17,8 @@ import type { Message } from "discord.js";
 })
 export default class extends Command {
   public async exec(ctx: CommandContext): Promise<Message | APIMessage> {
+    // TODO: check if ran in the verification channel if method is manual
+
     await ctx.interaction.deferReply({ ephemeral: true });
 
     const status = await verifyMember(ctx).catch(() => {});

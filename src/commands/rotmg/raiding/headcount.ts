@@ -18,12 +18,12 @@ import { bold, inlineCode, memberNicknameMention } from "@discordjs/builders";
   options: [
     {
       name: "dungeon",
-      description: "abv. for dungeon name (or full)",
+      description: "Full/abbreviated name of the dungeon",
       type: ApplicationCommandOptionType.String,
     },
     {
-      name: "vc",
-      description: "voice channel for the raid",
+      name: "channel",
+      description: "The voice channel to use for the raid",
       type: ApplicationCommandOptionType.Channel,
     },
   ],
@@ -41,7 +41,7 @@ export default class extends Command {
     const channels = await guild?.channels.fetch().catch(() => {});
     const voiceChannels = channels?.filter((c) => c.type === "GUILD_VOICE");
 
-    const embed = new MessageEmbed();
+    const embed = new MessageEmbed().setColor(0x2e8b49);
     if (!voiceChannel) {
       const row = new MessageActionRow().addComponents(
         new MessageSelectMenu().setCustomId("select-voice-channel").addOptions(
@@ -52,14 +52,12 @@ export default class extends Command {
         )
       );
 
-      embed.setColor("BLURPLE").setDescription(
-        stripIndents`
-          Select a voice channel for the raid.
-          You have 1 minute.`
-      );
-
       const msg = (await ctx.interaction.editReply({
-        embeds: [embed],
+        embeds: [
+          embed.setDescription(stripIndents`
+        Select a voice channel for the raid.
+        You have 1 minute.`),
+        ],
         components: [row],
       })) as Message;
 
@@ -104,13 +102,12 @@ export default class extends Command {
         )
       );
 
-      embed.setDescription(
-        stripIndents`Select the dungeon the raid.
-        You have 1 minute.`
-      );
-
       const msg = (await ctx.interaction.editReply({
-        embeds: [embed],
+        embeds: [
+          embed.setDescription(stripIndents`
+          Select the dungeon for the raid.
+          You have 1 minute.`),
+        ],
         components: [row],
       })) as Message;
 
@@ -157,11 +154,11 @@ export default class extends Command {
             : "a key"
         } for the raid.`,
         reacts[2].name === "rusher"
-          ? `\nReact with ${reacts[2].emote} if you plan on rushing!`
+          ? `\nReact with ${reacts[2].emote} if you plan on rushing`
           : "",
-        `React below to indiciate ${bold("classes/gear")} that you're ${bold(
-          "bringing"
-        )}\n${reacts
+        `React below to indiciate the ${bold(
+          "classes/gear"
+        )} that you're ${bold("bringing")}\n${reacts
           .slice(reacts[2].name === "rusher" ? 3 : 2)
           .map((e) => e.emote)
           .join(" ")}`,
@@ -172,34 +169,7 @@ export default class extends Command {
         .setDescription(description)
         .setThumbnail(thumbnail)
         .setTimestamp()
-        .setColor(color ?? 0);
-
-      /*.setDescription(stripIndents`
-        React with ${reacts[0].emote} to participate.
-        React with ${
-          reacts[1].emote.includes("|")
-            ? reacts[1].emote.split("|").join("")
-            : reacts[1].emote
-        } if you are willing to pop ${
-        reacts[1].emote.split("|").length === 2
-          ? "a key & vial"
-          : reacts[1].emote.split("|").length === 4
-          ? "runes/inc"
-          : "a key"
-      } for the raid.
-        ${
-          reacts[2].name === "rusher"
-            ? `React with ${reacts[2].emote} if you plan on rushing!`
-            : ""
-        }
-
-        React below to indiciate ${bold("classes/gear")} that you're ${bold(
-        "bringing"
-      )}
-        ${reacts
-          .slice(reacts[2].name === "rusher" ? 3 : 2)
-          .map((e) => e.emote)
-          .join(" ")}`);*/
+        .setColor(color!);
 
       const msg = await ctx.channel.send({
         content: oneLine`@here ${inlineCode(dungeon["full-name"])}

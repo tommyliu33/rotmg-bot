@@ -9,11 +9,6 @@ interface Dungeon {
   thumbnail: string;
 }
 
-/*
-  first react =  "portal"
-  second react = "key(s)"
-  third = anything else
-*/
 interface DungeonReacts {
   name: string;
   emote: string;
@@ -24,6 +19,7 @@ interface DungeonReacts {
 const dungeons: Dungeon[] = [
   {
     name: "void",
+    // TODO: add fsv
     "full-name": "The Void",
     reacts: [
       {
@@ -65,6 +61,11 @@ const dungeons: Dungeon[] = [
       {
         name: "wizard",
         emote: "<:wizard:886328165126008852>",
+        limit: 0,
+      },
+      {
+        name: "trickster",
+        emote: "<:trickster:886331697858228226>",
         limit: 0,
       },
       {
@@ -172,7 +173,7 @@ const dungeons: Dungeon[] = [
       {
         name: "trickster",
         emote: "<:trickster:886331697858228226>",
-        limit: 2,
+        limit: 0,
       },
       {
         name: "slow",

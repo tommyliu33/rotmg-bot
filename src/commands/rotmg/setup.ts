@@ -5,16 +5,16 @@ import type { Message } from "discord.js";
 
 @command({
   name: "setup",
-  description: "setup the server for stuffs. such as verification embeds",
+  description: "Setup the server.",
   options: [
     {
       name: "verification_channel",
-      description: "abc",
+      description: "The channel used for verification.",
       type: ApplicationCommandOptionType.SubcommandGroup,
       options: [
         {
           name: "embed",
-          description: "spawn the verification channel embed",
+          description: "Creates and sends the verification channel embed",
           type: ApplicationCommandOptionType.Subcommand,
         },
       ],

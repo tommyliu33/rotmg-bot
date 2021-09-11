@@ -3,33 +3,34 @@ import { ApplicationCommandOptionType } from "discord-api-types/v9";
 
 @command({
   name: "config",
-  description: "edit server configuration. provide no options to view setup.",
+  description: "Edit/view the server configuration.",
   options: [
     {
       name: "verification_method",
-      description: "method user goes through to verify",
+      description: "The method a user goes through to verify.",
       type: ApplicationCommandOptionType.SubcommandGroup,
       options: [
         {
           name: "button",
-          description: "user clicks the button to start verification",
+          description: "User presses the button to start verification",
           type: ApplicationCommandOptionType.Subcommand,
         },
         {
           name: "manual",
-          description: "user runs /verify command to start verification",
+          description:
+            "User must manually run /verify to start verification in the verification channel",
           type: ApplicationCommandOptionType.Subcommand,
         },
       ],
     },
     {
       name: "verified_role",
-      description: "role to add when user is verified",
+      description: "The role to add when a user is verified.",
       type: ApplicationCommandOptionType.Subcommand,
       options: [
         {
           name: "role",
-          description: "the verified role",
+          description: "The role to add",
           type: ApplicationCommandOptionType.Role,
           required: true,
         },
@@ -37,12 +38,12 @@ import { ApplicationCommandOptionType } from "discord-api-types/v9";
     },
     {
       name: "verification_channel",
-      description: "channel for users to start verification.",
+      description: "The channel for users to start verification.",
       type: ApplicationCommandOptionType.Subcommand,
       options: [
         {
           name: "channel",
-          description: "channel to set",
+          description: "The channel to set",
           type: ApplicationCommandOptionType.Channel,
           required: true,
         },

@@ -2,7 +2,7 @@ import { Command, command, CommandContext } from "@lib";
 
 @command({
   name: "ping",
-  description: "pong.",
+  description: "Pong.",
 })
 export default class extends Command {
   public async exec(ctx: CommandContext): Promise<void> {
