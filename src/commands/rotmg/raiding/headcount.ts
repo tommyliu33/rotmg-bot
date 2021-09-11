@@ -36,8 +36,6 @@ export default class extends Command {
 
     const multipleKeys = reacts[1].emote.includes("|");
 
-    console.log(subcommand, reacts[1].emote.split("|"));
-
     const description: string[] = [
       `React ${reacts[0].emote} to participate.`,
       `React ${
