@@ -63,7 +63,9 @@ export default class extends Command {
 
       const filter = (i: MessageComponentInteraction) => {
         i.deferUpdate();
-        return i.user.id === ctx.user.id;
+        return (
+          i.customId === "select-voice-channel" && i.user.id === ctx.user.id
+        );
       };
 
       const interaction = await msg
@@ -79,10 +81,13 @@ export default class extends Command {
           "Failed to select voice channel in time, cancelling."
         );
       else {
-        const { values, customId } = interaction as SelectMenuInteraction;
-        if (customId !== "select-voice-channel") return;
-
+        const { values } = interaction as SelectMenuInteraction;
         voiceChannel = channels?.find((c) => c.name === values[0])!;
+
+        if (voiceChannel.type !== "GUILD_VOICE")
+          return await ctx.interaction.editReply(
+            "The targetted channel must be a voice channel."
+          );
       }
     } else {
       if (voiceChannel?.type !== "GUILD_VOICE")
@@ -113,7 +118,7 @@ export default class extends Command {
 
       const filter = (i: MessageComponentInteraction) => {
         i.deferUpdate();
-        return i.user.id === ctx.user.id;
+        return i.customId === "select-dungeon" && i.user.id === ctx.user.id;
       };
 
       const interaction = await msg
@@ -129,8 +134,7 @@ export default class extends Command {
           "Failed to select dungeon in time, cancelling."
         );
       } else {
-        const { values, customId } = interaction as SelectMenuInteraction;
-        if (customId !== "select-dungeon") return;
+        const { values } = interaction as SelectMenuInteraction;
 
         dungeonName = values[0];
         dungeon = dungeons.find((c) => c.name === dungeonName);
