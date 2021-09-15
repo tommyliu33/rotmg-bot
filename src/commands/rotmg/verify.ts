@@ -21,6 +21,7 @@ export default class extends Command {
 
     await ctx.interaction.deferReply({ ephemeral: true });
 
+    // TODO: refactor again
     const status = await verifyMember(ctx).catch(() => {});
     console.log("status", status);
 

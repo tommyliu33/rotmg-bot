@@ -1,4 +1,5 @@
 import { Command, command, CommandContext } from "@lib";
+import { channel } from "diagnostics_channel";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
 
 @command({
@@ -49,10 +50,23 @@ import { ApplicationCommandOptionType } from "discord-api-types/v9";
         },
       ],
     },
+    {
+      name: "afk_check_channel",
+      description: "The channel for afk checks.",
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: "channel",
+          description: "The channel to set",
+          type: ApplicationCommandOptionType.Channel,
+          required: true,
+        },
+      ],
+    },
   ],
 })
 export default class extends Command {
-  public async exec(ctx: CommandContext): Promise<void> {
+  public async exec(ctx: CommandContext) {
     const { client } = ctx;
 
     const subcommand = ctx.interaction.options.getSubcommand();
@@ -103,6 +117,24 @@ export default class extends Command {
         return await ctx.reply(
           `Setting ${verificationChannel.toString()} as the "Verification Channel".`
         );
+      case "afk_check_channel":
+        const afkCheckChannel = ctx.interaction.options.getChannel("channel");
+        if (afkCheckChannel?.type !== "GUILD_TEXT")
+          return await ctx.reply(
+            "AFK check channel can only be a text channel."
+          );
+
+        await client.guilds_db.set(
+          ctx.guild?.id!,
+          afkCheckChannel.id,
+          "afk_check_channel"
+        );
+
+        return await ctx.reply(
+          `Setting ${afkCheckChannel.toString()} as the "afk-check" channel.`
+        );
+
+        break;
     }
   }
 }

@@ -1,11 +1,11 @@
 import { Command } from "@lib";
-import { Client, Collection, Intents, Snowflake } from "discord.js";
+import { Client, Collection, Intents } from "discord.js";
 import { Db, MongoClient } from "mongodb";
 import { Collection as MongoCollection } from "quickmongo";
 
 import { GuildSchema, UserSchema } from "@schemas";
 export class Bot extends Client {
-  public readonly commands: Collection<Snowflake, Command> = new Collection();
+  public readonly commands: Collection<string, Command> = new Collection();
 
   public mongo: MongoClient;
   public db!: Db;

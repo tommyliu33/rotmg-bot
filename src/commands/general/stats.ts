@@ -13,11 +13,14 @@ export default class extends Command {
       .setColor("AQUA")
       .setDescription(
         stripIndents`
-				**${client.guilds.cache.size}** servers, **${client.users.cache.size}** users
+				**${client.guilds.cache.size}** servers **${client.users.cache.size}** users
 
-				Node ${process.version}
-				Heap used ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB
-			`
+				Node **${process.version}**, Heap used **${(
+          process.memoryUsage().heapUsed /
+          1024 /
+          1024
+        ).toFixed(2)}MB**
+      `
       )
       .setAuthor(client.user?.tag!, client.user?.avatarURL()!);
     await ctx.reply({ embeds: [embed] });

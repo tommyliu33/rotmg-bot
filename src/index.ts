@@ -18,6 +18,7 @@ client.on("ready", async () => {
         verification_method: "",
         verification_channel: "",
         verified_role: "",
+        afk_check_channel: "",
       });
     }
   });
