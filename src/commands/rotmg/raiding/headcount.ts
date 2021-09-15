@@ -21,7 +21,7 @@ export default class extends Command {
     const name = ctx.interaction.options.getSubcommand();
 
     const dungeon = dungeons.find((c) => c.name === name)!;
-    const { thumbnail, color, portal, reacts, keys, runes = [] } = dungeon!;
+    const { thumbnail, color, portal, reacts, keys } = dungeon!;
 
     const description = [
       `React with ${portal} to participate.`,
@@ -62,7 +62,7 @@ export default class extends Command {
     await interaction.deleteReply();
 
     await Promise.all(
-      [portal, ...keys, ...runes, ...reacts].map(
+      [portal, ...keys, ...reacts].map(
         async (r) => await msg.react(typeof r === "string" ? r : r.emote)
       )
     );

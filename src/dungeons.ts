@@ -6,7 +6,6 @@ interface Dungeon {
 
   portal: string;
   keys: DungeonReacts[];
-  runes?: DungeonReacts[];
 
   // everything else
   reacts: DungeonReacts[];
@@ -21,11 +20,64 @@ interface DungeonReacts {
   limit: number;
 }
 
-/* mainly exaltation dungeons, others can be "misc" with a provided title */
 const dungeons: Dungeon[] = [
+  //#region shatters
+  {
+    name: "shatters",
+    "full-name": "The Shatters",
+
+    portal: "<:shatters:887532566977069138>",
+    keys: [
+      {
+        name: "key",
+        emote: "<:shatters_key:887532668181422122>",
+        limit: 0,
+      },
+    ],
+    reacts: [
+      {
+        name: "fungal_tome",
+        emote: "<:fungal_tome:886328344126300221>",
+        limit: 2,
+      },
+      {
+        name: "m_seal",
+        emote: "<:m_seal:886328165054697562>",
+        limit: 2,
+      },
+      {
+        name: "warrior",
+        emote: "<:warrior:886328165088231494>",
+        limit: 0,
+      },
+      {
+        name: "paladin",
+        emote: "<:paladin:886328165172129852>",
+        limit: 0,
+      },
+      {
+        name: "knight",
+        emote: "<:knight:886328165142790204>",
+        limit: 0,
+      },
+      {
+        name: "wizard",
+        emote: "<:wizard:886328165126008852>",
+        limit: 0,
+      },
+      {
+        name: "trickster",
+        emote: "<:trickster:886331697858228226>",
+        limit: 0,
+      },
+    ],
+    color: "#4e4e4e",
+    thumbnail: "https://i.imgur.com/qL3BVpR.png",
+  },
+  //endregion
+  //#region lost halls
   {
     name: "void",
-    // TODO: add fsv
     "full-name": "The Void",
     keys: [
       {
@@ -143,6 +195,8 @@ const dungeons: Dungeon[] = [
     thumbnail: "https://i.imgur.com/nPkovWR.png",
     color: "#e74c3c",
   },
+  //#endregion
+  //#region osanc
   {
     name: "o3",
     "full-name": "Oryx Sanctuary",
@@ -205,6 +259,7 @@ const dungeons: Dungeon[] = [
     thumbnail: "https://i.imgur.com/3Biywi7.png",
     color: "#f1c40f",
   },
+  //#endregion
 ];
 
 export { dungeons };
