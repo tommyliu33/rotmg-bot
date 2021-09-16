@@ -37,7 +37,7 @@ export default class extends Command {
               `**${client.guilds.cache.size}** servers **${client.users.cache.size}** users`,
               "",
               `Node.js **${process.version}**`,
-              `        Heap used **${(
+              `Heap used **${(
                 process.memoryUsage().heapUsed /
                 1024 /
                 1024
