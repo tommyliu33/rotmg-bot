@@ -16,11 +16,8 @@
     "quickmongo": "^4.0.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^13.1.0",
-    "@commitlint/config-conventional": "^13.1.0",
     "@types/common-tags": "^1.8.1",
     "@types/node": "^16.7.10",
-    "husky": "^7.0.2",
     "rimraf": "^3.0.2",
     "type-fest": "^2.2.0"
   },
