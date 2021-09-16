@@ -1,5 +1,4 @@
 import { Command, command, CommandContext } from "@lib";
-import { channel } from "diagnostics_channel";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
 
 @command({
