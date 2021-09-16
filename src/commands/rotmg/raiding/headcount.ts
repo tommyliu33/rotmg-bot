@@ -1,4 +1,4 @@
-import { bold, inlineCode, memberNicknameMention } from "@discordjs/builders";
+import { bold, inlineCode } from "@discordjs/builders";
 import { Command, command, CommandContext, MessageChannel } from "@lib";
 import { ApplicationCommandOptionType } from "discord-api-types/v9";
 import { Message, MessageEmbed } from "discord.js";
