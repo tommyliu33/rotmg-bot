@@ -1,4 +1,3 @@
-import { inlineCode, memberNicknameMention } from "@discordjs/builders";
 import { Command, command, CommandContext, MessageChannel } from "@lib";
 
 @command({
