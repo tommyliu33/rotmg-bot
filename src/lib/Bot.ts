@@ -2,7 +2,6 @@ import { Database } from "@lib";
 import { Client, Discord } from "discordx";
 import { resolve } from "path";
 import { container, injectable } from "tsyringe";
-import { RaidManager } from "./RaidManager";
 
 @Discord()
 @injectable()
@@ -19,8 +18,6 @@ export class Bot extends Client {
       ],
       botGuilds: ["884659225224175626"],
     });
-
-    this.raids = new RaidManager(this);
   }
 
   public async login(token: string) {
