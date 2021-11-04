@@ -1,11 +1,11 @@
 import "dotenv/config";
 import "module-alias/register";
 
-import { DIService } from "discordx";
 import { Bot, Database } from "@lib";
 import { Stopwatch } from "@sapphire/stopwatch";
+import { DIService } from "discordx";
 import { container } from "tsyringe";
-import { kDatabase, kClient } from "./tokens";
+import { kClient, kDatabase } from "./tokens";
 
 DIService.container = container;
 
