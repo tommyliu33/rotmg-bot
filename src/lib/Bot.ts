@@ -6,8 +6,6 @@ import { container, injectable } from "tsyringe";
 @Discord()
 @injectable()
 export class Bot extends Client {
-  public raids: RaidManager;
-
   public constructor() {
     super({
       intents: ["GUILDS"],
