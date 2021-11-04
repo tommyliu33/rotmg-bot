@@ -1,8 +1,3 @@
 export * from "./Bot";
-export * from "./Utils";
 
-export * from "./interactions/Command";
-export * from "./interactions/CommandContext";
-
-// verification
-export * from "./interfaces/Player";
+export * from "./Database";

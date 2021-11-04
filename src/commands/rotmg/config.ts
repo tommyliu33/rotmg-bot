@@ -1,139 +1,98 @@
-import { Command, command, CommandContext } from "@lib";
-import { ApplicationCommandOptionType } from "discord-api-types/v9";
+import { Database } from "@lib";
+import {
+  CommandInteraction,
+  Constants,
+  GuildChannel,
+  MessageEmbedOptions,
+  MessageEmbed,
+  Role,
+} from "discord.js";
+import { Discord, DIService, Slash, SlashGroup, SlashOption } from "discordx";
+import { inject, injectable } from "tsyringe";
+import { kDatabase } from "../../tokens";
 
-@command({
-  name: "config",
-  description: "Edit/view the server configuration.",
-  options: [
-    {
-      name: "verification_method",
-      description: "The method a user goes through to verify.",
-      type: ApplicationCommandOptionType.SubcommandGroup,
-      options: [
-        {
-          name: "button",
-          description: "User presses the button to start verification",
-          type: ApplicationCommandOptionType.Subcommand,
-        },
-        {
-          name: "manual",
-          description:
-            "User must manually run /verify to start verification in the verification channel",
-          type: ApplicationCommandOptionType.Subcommand,
-        },
-      ],
-    },
-    {
-      name: "verified_role",
-      description: "The role to add when a user is verified.",
-      type: ApplicationCommandOptionType.Subcommand,
-      options: [
-        {
-          name: "role",
-          description: "The role to add",
-          type: ApplicationCommandOptionType.Role,
-          required: true,
-        },
-      ],
-    },
-    {
-      name: "verification_channel",
-      description: "The channel for users to start verification.",
-      type: ApplicationCommandOptionType.Subcommand,
-      options: [
-        {
-          name: "channel",
-          description: "The channel to set",
-          type: ApplicationCommandOptionType.Channel,
-          required: true,
-        },
-      ],
-    },
-    {
-      name: "afk_check_channel",
-      description: "The channel for afk checks.",
-      type: ApplicationCommandOptionType.Subcommand,
-      options: [
-        {
-          name: "channel",
-          description: "The channel to set",
-          type: ApplicationCommandOptionType.Channel,
-          required: true,
-        },
-      ],
-    },
-  ],
-})
-export default class extends Command {
-  public async exec(ctx: CommandContext) {
-    const { client } = ctx;
+@injectable()
+@Discord()
+@SlashGroup("config", "edit server config.")
+export class ConfigCommand {
+  // weird
+  public constructor(@inject(kDatabase) public db: Database) {
+    this.db = DIService.container?.resolve(Database)!;
+  }
 
-    const subcommand = ctx.interaction.options.getSubcommand();
-    switch (subcommand) {
-      case "button":
-      case "manual":
-        await client.guilds_db.set(
-          ctx.guild?.id!,
-          subcommand,
-          "verification_method"
-        );
-        return await ctx.reply(
-          `Setting \`verificationMethod\` to **${subcommand}**.`
-        );
-      case "verified_role":
-        const verifiedRole = ctx.interaction.options.getRole("role");
+  @Slash("view", {
+    description: "view server config.",
+  })
+  private async view(interaction: CommandInteraction): Promise<void> {
+    const embed = new MessageEmbed();
+    const cfg = await this.db.getGuild(interaction.guildId!);
 
-        if (ctx.guild?.roles.everyone.id === verifiedRole?.id) {
-          return await ctx.reply(
-            "Cannot set the `@everyone` role as the 'verified raider' role."
-          );
-        }
+    const channels = Object.keys(cfg.channels)
+      .map(
+        (c) =>
+          `${c} | ${
+            Reflect.get(cfg.channels, c)
+              ? `<#${Reflect.get(cfg.channels, c)}>`
+              : "n/a"
+          }`
+      )
+      .join("\n");
 
-        await ctx.reply(
-          `Setting \`${verifiedRole?.name}\` as the "Verified Raider" role.`
-        );
+    embed.setFields([
+      {
+        name: "channels",
+        value: channels,
+      },
+    ]);
 
-        await client.guilds_db.set(
-          ctx.guild?.id!,
-          verifiedRole?.id,
-          "verified_role"
-        );
-        return;
-      case "verification_channel":
-        const verificationChannel =
-          ctx.interaction.options.getChannel("channel");
-        if (verificationChannel?.type !== "GUILD_TEXT")
-          return await ctx.reply(
-            "Verification channel can only be a text channel."
-          );
+    await interaction.reply({
+      embeds: [embed],
+    });
+  }
 
-        await client.guilds_db.set(
-          ctx.guild?.id!,
-          verificationChannel.id,
-          "verification_channel"
-        );
+  @Slash("role", { description: "the main raiding role" })
+  private async role(
+    @SlashOption("role", {
+      type: "ROLE",
+      description: "role to add when a user is verified",
+      required: true,
+    })
+    role: Role,
+    interaction: CommandInteraction
+  ): Promise<void> {
+    await interaction.deferReply();
+    await interaction.editReply(`role is ${role.toString()}`);
+  }
 
-        return await ctx.reply(
-          `Setting ${verificationChannel.toString()} as the "Verification Channel".`
-        );
-      case "afk_check_channel":
-        const afkCheckChannel = ctx.interaction.options.getChannel("channel");
-        if (afkCheckChannel?.type !== "GUILD_TEXT")
-          return await ctx.reply(
-            "AFK check channel can only be a text channel."
-          );
+  @Slash("afkcheck", { description: "afk check channel" })
+  private async afkCheck(
+    @SlashOption("channel", {
+      description: "channel to use",
+      // bad typings but still works fine
+      // @ts-ignore
+      channelTypes: [Constants.ChannelTypes.GUILD_TEXT],
+      // @ts-ignore
+      type: "CHANNEL",
+      required: true,
+    })
+    channel: GuildChannel,
+    interaction: CommandInteraction
+  ): Promise<void> {
+    await interaction.deferReply();
 
-        await client.guilds_db.set(
-          ctx.guild?.id!,
-          afkCheckChannel.id,
-          "afk_check_channel"
-        );
+    const guildId = interaction.guildId!;
 
-        return await ctx.reply(
-          `Setting ${afkCheckChannel.toString()} as the "afk-check" channel.`
-        );
+    const {
+      channels: { afk_check },
+    } = await this.db.getGuild(guildId);
 
-        break;
+    const mention = channel.toString();
+    if (afk_check === channel.id) {
+      await interaction.editReply(`❌ afk_check is already set to ${mention}`);
+      return;
     }
+
+    await this.db.setGuildKey(guildId, "channels.afk_check", channel.id);
+    await interaction.editReply(`☑️ updated afk_check to ${mention}`);
   }
 }

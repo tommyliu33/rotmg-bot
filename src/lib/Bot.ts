@@ -1,40 +1,31 @@
-import { Command } from "@lib";
-import { Client, Collection, Intents } from "discord.js";
-import { Db, MongoClient } from "mongodb";
-import { Collection as MongoCollection } from "quickmongo";
+import { Database } from "@lib";
+import { Client, Discord } from "discordx";
+import { resolve } from "path";
+import { container, injectable } from "tsyringe";
+import { RaidManager } from "./RaidManager";
 
-import { GuildSchema, UserSchema } from "@schemas";
+@Discord()
+@injectable()
 export class Bot extends Client {
-  public readonly commands: Collection<string, Command> = new Collection();
-
-  public mongo: MongoClient;
-  public db!: Db;
-
-  public users_db!: MongoCollection<typeof UserSchema>;
-  public guilds_db!: MongoCollection<typeof GuildSchema>;
+  public raids: RaidManager;
 
   public constructor() {
     super({
-      // TODO: intents may not be needed
-      intents: [Intents.FLAGS.GUILDS],
+      intents: ["GUILDS"],
+      partials: ["CHANNEL"],
+      classes: [
+        resolve(__dirname, "../commands", "**/*.{ts,js}"),
+        resolve(__dirname, "../events", "**/*.{ts,js}"),
+      ],
+      botGuilds: ["884659225224175626"],
     });
 
-    this.mongo = new MongoClient(process.env.mongo_uri!);
-
-    this.init();
+    this.raids = new RaidManager(this);
   }
 
-  async init(): Promise<void> {
-    await this.mongo.connect();
-
-    this.users_db = new MongoCollection(
-      this.mongo.db("rotmg-bot").collection("users"),
-      UserSchema
-    );
-
-    this.guilds_db = new MongoCollection(
-      this.mongo.db("rotmg-bot").collection("guilds"),
-      GuildSchema
-    );
+  public async login(token: string) {
+    const database = container.resolve(Database);
+    await database.init();
+    return super.login(token);
   }
 }
