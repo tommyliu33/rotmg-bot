@@ -25,6 +25,7 @@ async function init() {
       guild: { log: true },
     });
     console.log(`[stopwatch] :: took ${stopwatch.stop().toString()}`);
+    console.log("[bot] :: up");
   });
 
   client.on("interactionCreate", async (interaction) => {
