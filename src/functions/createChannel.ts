@@ -10,11 +10,10 @@ export async function createChannel(
   veteran: boolean
 ): Promise<VoiceChannel | undefined> {
   const container = DIService.container;
-  const client = container?.resolve<Bot>(kClient);
   const db = container?.resolve<Database>(kDatabase);
-  console.log(db);
   const cfg = await db?.getGuild(guild.id);
 
+  console.log(veteran);
   const parentId = cfg?.categories[veteran ? "veteran" : "main"];
 
   try {

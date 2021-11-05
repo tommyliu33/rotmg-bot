@@ -1,6 +1,11 @@
 import { createChannel } from "@functions";
 import { Database } from "@lib";
-import { CommandInteraction, Snowflake, VoiceChannel } from "discord.js";
+import {
+  CommandInteraction,
+  MessageEmbed,
+  Snowflake,
+  VoiceChannel,
+} from "discord.js";
 import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
 import { container, inject, injectable } from "tsyringe";
 import { kDatabase } from "../../../../tokens";
@@ -9,11 +14,11 @@ import { kDatabase } from "../../../../tokens";
 @Discord()
 @SlashGroup("channel", "base for custom raiding channels")
 export class ConfigCommand {
-  private channels: Map<string, VoiceChannel>;
+  private raids: Map<string, CustomRaidChannelInfo>;
   public constructor(@inject(kDatabase) public db: Database) {
     this.db = container.resolve<Database>(kDatabase)!;
 
-    this.channels = new Map<Snowflake, VoiceChannel>();
+    this.raids = new Map();
   }
 
   @Slash("create", {
@@ -32,7 +37,7 @@ export class ConfigCommand {
 
     const cfg = await this.db.getGuild(interaction.guildId!);
 
-    if (this.channels.has(interaction.user.id)) {
+    if (this.raids.has(interaction.user.id)) {
       await interaction.editReply({
         content:
           "you already have a channel open, close it before opening another",
@@ -51,8 +56,18 @@ export class ConfigCommand {
       CONNECT: false,
     });
 
-    this.channels.set(interaction.user.id, channel!);
-    await interaction.editReply("created the channel");
+    const embed = new MessageEmbed()
+      .setAuthor(name, interaction.user.displayAvatarURL({ dynamic: true }))
+      .setColor("RANDOM");
+
+    const m = await interaction.editReply({
+      embeds: [embed],
+    });
+
+    this.raids.set(interaction.user.id, {
+      channel: channel!,
+      msg: m.id,
+    });
   }
 
   @Slash("unlock", {
@@ -60,9 +75,9 @@ export class ConfigCommand {
   })
   private async unlock(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply();
-    const channel = this.channels.get(interaction.user.id);
+    const raid = this.raids.get(interaction.user.id);
 
-    if (!channel) {
+    if (!raid || !raid.channel) {
       await interaction.editReply({
         content: "you do not have an existing raid channel, create one first",
       });
@@ -70,11 +85,18 @@ export class ConfigCommand {
     }
 
     const cfg = await this.db.getGuild(interaction.guildId!);
-    await channel.permissionOverwrites.edit(cfg.user_roles.main, {
+    await raid.channel.permissionOverwrites.edit(cfg.user_roles.main, {
       CONNECT: true,
     });
 
-    await interaction.editReply("opened");
+    const msg = await interaction.channel?.messages.fetch(raid.msg);
+
+    // rebuild just in case
+    const embed = new MessageEmbed(msg?.embeds[0]);
+    await interaction.editReply({
+      content: "opened",
+      embeds: [embed],
+    });
   }
 
   @Slash("lock", {
@@ -82,9 +104,9 @@ export class ConfigCommand {
   })
   private async lock(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply();
-    const channel = this.channels.get(interaction.user.id);
+    const raid = this.raids.get(interaction.user.id);
 
-    if (!channel) {
+    if (!raid || !raid.channel) {
       await interaction.editReply({
         content: "you do not have an existing raid channel, create one first",
       });
@@ -92,11 +114,18 @@ export class ConfigCommand {
     }
 
     const cfg = await this.db.getGuild(interaction.guildId!);
-    await channel.permissionOverwrites.edit(cfg.user_roles.main, {
+    await raid.channel.permissionOverwrites.edit(cfg.user_roles.main, {
       CONNECT: false,
     });
 
-    await interaction.editReply("locked");
+    const msg = await interaction.channel?.messages.fetch(raid.msg);
+
+    // rebuild just in case
+    const embed = new MessageEmbed(msg?.embeds[0]);
+    await interaction.editReply({
+      content: "locked",
+      embeds: [embed],
+    });
   }
 
   @Slash("close", {
@@ -104,18 +133,30 @@ export class ConfigCommand {
   })
   private async close(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply();
-    const channel = this.channels.get(interaction.user.id);
+    const raid = this.raids.get(interaction.user.id);
 
-    if (!channel) {
+    if (!raid || !raid.channel) {
       await interaction.editReply({
-        content: "you do not have an existing raid channel, create one first",
+        content: "you do not have an existing raid, create one first",
       });
       return;
     }
 
-    await channel.delete();
-    this.channels.delete(interaction.user.id);
+    await raid.channel.delete();
+    this.raids.delete(interaction.user.id);
 
-    await interaction.editReply("closed");
+    const msg = await interaction.channel?.messages.fetch(raid.msg);
+
+    // rebuild just in case
+    const embed = new MessageEmbed(msg?.embeds[0]);
+    await interaction.editReply({
+      content: "channel has been closed.",
+      embeds: [embed],
+    });
   }
+}
+
+interface CustomRaidChannelInfo {
+  channel: VoiceChannel;
+  msg: Snowflake;
 }
