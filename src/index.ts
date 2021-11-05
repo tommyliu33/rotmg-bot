@@ -3,11 +3,8 @@ import "module-alias/register";
 
 import { Bot, Database } from "@lib";
 import { Stopwatch } from "@sapphire/stopwatch";
-import { DIService } from "discordx";
 import { container } from "tsyringe";
 import { kClient, kDatabase } from "./tokens";
-
-DIService.container = container;
 
 const stopwatch = new Stopwatch();
 async function init() {

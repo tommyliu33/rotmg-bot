@@ -1,6 +1,6 @@
 import { Database } from "@lib";
 import type { Guild, VoiceChannel } from "discord.js";
-import { DIService } from "discordx";
+import { container } from "tsyringe";
 import { kDatabase } from "../tokens";
 
 export async function createChannel(
@@ -8,11 +8,9 @@ export async function createChannel(
   name: string,
   veteran: boolean
 ): Promise<VoiceChannel | undefined> {
-  const container = DIService.container;
   const db = container?.resolve<Database>(kDatabase);
   const cfg = await db?.getGuild(guild.id);
 
-  console.log(veteran);
   const parentId = cfg?.categories[veteran ? "veteran" : "main"];
 
   try {

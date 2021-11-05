@@ -1,14 +1,14 @@
 import { Bot } from "@lib";
 import type { CommandInteraction } from "discord.js";
-import { Discord, DIService, Slash } from "discordx";
-import { inject, injectable } from "tsyringe";
+import { Discord, Slash } from "discordx";
+import { inject, injectable, container } from "tsyringe";
 import { kClient } from "../../tokens";
 
 @injectable()
 @Discord()
 export class ForceUpdate {
   public constructor(@inject(kClient) public client: Bot) {
-    this.client = DIService.container?.resolve(kClient)!;
+    this.client = container?.resolve<Bot>(kClient)!;
   }
 
   @Slash("forceupdate", {
