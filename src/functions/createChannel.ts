@@ -1,8 +1,7 @@
-import { Bot, Database } from "@lib";
+import { Database } from "@lib";
 import type { Guild, VoiceChannel } from "discord.js";
-import { container } from "tsyringe";
-import { kClient, kDatabase } from "../tokens";
 import { DIService } from "discordx";
+import { kDatabase } from "../tokens";
 
 export async function createChannel(
   guild: Guild,
