@@ -74,7 +74,7 @@ export class ConfigCommand {
     description: "unlocks the channel",
   })
   private async unlock(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
     const raid = this.raids.get(interaction.user.id);
 
     if (!raid || !raid.channel) {
@@ -89,11 +89,14 @@ export class ConfigCommand {
       CONNECT: true,
     });
 
-    const msg = await interaction.channel?.messages.fetch(raid.msg);
-
-    // rebuild just in case
-    const embed = new MessageEmbed(msg?.embeds[0]);
     await interaction.editReply({
+      content: "opened",
+    });
+
+    const msg = await interaction.channel?.messages.fetch(raid.msg);
+    const embed = new MessageEmbed(msg?.embeds[0]);
+
+    await msg?.edit({
       content: "opened",
       embeds: [embed],
     });
@@ -103,7 +106,7 @@ export class ConfigCommand {
     description: "locks the channel",
   })
   private async lock(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
     const raid = this.raids.get(interaction.user.id);
 
     if (!raid || !raid.channel) {
@@ -120,9 +123,13 @@ export class ConfigCommand {
 
     const msg = await interaction.channel?.messages.fetch(raid.msg);
 
+    await interaction.editReply({
+      content: "locked",
+    });
+
     // rebuild just in case
     const embed = new MessageEmbed(msg?.embeds[0]);
-    await interaction.editReply({
+    await msg?.edit({
       content: "locked",
       embeds: [embed],
     });
@@ -132,7 +139,7 @@ export class ConfigCommand {
     description: "closes (deletes) the channel",
   })
   private async close(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
     const raid = this.raids.get(interaction.user.id);
 
     if (!raid || !raid.channel) {
@@ -151,6 +158,10 @@ export class ConfigCommand {
     const embed = new MessageEmbed(msg?.embeds[0]);
     await interaction.editReply({
       content: "channel has been closed.",
+    });
+
+    await msg?.edit({
+      content: "channel is now closed!",
       embeds: [embed],
     });
   }
