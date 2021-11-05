@@ -1,12 +1,17 @@
 import type { Snowflake } from "discord-api-types";
 import { Db, MongoClient } from "mongodb";
 import { singleton } from "tsyringe";
-import { set, get } from "dot-prop";
+import { set } from "dot-prop";
 
 interface Guild {
   id: Snowflake;
   channels: {
     afk_check: Snowflake;
+    vet_afk_check: Snowflake;
+  };
+  categories: {
+    main: Snowflake;
+    veteran: Snowflake;
   };
   user_roles: {
     // TODO: key roles
@@ -17,7 +22,13 @@ interface Guild {
   leader_roles: {};
 }
 
-type GUILD_KEY = "channels.afk_check";
+type GUILD_KEY =
+  | "channels.afk_check"
+  | "channels.vet_afk_check"
+  | "categories.main"
+  | "categories.veteran"
+  | "user_roles.main"
+  | "user_roles.veteran";
 
 @singleton()
 export class Database {
@@ -54,6 +65,11 @@ export class Database {
         id,
         channels: {
           afk_check: "",
+          vet_afk_check: "",
+        },
+        categories: {
+          main: "",
+          veteran: "",
         },
         user_roles: {
           main: "",

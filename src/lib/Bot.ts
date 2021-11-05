@@ -1,7 +1,6 @@
-import { Database } from "@lib";
 import { Client, Discord } from "discordx";
 import { resolve } from "path";
-import { container, injectable } from "tsyringe";
+import { injectable } from "tsyringe";
 
 @Discord()
 @injectable()
@@ -16,11 +15,5 @@ export class Bot extends Client {
       ],
       botGuilds: ["884659225224175626"],
     });
-  }
-
-  public async login(token: string) {
-    const database = container.resolve(Database);
-    await database.init();
-    return super.login(token);
   }
 }
