@@ -1,7 +1,7 @@
 import { Bot } from "@lib";
 import type { CommandInteraction } from "discord.js";
 import { Discord, Slash } from "discordx";
-import { inject, injectable, container } from "tsyringe";
+import { container, inject, injectable } from "tsyringe";
 import { kClient } from "../../tokens";
 
 @injectable()

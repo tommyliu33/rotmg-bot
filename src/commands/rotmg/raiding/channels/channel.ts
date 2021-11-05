@@ -2,6 +2,7 @@ import { createChannel } from "@functions";
 import { Database } from "@lib";
 import {
   CommandInteraction,
+  Formatters,
   MessageEmbed,
   Snowflake,
   VoiceChannel,
@@ -10,9 +11,11 @@ import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
 import { container, inject, injectable } from "tsyringe";
 import { kDatabase } from "../../../../tokens";
 
+// TODO: add templates with template command and add option to use templates
+
 @injectable()
 @Discord()
-@SlashGroup("channel", "base for custom raiding channels")
+@SlashGroup("channel")
 export class ConfigCommand {
   private raids: Map<string, CustomRaidChannelInfo>;
   public constructor(@inject(kDatabase) public db: Database) {
@@ -22,146 +25,169 @@ export class ConfigCommand {
   }
 
   @Slash("create", {
-    description: "create a raiding channel",
+    description: "Create a raiding channel with a custom name and template",
   })
   private async create(
     @SlashOption("name", {
-      description: "name of the channel",
       type: "STRING",
       required: true,
+      description: "Name of the channel",
     })
     name: string,
     interaction: CommandInteraction
   ): Promise<void> {
-    await interaction.deferReply();
-
-    const cfg = await this.db.getGuild(interaction.guildId!);
+    await interaction.deferReply({ ephemeral: true });
 
     if (this.raids.has(interaction.user.id)) {
       await interaction.editReply({
-        content:
-          "you already have a channel open, close it before opening another",
+        content: "Close your previous channel first",
       });
       return;
     }
 
+    const { channels, user_roles } = await this.db.getGuild(
+      interaction.guildId!
+    );
     const channel = await createChannel(
       interaction.guild!,
       name,
-      interaction.channelId === cfg.channels.vet_afk_check
+      interaction.channelId === channels.vet_afk_check
     );
 
-    // lock the channel
-    await channel?.permissionOverwrites.edit(cfg.user_roles.main, {
+    await channel?.permissionOverwrites.edit(user_roles.main, {
       CONNECT: false,
     });
 
-    const embed = new MessageEmbed()
-      .setAuthor(name, interaction.user.displayAvatarURL({ dynamic: true }))
-      .setColor("RANDOM");
+    const member = await channel?.guild.members.fetch(interaction.user.id)!;
 
-    const m = await interaction.editReply({
+    const embed = new MessageEmbed()
+      .setAuthor(
+        member.displayName!,
+        member.user.displayAvatarURL({ dynamic: true })
+      )
+      .setColor(member.displayColor)
+      .setDescription(`Channel started at ${Formatters.time(new Date(), "R")}`);
+
+    await interaction.editReply({
+      content: "Created the channel",
+    });
+
+    const m = await interaction.channel?.send({
+      content: `@here ${name}`,
       embeds: [embed],
+      allowedMentions: {
+        parse: ["everyone"], // this only allows @here to be mentioned
+      },
     });
 
     this.raids.set(interaction.user.id, {
       channel: channel!,
-      msg: m.id,
+      msgId: m?.id!,
+      roleId: user_roles.main,
     });
   }
 
-  @Slash("unlock", {
-    description: "unlocks the channel",
+  @Slash("open", {
+    description: "Opens the channel",
   })
-  private async unlock(interaction: CommandInteraction): Promise<void> {
+  private async open(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
-    const raid = this.raids.get(interaction.user.id);
 
-    if (!raid || !raid.channel) {
+    const raid = this.raids.get(interaction.user.id);
+    if (!raid) {
       await interaction.editReply({
-        content: "you do not have an existing raid channel, create one first",
+        content: "Create a channel first",
       });
       return;
     }
 
-    const cfg = await this.db.getGuild(interaction.guildId!);
-    await raid.channel.permissionOverwrites.edit(cfg.user_roles.main, {
+    const { channel, msgId, roleId } = raid;
+    await channel.permissionOverwrites.edit(roleId, {
       CONNECT: true,
     });
 
     await interaction.editReply({
-      content: "opened",
+      content: "Opened the channel",
     });
 
-    const msg = await interaction.channel?.messages.fetch(raid.msg);
-    const embed = new MessageEmbed(msg?.embeds[0]);
+    const msg = await interaction.channel?.messages.fetch(msgId);
+    if (!msg) return;
 
-    await msg?.edit({
-      content: "opened",
+    const embed = new MessageEmbed(msg.embeds[0])
+      .setDescription(`Opened since ${Formatters.time(new Date(), "R")}`)
+      .setColor("GREEN");
+
+    await msg.edit({
       embeds: [embed],
     });
   }
 
   @Slash("lock", {
-    description: "locks the channel",
+    description: "Closes the channel",
   })
   private async lock(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
-    const raid = this.raids.get(interaction.user.id);
 
-    if (!raid || !raid.channel) {
+    const raid = this.raids.get(interaction.user.id);
+    if (!raid) {
       await interaction.editReply({
-        content: "you do not have an existing raid channel, create one first",
+        content: "Create a channel first",
       });
       return;
     }
 
-    const cfg = await this.db.getGuild(interaction.guildId!);
-    await raid.channel.permissionOverwrites.edit(cfg.user_roles.main, {
+    const { channel, msgId, roleId } = raid;
+    await channel.permissionOverwrites.edit(roleId, {
       CONNECT: false,
     });
 
-    const msg = await interaction.channel?.messages.fetch(raid.msg);
-
     await interaction.editReply({
-      content: "locked",
+      content: "Locked the channel",
     });
 
-    // rebuild just in case
-    const embed = new MessageEmbed(msg?.embeds[0]);
-    await msg?.edit({
-      content: "locked",
+    const msg = await interaction.channel?.messages.fetch(msgId);
+    if (!msg) return;
+
+    const embed = new MessageEmbed(msg.embeds[0])
+      .setDescription(`Locked since ${Formatters.time(new Date(), "R")}`)
+      .setColor("YELLOW");
+
+    await msg.edit({
       embeds: [embed],
     });
   }
 
-  @Slash("close", {
-    description: "closes (deletes) the channel",
+  @Slash("delete", {
+    description: "Removes the channel",
   })
-  private async close(interaction: CommandInteraction): Promise<void> {
+  private async delete(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
     const raid = this.raids.get(interaction.user.id);
 
     if (!raid || !raid.channel) {
       await interaction.editReply({
-        content: "you do not have an existing raid, create one first",
+        content: "Create a channel first",
       });
       return;
     }
 
-    await raid.channel.delete();
-    this.raids.delete(interaction.user.id);
+    const { channel, msgId } = raid;
+    await channel.delete();
 
-    const msg = await interaction.channel?.messages.fetch(raid.msg);
-
-    // rebuild just in case
-    const embed = new MessageEmbed(msg?.embeds[0]);
     await interaction.editReply({
-      content: "channel has been closed.",
+      content: "Channel has been closed",
     });
 
-    await msg?.edit({
-      content: "channel is now closed!",
+    const msg = await interaction.channel?.messages.fetch(msgId);
+    this.raids.delete(interaction.user.id);
+    if (!msg) return;
+
+    const embed = new MessageEmbed(msg.embeds[0])
+      .setColor("RED")
+      .setDescription(`Closed since ${Formatters.time(new Date(), "R")}`);
+
+    await msg.edit({
+      content: "Closed",
       embeds: [embed],
     });
   }
@@ -169,5 +195,6 @@ export class ConfigCommand {
 
 interface CustomRaidChannelInfo {
   channel: VoiceChannel;
-  msg: Snowflake;
+  roleId: Snowflake;
+  msgId: Snowflake;
 }
