@@ -248,14 +248,39 @@ export class ConfigCommand {
       )
       .join("\n");
 
+    // rip
+    const categories = await (
+      await Promise.all(
+        Object.keys(cfg.categories).map(
+          async (c) =>
+            `${c} | ${
+              Reflect.get(cfg.categories, c)
+                ? (
+                    await interaction.guild?.channels.fetch(
+                      Reflect.get(cfg.categories, c)
+                    )
+                  )?.name
+                : "n/a"
+            }`
+        )
+      )
+    ).join("\n");
+
     embed.setFields([
       {
         name: "channels",
         value: channels,
+        inline: true,
       },
       {
         name: "user_roles",
         value: user_roles,
+        inline: true,
+      },
+      {
+        name: "categories",
+        value: categories,
+        inline: true,
       },
     ]);
 
