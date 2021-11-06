@@ -9,7 +9,7 @@ import {
 } from "discord.js";
 import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
 import { container, inject, injectable } from "tsyringe";
-import { kDatabase } from "../../../../tokens";
+import { kDatabase } from "../../../tokens";
 
 // TODO: add templates with template command and add option to use templates
 
