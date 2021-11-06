@@ -7,19 +7,25 @@ export abstract class PingCommand {
   @Slash("create", {
     description: "create a template",
   })
-  private async create(interaction: CommandInteraction): Promise<void> {
-    await interaction.reply("create");
+  private async create(
+    @SlashOption("name", { type: "STRING", required: true })
+    name: string,
+    interaction: CommandInteraction
+  ): Promise<void> {
+    // prompt for additional options ?
+		// TODO: add templates to db class and interface
+    await interaction.reply("create " + name);
   }
 
   @Slash("view", {
     description: "view a raiding template",
   })
   private async view(
-    @SlashOption("name", { type: "STRING" })
+    @SlashOption("name", { type: "STRING", required: true })
     name: string,
     interaction: CommandInteraction
   ): Promise<void> {
-    await interaction.reply("view");
+    await interaction.reply("view " + name);
   }
 }
 
@@ -27,4 +33,5 @@ interface RaidTemplate {
   title: string;
   reacts: string[];
   author: Snowflake;
+  body: string;
 }
