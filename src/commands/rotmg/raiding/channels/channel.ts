@@ -39,9 +39,7 @@ export class ConfigCommand {
     await interaction.deferReply({ ephemeral: true });
 
     if (this.raids.has(interaction.user.id)) {
-      await interaction.editReply({
-        content: "Close your previous channel first",
-      });
+      await interaction.editReply("Close your previous channel first");
       return;
     }
 
@@ -68,9 +66,7 @@ export class ConfigCommand {
       .setColor(member.displayColor)
       .setDescription(`Channel started at ${Formatters.time(new Date(), "R")}`);
 
-    await interaction.editReply({
-      content: "Created the channel",
-    });
+    await interaction.editReply("Created the channel");
 
     const m = await interaction.channel?.send({
       content: `@here ${name}`,
@@ -84,6 +80,7 @@ export class ConfigCommand {
       channel: channel!,
       msgId: m?.id!,
       roleId: user_roles.main,
+      state: "LOCKED",
     });
   }
 
@@ -101,14 +98,19 @@ export class ConfigCommand {
       return;
     }
 
-    const { channel, msgId, roleId } = raid;
+    const { channel, msgId, roleId, state } = raid;
+    if (state === "OPENED") {
+      await interaction.editReply("Channel is already opened");
+      return;
+    }
+
     await channel.permissionOverwrites.edit(roleId, {
       CONNECT: true,
     });
 
-    await interaction.editReply({
-      content: "Opened the channel",
-    });
+    this.raids.set(interaction.user.id, { ...raid, state: "OPENED" });
+
+    await interaction.editReply("Opened the channel");
 
     const msg = await interaction.channel?.messages.fetch(msgId);
     if (!msg) return;
@@ -130,20 +132,22 @@ export class ConfigCommand {
 
     const raid = this.raids.get(interaction.user.id);
     if (!raid) {
-      await interaction.editReply({
-        content: "Create a channel first",
-      });
+      await interaction.editReply("Create a channel first");
       return;
     }
 
-    const { channel, msgId, roleId } = raid;
+    const { channel, msgId, roleId, state } = raid;
+    if (state === "LOCKED") {
+      await interaction.editReply("Channel is already locked");
+      return;
+    }
+
+    this.raids.set(interaction.user.id, { ...raid, state: "LOCKED" });
     await channel.permissionOverwrites.edit(roleId, {
       CONNECT: false,
     });
 
-    await interaction.editReply({
-      content: "Locked the channel",
-    });
+    await interaction.editReply("Locked the channel");
 
     const msg = await interaction.channel?.messages.fetch(msgId);
     if (!msg) return;
@@ -157,6 +161,32 @@ export class ConfigCommand {
     });
   }
 
+  @Slash("cap", {
+    description: "Sets a user cap to the channel",
+  })
+  private async cap(
+    @SlashOption("number", {
+      type: "NUMBER",
+      required: true,
+      description: "User cap for the channel",
+    })
+    number: number,
+    interaction: CommandInteraction
+  ): Promise<void> {
+    await interaction.deferReply({ ephemeral: true });
+    const raid = this.raids.get(interaction.user.id);
+
+    if (!raid || !raid.channel) {
+      await interaction.editReply("Create a channel first");
+      return;
+    }
+
+    const { channel } = raid;
+    await channel.setUserLimit(number);
+
+    await interaction.editReply(`Edited channel cap to ${number} users`);
+  }
+
   @Slash("delete", {
     description: "Removes the channel",
   })
@@ -165,9 +195,7 @@ export class ConfigCommand {
     const raid = this.raids.get(interaction.user.id);
 
     if (!raid || !raid.channel) {
-      await interaction.editReply({
-        content: "Create a channel first",
-      });
+      await interaction.editReply("Create a channel first");
       return;
     }
 
@@ -187,7 +215,7 @@ export class ConfigCommand {
       .setDescription(`Closed since ${Formatters.time(new Date(), "R")}`);
 
     await msg.edit({
-      content: "Closed",
+      content: "This raid has finished.",
       embeds: [embed],
     });
   }
@@ -197,4 +225,5 @@ interface CustomRaidChannelInfo {
   channel: VoiceChannel;
   roleId: Snowflake;
   msgId: Snowflake;
+  state: "LOCKED" | "OPENED";
 }
