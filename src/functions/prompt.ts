@@ -22,11 +22,11 @@ export async function prompt(
   let currentIndex = index;
   const expectedIndex = prompts.length;
 
-  if (responses.length === expectedIndex) {
+  if (responses.length === index) {
     return responses;
   }
 
-  const { question } = prompts[currentIndex];
+  const { question } = prompts[index];
 
   await interaction.editReply({
     content: question + WARNING_STRING,
