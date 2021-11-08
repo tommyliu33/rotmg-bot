@@ -4,12 +4,9 @@ import { prompt, PromptOptions } from "@functions";
 
 const PROMPTS: PromptOptions[] = [
   {
-    question: "send embed",
-    expected: "hello",
-  },
-  {
-    question: "test",
-    expected: "hello world",
+    question:
+      "Send the embed code (go here to build a custom embed <https://leovoel.github.io/embed-visualizer/>)",
+    expected: "n/a",
   },
 ];
 

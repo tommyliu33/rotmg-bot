@@ -11,7 +11,7 @@ interface PromptResponses {
 }
 
 const WARNING_STRING =
-  "\n\nYou have 15 seconds to answer.\nType `cancel` to stop.";
+  "\n\nYou have 15 seconds to answer.\nType `cancel` to cancel.";
 
 export async function prompt(
   interaction: CommandInteraction,
@@ -22,11 +22,11 @@ export async function prompt(
   let currentIndex = index;
   const expectedIndex = prompts.length;
 
-  if (responses.length === index) {
+  if (responses.length === expectedIndex) {
     return responses;
   }
 
-  const { question } = prompts[index];
+  const { question } = prompts[currentIndex];
 
   await interaction.editReply({
     content: question + WARNING_STRING,
