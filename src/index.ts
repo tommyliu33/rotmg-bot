@@ -16,6 +16,16 @@ async function init() {
   container.register(kClient, { useValue: client });
 
   await client.login(process.env["discord_token"]!);
+
+  client.once("ready", async () => {
+    await client.initApplicationCommands({
+      guild: { log: false },
+    });
+  });
+
+  client.on("interactionCreate", async (interaction) => {
+    await client.executeInteraction(interaction);
+  });
 }
 
 init();
