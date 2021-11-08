@@ -10,6 +10,9 @@ interface PromptResponses {
   response: string;
 }
 
+const WARNING_STRING =
+  "\n\nYou have 15 seconds to answer.\nType `cancel` to stop.";
+
 export async function prompt(
   interaction: CommandInteraction,
   prompts: PromptOptions[],
@@ -26,7 +29,7 @@ export async function prompt(
   const { question } = prompts[currentIndex];
 
   await interaction.editReply({
-    content: question,
+    content: question + WARNING_STRING,
   });
 
   const filter = (m: Message) => m.author.id === interaction.user.id;
