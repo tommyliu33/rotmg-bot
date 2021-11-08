@@ -13,8 +13,8 @@ export class Bot extends Client {
         resolve(__dirname, "../commands", "**/*.{ts,js}"),
         resolve(__dirname, "../events", "**/*.{ts,js}"),
       ],
+      // TODO: not hardcode guild ids
       botGuilds: ["884659225224175626"],
-      silent: true,
     });
   }
 }
