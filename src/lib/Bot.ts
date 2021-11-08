@@ -7,13 +7,14 @@ import { injectable } from "tsyringe";
 export class Bot extends Client {
   public constructor() {
     super({
-      intents: ["GUILDS"],
+      intents: ["GUILDS", "GUILD_MESSAGES"],
       partials: ["CHANNEL"],
       classes: [
         resolve(__dirname, "../commands", "**/*.{ts,js}"),
         resolve(__dirname, "../events", "**/*.{ts,js}"),
       ],
       botGuilds: ["884659225224175626"],
+      silent: true,
     });
   }
 }
