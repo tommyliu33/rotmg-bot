@@ -7,8 +7,6 @@
     "deploy": "env-cmd node dist/deploy"
   },
   "dependencies": {
-    "@discordjs/builders": "^0.6.0",
-    "@sapphire/stopwatch": "^1.2.3",
     "discord.js": "^13.2.0",
     "discordx": "^8.1.0",
     "dot-prop": "^6.0.1",
