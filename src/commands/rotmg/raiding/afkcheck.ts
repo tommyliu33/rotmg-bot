@@ -12,9 +12,12 @@ import { afkCheckEmbed } from "../../../util/Embeds";
 export abstract class Command {
   @Slash("afkcheck", { description: "start an afkcheck" })
   private async execute(
-    // TODO: add the rest of the dungeons
-    @SlashChoice("oryx sanctuary", "o3")
-    @SlashChoice("the shatters", "shatters")
+    @SlashChoice("The Shatters", "shatters")
+    @SlashChoice("The Void", "void")
+    @SlashChoice("The Nest", "nest")
+    @SlashChoice("Cultist Hideout", "cult")
+    @SlashChoice("Fungal Cavern", "fungal")
+    @SlashChoice("Oryx Sanctuary", "o3")
     @SlashOption("dungeon", {
       type: "STRING",
       required: true,
@@ -26,6 +29,10 @@ export abstract class Command {
     await interaction.deferReply();
 
     const dungeon = dungeons[dungeons.findIndex((d) => d.name === name)];
+    if (!dungeon) {
+      await interaction.editReply("dungeon unavailable");
+      return;
+    }
 
     const member = await interaction.guild?.members.fetch(interaction.user.id);
     const vetChannelId = await getGuildSetting(
@@ -59,7 +66,7 @@ export abstract class Command {
 
     embed.description += "To end the afk check as the leader, react to ❌";
     if (interaction.deferred) {
-      await interaction.deleteReply();
+      await interaction.editReply("Created afk-check");
       let initalMsg = await interaction.channel?.send({
         content: `@here ${Formatters.inlineCode(dungeon.full_name)}`,
         embeds: [embed],
@@ -69,6 +76,7 @@ export abstract class Command {
       });
 
       // todo: handle reactions
+      // todo: control panel
     }
   }
 }
