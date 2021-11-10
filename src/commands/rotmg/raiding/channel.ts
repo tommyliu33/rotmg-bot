@@ -1,5 +1,4 @@
 import { createChannel } from "@functions";
-import { Database } from "@lib";
 import {
   CommandInteraction,
   Formatters,
@@ -8,9 +7,7 @@ import {
   VoiceChannel,
 } from "discord.js";
 import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
-import { container, inject, injectable } from "tsyringe";
-import { kDatabase } from "../../../tokens";
-
+import { injectable } from "tsyringe";
 import {
   getGuildSetting,
   SettingsKey,
@@ -26,9 +23,7 @@ const truncate = (str: string, max: number) =>
 @SlashGroup("channel")
 export class ConfigCommand {
   private raids: Map<string, CustomRaidChannelInfo>;
-  public constructor(@inject(kDatabase) public db: Database) {
-    this.db = container.resolve<Database>(kDatabase)!;
-
+  public constructor() {
     this.raids = new Map();
   }
 
