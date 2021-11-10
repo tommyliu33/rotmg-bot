@@ -1,31 +1,45 @@
-// TODO
-/*import { inlineCode } from "@discordjs/builders";
-import { Command } from "@lib";
-import {
-  CommandInteraction,
-  GuildMember,
-  Message,
-  TextChannel,
-  VoiceChannel,
-} from "discord.js";
+import { createChannel } from "@functions";
+import { CommandInteraction, Formatters } from "discord.js";
+import { Discord, Slash, SlashChoice, SlashOption } from "discordx";
 import { dungeons } from "../../../dungeons";
+import {
+  getGuildSetting,
+  SettingsKey,
+} from "../../../functions/settings/getGuildSetting";
 import { afkCheckEmbed } from "../../../util/Embeds";
 
-export default class implements Command {
-  public async execute(interaction: CommandInteraction): Promise<void> {
+@Discord()
+export abstract class Command {
+  @Slash("afkcheck", { description: "start an afkcheck" })
+  private async execute(
+    // TODO: add the rest of the dungeons
+    @SlashChoice("oryx sanctuary", "o3")
+    @SlashChoice("the shatters", "shatters")
+    @SlashOption("dungeon", {
+      type: "STRING",
+      required: true,
+      description: "name of the dungeon",
+    })
+    name: string,
+    interaction: CommandInteraction
+  ): Promise<void> {
     await interaction.deferReply();
 
-    let dungeon_name: string = interaction.options.getString("dungeon", true);
+    const dungeon = dungeons[dungeons.findIndex((d) => d.name === name)];
 
-    const dungeon =
-      dungeons[dungeons.findIndex((d) => d.name === dungeon_name)];
+    const member = await interaction.guild?.members.fetch(interaction.user.id);
+    const vetChannelId = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.VetAfkCheck
+    );
 
-    const member = await interaction.guild?.members
-      .fetch(interaction.user.id)
-      .catch((err) => console.log(`[error] :: ${err.stack}`));
+    const channel = await createChannel(
+      interaction.guild!,
+      name,
+      interaction.channelId === vetChannelId
+    );
 
-    const voiceChannel = await this.createVoiceChannel(member!, dungeon_name);
-    if (!(voiceChannel instanceof VoiceChannel)) {
+    if (!channel) {
       await interaction.reply({
         content:
           "Unable to create the voice channel because of missing permissions or there was no category associated with the lounge.",
@@ -33,28 +47,10 @@ export default class implements Command {
       });
       return;
     }
-
-    const { afkCheckChannel } = await interaction.client.db.get(
-      interaction.guildId!
+    const embed = afkCheckEmbed(dungeon).setAuthor(
+      member?.displayName!,
+      member?.user.displayAvatarURL({ dynamic: true })
     );
-
-    let channel = await interaction.guild?.channels.fetch(afkCheckChannel)!;
-    if (!channel) {
-      await interaction.reply({
-        content: "Could not find the afk check channel.",
-        ephemeral: true,
-      });
-      return;
-    }
-
-    channel = channel as TextChannel;
-
-    // update embed with raid-specific info
-    const embed = afkCheckEmbed(dungeon);
-    embed.description = embed.description?.replace(
-      /{voiceChannel}/,
-      voiceChannel.toString()
-    )!;
 
     const boosterRole = interaction.guild?.roles.premiumSubscriberRole;
     if (boosterRole) {
@@ -62,63 +58,17 @@ export default class implements Command {
     }
 
     embed.description += "To end the afk check as the leader, react to ❌";
-
-    interaction.client.raids.emit("createRaid", {
-      user: interaction.user.id,
-      dungeon,
-    });
-
     if (interaction.deferred) {
-      let initalMsg = await interaction.editReply({
-        content: `@here ${inlineCode(dungeon.full_name)} is now starting in ${
-          voiceChannel.name
-        }`,
+      await interaction.deleteReply();
+      let initalMsg = await interaction.channel?.send({
+        content: `@here ${Formatters.inlineCode(dungeon.full_name)}`,
         embeds: [embed],
+        allowedMentions: {
+          parse: ["everyone"],
+        },
       });
-
-      if (!(initalMsg instanceof Message)) {
-        initalMsg = await channel.messages.fetch(initalMsg.id);
-      }
 
       // todo: handle reactions
     }
   }
-
-  private async createVoiceChannel(
-    member: GuildMember,
-    name: string
-  ): Promise<VoiceChannel | null> {
-    const { guild } = member;
-    const { mainLounge, verifiedRole, leaderRoles } =
-      await member.client.db.get(guild.id);
-
-    const lounge = await guild.channels
-      .fetch(mainLounge)
-      .catch((err) => console.log(`[error] :: ${err.stack}`));
-
-    if (!lounge || !lounge.parentId) return null;
-
-    const channel = await guild.channels.create("Raiding 1", {
-      type: "GUILD_VOICE",
-      permissionOverwrites: [
-        {
-          id: verifiedRole,
-          allow: ["CONNECT", "VIEW_CHANNEL"],
-          deny: ["SPEAK"],
-        },
-        {
-          id: leaderRoles[name],
-          allow: ["CONNECT", "SPEAK", "STREAM", "VIEW_CHANNEL"],
-        },
-        {
-          id: guild.roles.everyone.id ?? guild.id,
-          deny: ["VIEW_CHANNEL", "CONNECT"],
-        },
-      ],
-      parent: lounge?.parentId!,
-      position: lounge.position,
-    });
-
-    return channel;
-  }
-}*/
+}

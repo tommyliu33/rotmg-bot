@@ -2,6 +2,7 @@ import type { Guild, OverwriteResolvable, VoiceChannel } from "discord.js";
 import { getGuildSetting, SettingsKey } from "./settings/getGuildSetting";
 import logger from "../util/logger";
 
+// TODO: better way to determine if veteran raid
 export async function createChannel(
   guild: Guild,
   name: string,

@@ -16,7 +16,7 @@ export class Bot extends Client {
       ],
       // TODO: not hardcode guild ids
       botGuilds: ["884659225224175626"],
-      // @ts-expect-error
+      // @ts-ignore
       makeCache: Options.cacheWithLimits({
         GuildInviteManager: 0,
         GuildStickerManager: 0,
