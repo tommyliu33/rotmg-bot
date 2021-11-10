@@ -1,4 +1,3 @@
-import { Database } from "@lib";
 import {
   CategoryChannel,
   CommandInteraction,
@@ -8,21 +7,19 @@ import {
   Role,
 } from "discord.js";
 import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
-import { container, inject, injectable } from "tsyringe";
-import { kDatabase } from "../../tokens";
+import {
+  getGuildSetting,
+  SettingsKey,
+} from "../../functions/settings/getGuildSetting";
+import { setGuildSetting } from "../../functions/settings/setGuildSetting";
 
-@injectable()
 @Discord()
 @SlashGroup("config", "config group description", {
   channel: "channel group description",
   category: "category group description",
   "user-roles": "user_roles group description",
 })
-export class ConfigCommand {
-  public constructor(@inject(kDatabase) public db: Database) {
-    this.db = container.resolve<Database>(kDatabase);
-  }
-
+export abstract class ConfigCommand {
   @SlashGroup("channel")
   @Slash("afk-check")
   private async afk_check(
@@ -39,19 +36,22 @@ export class ConfigCommand {
   ) {
     await interaction.deferReply();
 
-    const guildId = interaction.guildId!;
-
-    const {
-      channels: { afk_check },
-    } = await this.db.getGuild(guildId);
+    const afkCheck = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.AfkCheck
+    );
 
     const mention = channel.toString();
-    if (afk_check === channel.id) {
+    if (afkCheck === channel.id) {
       await interaction.editReply(`❌ afk_check is already set to ${mention}`);
       return;
     }
 
-    await this.db.setGuildKey(guildId, "channels.afk_check", channel.id);
+    await setGuildSetting(
+      interaction.guildId!,
+      SettingsKey.AfkCheck,
+      channel.id
+    );
     await interaction.editReply(`☑️ updated afk_check to ${mention}`);
   }
 
@@ -71,21 +71,24 @@ export class ConfigCommand {
   ) {
     await interaction.deferReply();
 
-    const guildId = interaction.guildId!;
-
-    const {
-      channels: { vet_afk_check },
-    } = await this.db.getGuild(guildId);
+    const vetAfkCheck = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.VetAfkCheck
+    );
 
     const mention = channel.toString();
-    if (vet_afk_check === channel.id) {
+    if (vetAfkCheck === channel.id) {
       await interaction.editReply(
         `❌ vet_afk_check is already set to ${mention}`
       );
       return;
     }
 
-    await this.db.setGuildKey(guildId, "channels.vet_afk_check", channel.id);
+    await setGuildSetting(
+      interaction.guildId!,
+      SettingsKey.VetAfkCheck,
+      channel.id
+    );
     await interaction.editReply(`☑️ updated vet_afk_check to ${mention}`);
   }
 
@@ -105,21 +108,24 @@ export class ConfigCommand {
   ) {
     await interaction.deferReply();
 
-    const guildId = interaction.guildId!;
-
-    const {
-      categories: { main },
-    } = await this.db.getGuild(guildId);
+    const mainCategory = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.MainCategory
+    );
 
     const mention = channel.toString();
-    if (main === channel.id) {
+    if (mainCategory === channel.id) {
       await interaction.editReply(
         `❌ main category is already set to ${mention}`
       );
       return;
     }
 
-    await this.db.setGuildKey(guildId, "categories.main", channel.id);
+    await setGuildSetting(
+      interaction.guildId!,
+      SettingsKey.MainCategory,
+      channel.id
+    );
     await interaction.editReply(`☑️ updated main category to ${mention}`);
   }
 
@@ -139,21 +145,24 @@ export class ConfigCommand {
   ) {
     await interaction.deferReply();
 
-    const guildId = interaction.guildId!;
-
-    const {
-      categories: { veteran },
-    } = await this.db.getGuild(guildId);
+    const vetCategory = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.VetCategory
+    );
 
     const mention = channel.toString();
-    if (veteran === channel.id) {
+    if (vetCategory === channel.id) {
       await interaction.editReply(
         `❌ veteran category is already set to ${mention}`
       );
       return;
     }
 
-    await this.db.setGuildKey(guildId, "categories.veteran", channel.id);
+    await setGuildSetting(
+      interaction.guildId!,
+      SettingsKey.VetCategory,
+      channel.id
+    );
     await interaction.editReply(`☑️ updated veteran category to ${mention}`);
   }
 
@@ -170,21 +179,24 @@ export class ConfigCommand {
   ) {
     await interaction.deferReply();
 
-    const guildId = interaction.guildId!;
-
-    const {
-      user_roles: { main },
-    } = await this.db.getGuild(guildId);
+    const mainRole = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.MainUserRole
+    );
 
     const mention = role.toString();
-    if (role.id === main) {
+    if (mainRole === role.id) {
       await interaction.editReply(
         `❌ main user_role is already set to ${mention}`
       );
       return;
     }
 
-    await this.db.setGuildKey(guildId, "user_roles.main", role.id);
+    await setGuildSetting(
+      interaction.guildId!,
+      SettingsKey.MainUserRole,
+      role.id
+    );
     await interaction.editReply(`☑️ updated the main user_role to ${mention}`);
   }
 
@@ -201,29 +213,33 @@ export class ConfigCommand {
   ) {
     await interaction.deferReply();
 
-    const guildId = interaction.guildId!;
-
-    const {
-      user_roles: { veteran },
-    } = await this.db.getGuild(guildId);
+    const vetUserRole = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.VetUserRole
+    );
 
     const mention = role.toString();
-    if (role.id === veteran) {
+    if (vetUserRole === role.id) {
       await interaction.editReply({
         content: `❌ veteran user_role is already set to ${mention}`,
       });
       return;
     }
 
-    await this.db.setGuildKey(guildId, "user_roles.veteran", role.id);
+    await setGuildSetting(
+      interaction.guildId!,
+      SettingsKey.VetUserRole,
+      role.id
+    );
     await interaction.editReply(
       `☑️ updated the veteran user_role to ${mention}`
     );
   }
 
+  // TODO: removed for now
   @Slash("view", { description: "view the current server config." })
   private async view(interaction: CommandInteraction): Promise<void> {
-    const embed = new MessageEmbed();
+    /*const embed = new MessageEmbed();
     const cfg = await this.db.getGuild(interaction.guildId!);
 
     const channels = Object.keys(cfg.channels)
@@ -286,6 +302,7 @@ export class ConfigCommand {
 
     await interaction.reply({
       embeds: [embed],
-    });
+    });*/
+    await interaction.reply("sadge");
   }
 }
