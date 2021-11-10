@@ -1,11 +1,12 @@
-import type { CommandInteraction, Snowflake } from "discord.js";
+import { CommandInteraction, MessageEmbed, Snowflake } from "discord.js";
 import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
 import { prompt, PromptOptions } from "@functions";
 
+// TODO
+
 const PROMPTS: PromptOptions[] = [
   {
-    question:
-      "Send the embed code (go here to build a custom embed <https://leovoel.github.io/embed-visualizer/>)",
+    question: "What message do you want for the AFK Check?",
     expected: "n/a",
   },
 ];
@@ -27,9 +28,35 @@ export abstract class PingCommand {
   ): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
     const res = await prompt(interaction, PROMPTS, []);
-    console.log("res in command", res);
 
-    await interaction.editReply("done.");
+    if (res[0].response) {
+      const member = await interaction.guild?.members.fetch(
+        interaction.user.id
+      );
+
+      const embed = new MessageEmbed()
+        .setDescription(res[0].response)
+        .setAuthor(
+          member?.displayName!,
+          member?.user.displayAvatarURL({ dynamic: true })
+        )
+        .setColor(member?.displayColor ?? 0);
+
+      await interaction.editReply({
+        content: "Preview",
+        embeds: [embed],
+      });
+
+      await interaction.followUp({
+        ephemeral: true,
+        content: `Template \`${name}\` created.`,
+      });
+    }
+
+    console.log("res in command", res);
+    return;
+
+    // TODO: actually save the template
   }
 
   @Slash("view", {
@@ -45,6 +72,14 @@ export abstract class PingCommand {
     interaction: CommandInteraction
   ): Promise<void> {
     await interaction.reply("view " + name);
+  }
+
+  // @ts-ignore
+  @Slash("embed_tutorial", {
+    description: "tutorial for building embeds and using them for templates",
+  })
+  private async embedTutorial(interaction: CommandInteraction): Promise<void> {
+    await interaction.reply("hello world");
   }
 }
 

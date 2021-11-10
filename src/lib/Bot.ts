@@ -1,3 +1,4 @@
+import { Options } from "discord.js";
 import { Client, Discord } from "discordx";
 import { resolve } from "path";
 import { injectable } from "tsyringe";
@@ -15,6 +16,15 @@ export class Bot extends Client {
       ],
       // TODO: not hardcode guild ids
       botGuilds: ["884659225224175626"],
+      // @ts-expect-error
+      makeCache: Options.cacheWithLimits({
+        GuildInviteManager: 0,
+        GuildStickerManager: 0,
+        PresenceManager: 0,
+        StageInstanceManager: 0,
+        ThreadManager: 0,
+        ThreadMemberManager: 0,
+      }),
     });
   }
 }

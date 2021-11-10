@@ -11,6 +11,14 @@ import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
 import { container, inject, injectable } from "tsyringe";
 import { kDatabase } from "../../../tokens";
 
+import {
+  getGuildSetting,
+  SettingsKey,
+} from "../../../functions/settings/getGuildSetting";
+
+const truncate = (str: string, max: number) =>
+  str.length > max ? str.slice(0, max) : str;
+
 // TODO: add templates with template command and add option to use templates
 
 @injectable()
@@ -43,43 +51,51 @@ export class ConfigCommand {
       return;
     }
 
-    const { channels, user_roles } = await this.db.getGuild(
-      interaction.guildId!
+    const roleId = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.MainUserRole
     );
-    const channel = await createChannel(
-      interaction.guild!,
-      name,
-      interaction.channelId === channels.vet_afk_check
+    const vetChannelId = await getGuildSetting(
+      interaction.guildId!,
+      SettingsKey.VetAfkCheck
     );
 
-    await channel?.permissionOverwrites.edit(user_roles.main, {
+    const channelName = truncate(name, 100);
+    const channel = await createChannel(
+      interaction.guild!,
+      channelName,
+      interaction.channelId === vetChannelId
+    );
+
+    await channel?.permissionOverwrites.edit(roleId, {
       CONNECT: false,
     });
 
     const member = await channel?.guild.members.fetch(interaction.user.id)!;
 
     const embed = new MessageEmbed()
-      .setAuthor(
-        member.displayName!,
-        member.user.displayAvatarURL({ dynamic: true })
-      )
-      .setColor(member.displayColor)
-      .setDescription(`Channel started at ${Formatters.time(new Date(), "R")}`);
+      .setColor(member?.displayColor)
+      .setTitle(`Channel ${Formatters.inlineCode(channelName)}`)
+      .setDescription(`Join ${channel?.toString()} to participate`)
+      .addField(
+        "Status",
+        `Channel started at ${Formatters.time(new Date(), "T")}`
+      );
 
     await interaction.editReply("Created the channel");
 
     const m = await interaction.channel?.send({
-      content: `@here ${name}`,
+      content: "@here",
       embeds: [embed],
       allowedMentions: {
-        parse: ["everyone"], // this only allows @here to be mentioned
+        parse: ["everyone"],
       },
     });
 
     this.raids.set(interaction.user.id, {
       channel: channel!,
       msgId: m?.id!,
-      roleId: user_roles.main,
+      roleId,
       state: "LOCKED",
     });
   }
@@ -116,8 +132,20 @@ export class ConfigCommand {
     if (!msg) return;
 
     const embed = new MessageEmbed(msg.embeds[0])
-      .setDescription(`Opened since ${Formatters.time(new Date(), "R")}`)
+      .setFields([])
+      .setDescription(`Join ${channel.toString()} to participate`)
+      .addField("Status", `Opened at ${Formatters.time(new Date(), "T")}`)
       .setColor("GREEN");
+
+    const m = await msg.channel.send({
+      content: `@here Channel ${Formatters.inlineCode(
+        channel.name
+      )} has opened (re-ping)`,
+      allowedMentions: {
+        parse: ["everyone"],
+      },
+    });
+    await m.delete();
 
     await msg.edit({
       embeds: [embed],
@@ -125,7 +153,7 @@ export class ConfigCommand {
   }
 
   @Slash("lock", {
-    description: "Closes the channel",
+    description: "Locks the channel",
   })
   private async lock(interaction: CommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
@@ -153,7 +181,9 @@ export class ConfigCommand {
     if (!msg) return;
 
     const embed = new MessageEmbed(msg.embeds[0])
-      .setDescription(`Locked since ${Formatters.time(new Date(), "R")}`)
+      .setFields([])
+      .setDescription("Please wait for the channel to open")
+      .addField("Status", `Locked at ${Formatters.time(new Date(), "T")}`)
       .setColor("YELLOW");
 
     await msg.edit({
@@ -212,7 +242,7 @@ export class ConfigCommand {
 
     const embed = new MessageEmbed(msg.embeds[0])
       .setColor("RED")
-      .setDescription(`Closed since ${Formatters.time(new Date(), "R")}`);
+      .setDescription(`Closed at ${Formatters.time(new Date(), "T")}`);
 
     await msg.edit({
       content: "This raid has finished.",

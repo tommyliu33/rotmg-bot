@@ -1,4 +1,10 @@
-import type { CommandInteraction, Message } from "discord.js";
+import {
+  Collection,
+  CommandInteraction,
+  Formatters,
+  Message,
+  Snowflake,
+} from "discord.js";
 
 export interface PromptOptions {
   question: string;
@@ -11,7 +17,7 @@ interface PromptResponses {
 }
 
 const WARNING_STRING =
-  "\n\nYou have 15 seconds to answer.\nType `cancel` to cancel.";
+  "\nYou have 15 seconds to answer. Type `cancel` to cancel.";
 
 export async function prompt(
   interaction: CommandInteraction,
@@ -22,30 +28,32 @@ export async function prompt(
   let currentIndex = index;
   const expectedIndex = prompts.length;
 
-  if (responses.length === expectedIndex) {
-    return responses;
-  }
+  if (responses.length === expectedIndex) return responses;
 
   const { question } = prompts[currentIndex];
 
   await interaction.editReply({
-    content: question + WARNING_STRING,
+    content: `${question}\nYou have 15 seconds to answer. Type ${Formatters.inlineCode(
+      "cancel"
+    )} to cancel.`,
   });
 
   const filter = (m: Message) => m.author.id === interaction.user.id;
-  const collector = await interaction.channel?.awaitMessages({
-    filter,
-    max: 1,
-    time: 15000,
-    errors: ["time"],
-  });
+  const collector = await interaction.channel
+    ?.awaitMessages({
+      filter,
+      max: 1,
+      time: 15000,
+      errors: ["time"],
+    })
+    .catch(async () => {
+      await interaction.editReply("Exiting due to no response.");
+    });
 
-  if (!collector?.first()) {
-    await prompt(interaction, prompts, responses, currentIndex);
-    console.log(`[error] :: ${collector}`);
-  }
+  if (!collector) return [];
+  const collected = collector as Collection<Snowflake, Message>;
 
-  const msg = collector?.first()!;
+  const msg = collected.first()!;
   if (msg.content.toLowerCase() === "cancel") {
     await interaction.editReply("cancelling");
     return responses;
