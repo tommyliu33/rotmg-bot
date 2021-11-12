@@ -1,8 +1,9 @@
-import type { VoiceChannel } from "discord.js";
+import { Formatters, VoiceChannel } from "discord.js";
 import { ArgsOf, Discord, On } from "discordx";
 import { Redis } from "ioredis";
 import { container, inject, injectable } from "tsyringe";
 import { kRedis } from "../../tokens";
+import { MessageEmbed } from "discord.js";
 
 @Discord()
 @injectable()
@@ -28,11 +29,6 @@ export class Event {
         u.id === leaderId
       ) {
         await this.redis.del(`raid:${leaderId}:${m.message.id}`);
-        await m.message.edit({
-          content: "afk check ended",
-          embeds: [],
-        });
-        await m.message.reactions.removeAll();
 
         const channel = (await m.message.guild.channels.fetch(
           vcId
@@ -47,11 +43,41 @@ export class Event {
         for (const member of channel.members.values()) {
           if (!reacted.has(member.user.id)) await member.voice.setChannel(null);
         }
+
+        const member = await m.message.guild.members
+          .fetch(leaderId)
+          .catch(() => {});
+
+        console.log(
+          `${dungeon.name.charAt(0).toUpperCase()}${dungeon.name
+            .slice(1)
+            .toLowerCase()}`
+        );
+
+        const embed = new MessageEmbed(m.message.embeds[0]!)
+          .setAuthor(
+            `${dungeon.full_name} raid has been ended by ${member?.displayName}`,
+            member?.user.displayAvatarURL({ dynamic: true })!
+          )
+          .setDescription(
+            [
+              `Raid has started in ${channel.toString()} ${Formatters.time(
+                new Date(),
+                "R"
+              )}`,
+              `Raid starting with ${channel.members.size.toString()} raiders`,
+              "Please wait for the next AFK Check to begin.",
+            ].join("\n")
+          )
+          .setFooter(`The afk check has been ended by ${member?.displayName}`);
+
+        await m.message.edit({
+          content: " ",
+          embeds: [embed],
+        });
       }
 
       // TODO: confirmation
-    } else {
-      console.log("no raid");
     }
     //#endregion
   }
