@@ -8,8 +8,14 @@ import { injectable } from "tsyringe";
 export class Bot extends Client {
   public constructor() {
     super({
-      intents: ["GUILDS", "GUILD_MESSAGES"],
-      partials: ["CHANNEL"],
+      intents: [
+        "GUILDS",
+        "GUILD_MESSAGES",
+        "GUILD_MEMBERS",
+        "GUILD_MESSAGE_REACTIONS",
+        "GUILD_VOICE_STATES",
+      ],
+      partials: ["CHANNEL", "REACTION", "GUILD_MEMBER"],
       classes: [
         resolve(__dirname, "../commands", "**/*.{ts,js}"),
         resolve(__dirname, "../events", "**/*.{ts,js}"),
@@ -25,6 +31,7 @@ export class Bot extends Client {
         ThreadManager: 0,
         ThreadMemberManager: 0,
       }),
+      silent: true,
     });
   }
 }

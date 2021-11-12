@@ -1,33 +1,49 @@
-import { createChannel } from "@functions";
-import { CommandInteraction, Formatters } from "discord.js";
+import { collector, createChannel, react } from "@functions";
+import {
+  CommandInteraction,
+  EmojiResolvable,
+  Formatters,
+  Message,
+  MessageEmbed,
+  Role,
+} from "discord.js";
 import { Discord, Slash, SlashChoice, SlashOption } from "discordx";
+import { Redis } from "ioredis";
+import { kRedis } from "../../../tokens";
+import { container, inject } from "tsyringe";
 import { dungeons } from "../../../dungeons";
 import {
   getGuildSetting,
   SettingsKey,
 } from "../../../functions/settings/getGuildSetting";
-import { afkCheckEmbed } from "../../../util/Embeds";
+import { afkCheckEmbed } from "../../../util/embeds";
+
+enum DungeonChoices {
+  "The Shatters" = "shatters",
+  "The Void" = "void",
+  "The Nest" = "nest",
+  "Cultist Hideout" = "cult",
+  "Fungal Cavern" = "fungal",
+  "Oryx Sanctuary" = "o3",
+}
 
 @Discord()
-export abstract class Command {
+export class Command {
+  public constructor(@inject(kRedis) public readonly redis: Redis) {
+    this.redis = container.resolve<Redis>(kRedis);
+  }
+
   @Slash("afkcheck", { description: "start an afkcheck" })
   private async execute(
-    @SlashChoice("The Shatters", "shatters")
-    @SlashChoice("The Void", "void")
-    @SlashChoice("The Nest", "nest")
-    @SlashChoice("Cultist Hideout", "cult")
-    @SlashChoice("Fungal Cavern", "fungal")
-    @SlashChoice("Oryx Sanctuary", "o3")
+    @SlashChoice(DungeonChoices)
     @SlashOption("dungeon", {
       type: "STRING",
       required: true,
-      description: "name of the dungeon",
+      description: "Name of the dungeon",
     })
     name: string,
     interaction: CommandInteraction
   ): Promise<void> {
-    await interaction.deferReply();
-
     const dungeon = dungeons[dungeons.findIndex((d) => d.name === name)];
     if (!dungeon) {
       await interaction.editReply("dungeon unavailable");
@@ -42,7 +58,9 @@ export abstract class Command {
 
     const channel = await createChannel(
       interaction.guild!,
-      name,
+      `${name.charAt(0).toUpperCase()}${name
+        .slice(1)
+        .toLowerCase()} | ${member?.displayName!}`,
       interaction.channelId === vetChannelId
     );
 
@@ -54,29 +72,76 @@ export abstract class Command {
       });
       return;
     }
-    const embed = afkCheckEmbed(dungeon).setAuthor(
-      member?.displayName!,
-      member?.user.displayAvatarURL({ dynamic: true })
+
+    const embed = this.finialize(
+      afkCheckEmbed(dungeon).setTimestamp(),
+      interaction.guild?.roles.premiumSubscriberRole!
     );
 
-    const boosterRole = interaction.guild?.roles.premiumSubscriberRole;
-    if (boosterRole) {
-      embed.description += `If you have the ${boosterRole.toString()}, react with <:nitro:888634863140339824> to get moved in.`;
+    const msg = (await interaction.reply({
+      content: `@here ${Formatters.inlineCode(
+        dungeon.full_name
+      )} ${channel.toString()}`,
+      embeds: [embed],
+      allowedMentions: {
+        parse: ["everyone"],
+      },
+      fetchReply: true,
+    })) as Message;
+
+    const { portal, keys, main_reacts, optional_reacts, rusher } = dungeon;
+    const reacts: EmojiResolvable[] = [
+      portal,
+      ...keys.map((c) => c.emote),
+      dungeon.name === "shatters" ? rusher?.emote! : "",
+      dungeon.name === "shatters"
+        ? "<:LightsOutPuzzle:908439164087840819>"
+        : "",
+      ...main_reacts.map((c) => c.emote),
+    ];
+
+    if (optional_reacts) {
+      reacts.push(...optional_reacts.map((c) => c.emote));
     }
 
-    embed.description += "To end the afk check as the leader, react to ❌";
-    if (interaction.deferred) {
-      await interaction.editReply("Created afk-check");
-      let initalMsg = await interaction.channel?.send({
-        content: `@here ${Formatters.inlineCode(dungeon.full_name)}`,
-        embeds: [embed],
-        allowedMentions: {
-          parse: ["everyone"],
-        },
-      });
-
-      // todo: handle reactions
-      // todo: control panel
+    // TODO: better
+    if (dungeon.name !== "shatters" && rusher) {
+      reacts.push(rusher.emote);
     }
+
+    const data = {
+      dungeon,
+      reacts,
+      vcId: channel.id,
+      msgId: msg.id,
+      leaderId: interaction.user.id,
+    };
+
+    this.redis.set(
+      `raid:${interaction.user.id}:${msg.id}`,
+      JSON.stringify(data)
+    );
+
+    reacts.push("❌");
+    await react(msg, reacts);
+
+    // todo: control panel
+    this.controlPanel();
   }
+
+  private finialize(embedData: MessageEmbed, role: Role): MessageEmbed {
+    const embed = new MessageEmbed(embedData);
+
+    if (role) {
+      embed.description += `If you have the ${role.toString()}, react with <:nitro:888634863140339824> to get moved in.`;
+    }
+
+    embed.setDescription(
+      `${embed.description}To end the afk check as the leader, react to ❌`
+    );
+
+    return embed;
+  }
+
+  private controlPanel() {}
 }

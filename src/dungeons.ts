@@ -1,5 +1,20 @@
 import type { ColorResolvable } from "discord.js";
 
+enum Reacts {
+  WARRIOR = "<:Warrior:886328165088231494>",
+  PALADIN = "<:Paladin:886328165172129852>",
+  KNIGHT = "<:Knight:886328165142790204>",
+  WIZARD = "<:Wizard:886328165126008852>",
+  MYSTIC = "<:Mystic:886331698147635240>",
+  TRICKSTER = "<:Trickster:886331697858228226>",
+
+  FUNGAL_TOME = "<:TomeOfTheMushroomTribes:886328344126300221>",
+  MARBLE_SEAL = "<:MarbleSeal:886328165054697562>",
+
+  SLOW = "<:Slow:886331698101510206>",
+  ARMOR_BREAK = "<:ArmorBreak:886328650562162740>",
+}
+
 export interface Dungeon {
   name: string;
   full_name: string;
@@ -29,45 +44,40 @@ const dungeons: Dungeon[] = [
     name: "shatters",
     full_name: "The Shatters",
 
-    portal: "<:shatters:887532566977069138>",
+    portal: "<:ShattersPortal:887532566977069138>",
     keys: [
       {
         name: "key",
-        emote: "<:shatters_key:887532668181422122>",
+        emote: "<:ShattersKey:887532668181422122>",
         limit: 0,
       },
     ],
     main_reacts: [
       {
         name: "warrior",
-        emote: "<:warrior:886328165088231494>",
+        emote: Reacts.WARRIOR,
         limit: 0,
       },
       {
         name: "paladin",
-        emote: "<:paladin:886328165172129852>",
+        emote: Reacts.PALADIN,
         limit: 0,
       },
       {
         name: "knight",
-        emote: "<:knight:886328165142790204>",
-        limit: 0,
-      },
-      {
-        name: "wizard",
-        emote: "<:wizard:886328165126008852>",
+        emote: Reacts.KNIGHT,
         limit: 0,
       },
     ],
     optional_reacts: [
       {
         name: "fungal_tome",
-        emote: "<:fungal_tome:886328344126300221>",
+        emote: Reacts.FUNGAL_TOME,
         limit: 2,
       },
       {
         name: "slow",
-        emote: "<:slow:886331698101510206>",
+        emote: Reacts.SLOW,
         limit: 1,
       },
     ],
@@ -91,77 +101,72 @@ const dungeons: Dungeon[] = [
     keys: [
       {
         name: "inc",
-        emote: "<:wine_cellar_inc:886330945404272671>",
+        emote: "<:WineCellarIncantation:886330945404272671>",
         limit: 2,
       },
       {
         name: "sword_rune",
-        emote: "<:sword_rune:886134621127991337>",
+        emote: "<:SwordRune:886134621127991337>",
         limit: 2,
       },
       {
         name: "helmet_rune",
-        emote: "<:helmet_rune:886134621685837824>",
+        emote: "<:HelmetRune:886134621685837824>",
         limit: 2,
       },
       {
         name: "shield_rune",
-        emote: "<:shield_rune:886134621178331167>",
+        emote: "<:ShieldRune:886134621178331167>",
         limit: 2,
       },
     ],
-    portal: "<:o3:886067360820236338>",
+    portal: "<:OryxSanctuaryPortal:908398287994896444>",
     main_reacts: [
       {
         name: "warrior",
-        emote: "<:warrior:886328165088231494>",
+        emote: Reacts.WARRIOR,
         limit: 0,
       },
       {
         name: "paladin",
-        emote: "<:paladin:886328165172129852>",
-        limit: 0,
-      },
-      {
-        name: "knight",
-        emote: "<:knight:886328165142790204>",
+        emote: Reacts.PALADIN,
         limit: 0,
       },
       {
         name: "wizard",
-        emote: "<:wizard:886328165126008852>",
+        emote: Reacts.WIZARD,
         limit: 0,
       },
       {
         name: "mystic",
-        emote: "<:mystic:886331698147635240>",
+        emote: Reacts.MYSTIC,
         limit: 0,
       },
       {
         name: "trickster",
-        emote: "<:trickster:886331697858228226>",
+        emote: Reacts.TRICKSTER,
         limit: 0,
       },
     ],
     optional_reacts: [
       {
         name: "fungal_tome",
-        emote: "<:fungal_tome:886328344126300221>",
+        emote: Reacts.FUNGAL_TOME,
         limit: 0,
       },
       {
         name: "m_seal",
-        emote: "<:m_seal:886328165054697562>",
+        emote: Reacts.MARBLE_SEAL,
         limit: 0,
       },
       {
         name: "slow",
-        emote: "<:slow:886331698101510206>",
+        emote: Reacts.SLOW,
         limit: 1,
       },
       {
         name: "armor_break",
-        emote: "<:armor_break:886328650562162740>",
+        emote: Reacts.ARMOR_BREAK,
         limit: 1,
       },
     ],
