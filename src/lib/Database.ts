@@ -1,5 +1,6 @@
 import { Db, MongoClient } from "mongodb";
 import { singleton } from "tsyringe";
+import logger from "../logger";
 
 @singleton()
 export class Database {
@@ -25,6 +26,6 @@ export class Database {
   public async init() {
     await this.mongoClient.connect();
     this.db = this.mongoClient.db("rotmg-bot");
-    console.log("[database] :: connected");
+    logger.info("[database] connected");
   }
 }
