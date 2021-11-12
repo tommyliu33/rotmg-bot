@@ -1,9 +1,8 @@
-import { Formatters, VoiceChannel } from "discord.js";
+import { Formatters, MessageEmbed, VoiceChannel } from "discord.js";
 import { ArgsOf, Discord, On } from "discordx";
 import { Redis } from "ioredis";
 import { container, inject, injectable } from "tsyringe";
 import { kRedis } from "../../tokens";
-import { MessageEmbed } from "discord.js";
 
 @Discord()
 @injectable()
