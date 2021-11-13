@@ -1,17 +1,13 @@
-import { createChannel } from "@functions";
+import { createChannel, getGuildSetting, SettingsKey } from "@functions";
 import {
   CommandInteraction,
   Formatters,
   MessageEmbed,
   VoiceChannel,
 } from "discord.js";
-import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
+import { Discord, Guard, Slash, SlashGroup, SlashOption } from "discordx";
 import { Redis } from "ioredis";
 import { container, inject, injectable } from "tsyringe";
-import {
-  getGuildSetting,
-  SettingsKey,
-} from "../../../functions/settings/getGuildSetting";
 import { kRedis } from "../../../tokens";
 
 const truncate = (str: string, max: number) =>
@@ -248,18 +244,18 @@ export class Command {
 
     if (number < 0 || number > 99) {
       return interaction.reply({
-        content: "Channel cap must be greater than 0 but less than 100.",
+        content: "Channel cap should be between 0-99 (inclusive).",
         ephemeral: true,
       });
     }
 
+    await channel?.setUserLimit(number);
     if (number === 0) {
       return interaction.reply({
         content: "Removed the channel cap.",
         ephemeral: true,
       });
     } else {
-      await channel?.setUserLimit(number);
       return interaction.reply({
         content: `Changed channel cap to ${number} users.`,
         ephemeral: true,
@@ -286,11 +282,9 @@ export class Command {
     const channel = await interaction.guild?.channels.fetch(channelId);
     const msg = await interaction.channel?.messages.fetch(msgId);
 
-    await channel?.delete();
-    await interaction.reply({
-      content: "Closed and deleted the channel.",
-      ephemeral: true,
-    });
+    if (channel) {
+      await channel?.delete();
+    }
 
     if (msg) {
       await msg.edit({
@@ -305,5 +299,10 @@ export class Command {
         ],
       });
     }
+
+    await interaction.reply({
+      content: "Done.",
+      ephemeral: true,
+    });
   }
 }
