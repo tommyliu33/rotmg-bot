@@ -7,7 +7,6 @@ import { kClient, kDatabase, kRedis } from "./tokens";
 import Redis from "ioredis";
 
 async function init() {
-  // TODO: setup redis server for caching
   const redis = new Redis(process.env["REDIS_HOST"]);
 
   const client = new Bot();
@@ -20,17 +19,6 @@ async function init() {
   container.register(kRedis, { useValue: redis });
 
   await client.login(process.env["discord_token"]!);
-
-  /*client.once("ready", async () => {
-    await client.initApplicationCommands({
-      guild: { log: false },
-    });
-    logger.info("up");
-  });
-
-  client.on("interactionCreate", async (interaction) => {
-    await client.executeInteraction(interaction);
-  });*/
 }
 
 init();
