@@ -1,4 +1,4 @@
-import { Bot } from "@lib";
+import type { Bot } from "@lib";
 import { ArgsOf, Discord, On } from "discordx";
 import { container, inject, injectable } from "tsyringe";
 import { kClient } from "../tokens";
