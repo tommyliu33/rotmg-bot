@@ -7,7 +7,7 @@ import { kRedis } from "../../../../tokens";
 @injectable()
 @Discord()
 @SlashGroup("channel")
-export class UnlockChannelCommand {
+export class CapChannelCommand {
   public constructor(@inject(kRedis) public readonly redis: Redis) {
     this.redis = container.resolve<Redis>(kRedis);
   }
