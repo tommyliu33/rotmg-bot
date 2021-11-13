@@ -1,21 +1,22 @@
-import { collector, createChannel, react } from "@functions";
+import { AfkCheckChannel, createChannel, react } from "@functions";
 import {
   CommandInteraction,
   EmojiResolvable,
   Formatters,
+  GuildTextBasedChannel,
   Message,
   MessageEmbed,
   Role,
 } from "discord.js";
-import { Discord, Slash, SlashChoice, SlashOption } from "discordx";
-import { Redis } from "ioredis";
-import { kRedis } from "../../../tokens";
+import { Discord, Guard, Slash, SlashChoice, SlashOption } from "discordx";
+import type { Redis } from "ioredis";
 import { container, inject } from "tsyringe";
 import { dungeons } from "../../../dungeons";
 import {
   getGuildSetting,
   SettingsKey,
 } from "../../../functions/settings/getGuildSetting";
+import { kRedis } from "../../../tokens";
 import { afkCheckEmbed } from "../../../util/embeds";
 
 enum DungeonChoices {
@@ -33,6 +34,7 @@ export class Command {
     this.redis = container.resolve<Redis>(kRedis);
   }
 
+  @Guard(AfkCheckChannel())
   @Slash("afkcheck", { description: "start an afkcheck" })
   private async execute(
     @SlashChoice(DungeonChoices)
@@ -126,7 +128,7 @@ export class Command {
     await react(msg, reacts);
 
     // todo: control panel
-    this.controlPanel();
+    this.controlPanel(interaction);
   }
 
   private finialize(embedData: MessageEmbed, role: Role): MessageEmbed {
@@ -143,5 +145,15 @@ export class Command {
     return embed;
   }
 
-  private controlPanel() {}
+  private async controlPanel(interaction: CommandInteraction) {
+    const channel = interaction.channel as GuildTextBasedChannel;
+    const cpChannel = await interaction.guild?.channels.create(
+      `${interaction.user.username}-${interaction.user.discriminator}`,
+      {
+        type: "GUILD_TEXT",
+        parent: channel?.parentId!,
+      }
+    );
+    await channel.send("This is your control panel channel");
+  }
 }
