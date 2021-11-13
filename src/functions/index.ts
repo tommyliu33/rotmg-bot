@@ -1,3 +1,6 @@
+// guards
+export * from "./guards/AfkCheckChannel";
+
 // reactions
 export * from "./reactions/react";
 export * from "./reactions/collector";
