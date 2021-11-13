@@ -124,7 +124,11 @@ export class Command {
       JSON.stringify(data)
     );
 
+    if (interaction.guild?.roles.premiumSubscriberRole!) {
+      reacts.push("<:NitroBooster:888634863140339824>");
+    }
     reacts.push("❌");
+
     await react(msg, reacts);
 
     // todo: control panel
@@ -146,6 +150,7 @@ export class Command {
   }
 
   private async controlPanel(interaction: CommandInteraction) {
+    // TODO: Finish this
     const channel = interaction.channel as GuildTextBasedChannel;
     const cpChannel = await interaction.guild?.channels.create(
       `${interaction.user.username}-${interaction.user.discriminator}`,
@@ -154,6 +159,6 @@ export class Command {
         parent: channel?.parentId!,
       }
     );
-    await channel.send("This is your control panel channel");
+    await cpChannel?.send("This is your control panel channel");
   }
 }
