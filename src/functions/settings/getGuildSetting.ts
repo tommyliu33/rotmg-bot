@@ -26,10 +26,10 @@ export enum SettingsKey {
   VetAfkCheck = "channels.vet_afk_check",
 
   MainCategory = "categories.main",
-  VetCategory = "categories.vet",
+  VetCategory = "categories.veteran",
 
   MainUserRole = "user_roles.main",
-  VetUserRole = "user_roles.vet",
+  VetUserRole = "user_roles.veteran",
 }
 
 // probably a better way to do this when requiring multiple keys
