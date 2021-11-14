@@ -9,18 +9,21 @@
   },
   "dependencies": {
     "@naval-base/ms": "^3.1.0",
+    "@sapphire/async-queue": "^1.1.9",
     "discordx": "^8.1.0",
     "dot-prop": "^6.0.1",
     "dotenv": "^10.0.0",
     "ioredis": "^4.28.0",
     "module-alias": "^2.2.2",
     "mongodb": "^4.1.1",
+    "nanoid": "^3.1.30",
     "pino": "^7.1.0",
     "tsyringe": "^4.6.0"
   },
   "devDependencies": {
     "@types/ioredis": "^4.28.1",
-    "@types/node": "^16.7.10"
+    "@types/node": "^16.7.10",
+    "discord.js": "^13.3.1"
   },
   "_moduleAliases": {
     "@lib": "dist/lib",
