@@ -20,6 +20,10 @@ export class CapChannelCommand {
       type: "NUMBER",
       required: true,
       description: "User cap for the channel",
+      /* implemented when api allows 
+      min_value: 0,
+      max_value: 99,
+      */
     })
     number: number,
     interaction: CommandInteraction

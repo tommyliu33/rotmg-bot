@@ -10,6 +10,7 @@
   "dependencies": {
     "@naval-base/ms": "^3.1.0",
     "@sapphire/async-queue": "^1.1.9",
+    "common-tags": "^1.8.1",
     "discordx": "^8.1.0",
     "dot-prop": "^6.0.1",
     "dotenv": "^10.0.0",
@@ -21,6 +22,7 @@
     "tsyringe": "^4.6.0"
   },
   "devDependencies": {
+    "@types/common-tags": "^1.8.1",
     "@types/ioredis": "^4.28.1",
     "@types/node": "^16.7.10",
     "discord.js": "^13.3.1"

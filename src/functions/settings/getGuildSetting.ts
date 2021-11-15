@@ -1,3 +1,4 @@
+import { CaseInfo } from "@functions";
 import type { Database } from "@lib";
 import type { Snowflake } from "discord.js";
 import { get } from "dot-prop";
@@ -6,30 +7,45 @@ import { kDatabase } from "../../tokens";
 
 export interface Guild {
   id: Snowflake;
-  channels: {
-    afk_check: Snowflake;
-    vet_afk_check: Snowflake;
+
+  // general
+  mod_log_channel_id: Snowflake;
+  mod_role_id: Snowflake;
+  cases: CaseInfo[];
+
+  // rotmg
+  rotmg: {
+    channels: {
+      afk_check: Snowflake;
+      vet_afk_check: Snowflake;
+    };
+    categories: {
+      main: Snowflake;
+      veteran: Snowflake;
+    };
+    user_roles: {
+      main: Snowflake;
+      veteran: Snowflake;
+    };
+    leader_roles: {};
   };
-  categories: {
-    main: Snowflake;
-    veteran: Snowflake;
-  };
-  user_roles: {
-    main: Snowflake;
-    veteran: Snowflake;
-  };
-  leader_roles: {};
 }
 
 export enum SettingsKey {
-  AfkCheck = "channels.afk_check",
-  VetAfkCheck = "channels.vet_afk_check",
+  // general
+  ModLogChannel = "mod_log_channel_id",
+  ModRoleId = "mod_role_id",
+  Cases = "cases",
 
-  MainCategory = "categories.main",
-  VetCategory = "categories.veteran",
+  // rotmg
+  AfkCheck = "rotmg.channels.afk_check",
+  VetAfkCheck = "rotmg.channels.vet_afk_check",
 
-  MainUserRole = "user_roles.main",
-  VetUserRole = "user_roles.veteran",
+  MainCategory = "rotmg.categories.main",
+  VetCategory = "rotmg.categories.veteran",
+
+  MainUserRole = "rotmg.user_roles.main",
+  VetUserRole = "rotmg.user_roles.veteran",
 }
 
 // probably a better way to do this when requiring multiple keys

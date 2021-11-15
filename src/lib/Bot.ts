@@ -12,8 +12,8 @@ export class Bot extends Client {
         "GUILDS",
         "GUILD_MESSAGES",
         "GUILD_MEMBERS",
-        "GUILD_MESSAGE_REACTIONS",
         "GUILD_VOICE_STATES",
+        "GUILD_MESSAGE_REACTIONS",
       ],
       partials: ["CHANNEL", "REACTION", "GUILD_MEMBER"],
       classes: [
