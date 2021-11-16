@@ -30,20 +30,37 @@ export async function sendModLog(
   const target = await modLogChannel.client.users.fetch(target_id);
   const moderator = await modLogChannel.client.users.fetch(moderator_id);
 
-  const timeString = [
-    new Date().getHours(),
-    new Date().getMinutes(),
-    new Date().getSeconds(),
-  ].join(":");
+  let action_: string = "";
+  switch (caseInfo.action) {
+    case CaseAction.BAN:
+      action_ = "banned";
+      break;
+    case CaseAction.UNBAN:
+      action_ = "unbanned";
+      break;
+    case CaseAction.SOFTBAN:
+      action_ = "softbanned";
+    case CaseAction.KICK:
+      action_ = "kicked";
+      break;
+    case CaseAction.WARN:
+      action_ = "given a warning";
+      break;
+    case CaseAction.MUTE:
+      action_ = "muted";
+      break;
+    case CaseAction.UNMUTE:
+      action_ = "manually unmuted"; // TODO: timed mutes
+      break;
+  }
 
   const inline = Formatters.inlineCode;
-  const message = oneLine`[${inline(timeString)}] ${emoji} ${
-    target.tag
-  } (${inline(target.id)}) was banned by ${moderator.tag} (${inline(
-    moderator.id
-  )}) for ${inline(caseInfo.reason ?? "No reason provided.")} (${inline(
-    `#${caseNum.length + 1}`
-  )})`;
+  const message = oneLine`[
+    ${Formatters.time(new Date(), "T")}] ${emoji} ${target.tag} (${inline(
+    target.id
+  )}) was ${action_} by ${moderator.tag} (${inline(moderator.id)}) for ${inline(
+    caseInfo.reason ?? "No reason provided."
+  )} (${inline(`#${caseNum.length + 1}`)})`;
 
   try {
     const msg = await modLogChannel.send({ content: message });
