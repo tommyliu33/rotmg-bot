@@ -1,9 +1,5 @@
-import {
-  AfkCheckChannel,
-  createChannel,
-  getGuildSetting,
-  SettingsKey,
-} from "@functions";
+import { createChannel, getGuildSetting, SettingsKey } from "@functions";
+import { AfkCheckChannel } from "@guards";
 import { CommandInteraction, Formatters, MessageEmbed } from "discord.js";
 import { Discord, Guard, Slash, SlashGroup, SlashOption } from "discordx";
 import { Redis } from "ioredis";

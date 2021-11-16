@@ -1,8 +1,3 @@
-// guards
-export * from "./guards/AfkCheckChannel";
-export * from "./guards/InGuild";
-export * from "./guards/ModRole";
-
 // logs
 export * from "./logs/sendModLog";
 

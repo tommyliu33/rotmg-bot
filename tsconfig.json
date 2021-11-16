@@ -31,7 +31,7 @@
                 "src/functions/index.ts"
             ],
             "@interfaces": [
-                "src/lib/interfaces/index.ts"
+                "src/functions/guards/index.ts"
             ]
         },
     },

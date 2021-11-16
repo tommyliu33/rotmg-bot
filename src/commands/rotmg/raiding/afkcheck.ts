@@ -1,4 +1,5 @@
-import { AfkCheckChannel, createChannel, react } from "@functions";
+import { createChannel, react } from "@functions";
+import { AfkCheckChannel } from "@guards";
 import {
   CommandInteraction,
   EmojiResolvable,

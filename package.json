@@ -30,6 +30,7 @@
   "_moduleAliases": {
     "@lib": "dist/lib",
     "@functions": "dist/functions",
-    "@interfaces": "dist/interfaces"
+    "@interfaces": "dist/interfaces",
+    "@guards": "dist/functions/guards"
   }
 }
