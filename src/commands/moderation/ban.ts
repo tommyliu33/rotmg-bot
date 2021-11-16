@@ -3,11 +3,10 @@ import {
   createCase,
   getGuildSetting,
   getModLogChannel,
-  InGuild,
-  ModRole,
   sendModLog,
   SettingsKey,
 } from "@functions";
+import { InGuild, ModRole } from "@guards";
 import { CommandInteraction, Formatters, GuildMember, User } from "discord.js";
 import { Discord, Guard, Slash, SlashOption } from "discordx";
 import { nanoid } from "nanoid";
@@ -15,7 +14,7 @@ import { nanoid } from "nanoid";
 @Discord()
 export class BanCommand {
   @Guard(InGuild(), ModRole())
-  @Slash("ban", { description: "Ban a user from the user." })
+  @Slash("ban", { description: "Ban a user from the server." })
   private async ban(
     @SlashOption("user", {
       required: true,
@@ -110,11 +109,11 @@ export class BanCommand {
       target_tag: user.tag,
     };
 
-    const modLogChannel = await getModLogChannel(
+    const logChannel = await getModLogChannel(
       interaction.guild!,
       await getGuildSetting(interaction.guildId, SettingsKey.ModLogChannel)
     );
-    const msgId = await sendModLog(modLogChannel!, payload);
+    const msgId = await sendModLog(logChannel!, payload);
 
     await createCase(interaction.guildId, { ...payload, message_id: msgId });
     await interaction.reply(
