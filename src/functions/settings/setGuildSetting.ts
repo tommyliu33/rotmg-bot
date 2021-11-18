@@ -11,7 +11,7 @@ export async function setGuildSetting(
   value: any
 ) {
   const db = container.resolve<Database>(kDatabase);
-  const data = (await db.guilds.findOne({ id: guildId })) as Guild;
+  const data = (await db.guilds.findOne({ id: guildId })) as unknown as Guild;
 
   if (typeof data === "object") {
     set(data!, key, value);
