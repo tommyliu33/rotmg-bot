@@ -44,16 +44,15 @@ export class BanCommand {
       });
     }
 
-    try {
-      const bans = await interaction.guild?.bans.fetch().catch(() => {});
-      const ban = bans?.has(user.id) ? bans?.get(user.id) : null;
-      if (ban) {
-        return interaction.reply({
-          content: `${ban.user.tag} (${user.id}) is already banned.`,
-          ephemeral: true,
-        });
-      }
-    } catch {}
+    const bans = await interaction.guild?.bans.fetch().catch(() => {});
+    const ban = bans?.has(user.id) ? bans?.get(user.id) : null;
+
+    if (ban) {
+      return interaction.reply({
+        content: `${ban.user.tag} (${user.id}) is already banned.`,
+        ephemeral: true,
+      });
+    }
 
     if (
       user.id === interaction.user.id ||
@@ -108,16 +107,10 @@ export class BanCommand {
       target_id: user.id,
       target_tag: user.tag,
     };
+    await createCase(interaction.guildId, payload);
 
-    const logChannel = await getModLogChannel(
-      interaction.guild!,
-      await getGuildSetting(interaction.guildId, SettingsKey.ModLogChannel)
-    );
-    const msgId = await sendModLog(logChannel!, payload);
-
-    await createCase(interaction.guildId, { ...payload, message_id: msgId });
     await interaction.reply(
-      `🔨 ${Formatters.bold("Banned")} ${user.tag ?? member?.user.tag} (${
+      `${Formatters.bold("Banned")} ${user.tag ?? member?.user.tag} (${
         user.id
       }).`
     );

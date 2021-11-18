@@ -14,38 +14,35 @@ import { nanoid } from "nanoid";
 @Discord()
 export class BanCommand {
   @Guard(InGuild(), ModRole())
-  @Slash("unban", { description: "Unban a user from the server." })
+  @Slash("warn", { description: "Assigns a warning to a user." })
   private async ban(
     @SlashOption("user", {
       required: true,
       type: "USER",
-      description: "User to unban",
+      description: "User to warn",
     })
     @SlashOption("reason", {
-      required: false,
+      required: true,
       type: "STRING",
-      description: "Reason for the unban",
+      description: "Reason for the warn",
     })
     user: User,
-    reason: string | undefined,
+    reason: string,
     interaction: CommandInteraction
   ): Promise<void> {
     user = await interaction.client.users.fetch(user.id);
 
-    const bans = await interaction.guild?.bans.fetch().catch(() => {});
-    const ban = bans?.has(user.id) ? bans?.get(user.id) : null;
-    if (!ban) {
+    await interaction.guild?.members.fetch();
+    if (!interaction.guild?.members.cache.has(user.id)) {
       return interaction.reply({
-        content: `${user.tag} (${user.id}) is not banned.`,
+        content: `${user.tag} (${user.id}) is not in the server.`,
         ephemeral: true,
       });
     }
 
-    await interaction.guild?.bans.remove(user, reason);
-
     const payload = {
       id: nanoid(),
-      action: CaseAction.UNBAN,
+      action: CaseAction.WARN,
 
       reason,
 
@@ -60,7 +57,24 @@ export class BanCommand {
 
     await createCase(interaction.guildId, payload);
     await interaction.reply(
-      `${Formatters.bold("Unbanned")} ${user.tag} (${user.id}).`
+      `${Formatters.bold("Warning added")} for ${user.username}#${
+        user.discriminator
+      } (${user.id}).`
     );
+
+    try {
+      await user.send({
+        content: `You were warned in ${Formatters.bold(
+          interaction.guild?.name!
+        )} (${Formatters.inlineCode(
+          interaction.guildId
+        )}) for:\n${Formatters.codeBlock(reason)}`,
+      });
+    } catch {
+      await interaction.followUp({
+        content: `Unable to send warning information to ${user.tag}.`,
+        ephemeral: true,
+      });
+    }
   }
 }
