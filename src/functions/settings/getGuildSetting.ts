@@ -9,9 +9,11 @@ export interface Guild {
   id: Snowflake;
 
   // general
-  mod_log_channel_id: Snowflake;
-  mod_role_id: Snowflake;
-  cases: CaseInfo[];
+  moderation: {
+    mod_log_channel_id: Snowflake;
+    mod_role_id: Snowflake;
+    cases: CaseInfo[];
+  };
 
   // rotmg
   rotmg: {
@@ -32,10 +34,10 @@ export interface Guild {
 }
 
 export enum SettingsKey {
-  // general
-  ModLogChannel = "mod_log_channel_id",
-  ModRoleId = "mod_role_id",
-  Cases = "cases",
+  // moderation
+  ModLogChannel = "moderation.mod_log_channel_id",
+  ModRoleId = "moderation.mod_role_id",
+  Cases = "moderation.cases",
 
   // rotmg
   AfkCheck = "rotmg.channels.afk_check",
