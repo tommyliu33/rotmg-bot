@@ -30,7 +30,7 @@
             "@functions": [
                 "src/functions/index.ts"
             ],
-            "@interfaces": [
+            "@guards": [
                 "src/functions/guards/index.ts"
             ]
         },
