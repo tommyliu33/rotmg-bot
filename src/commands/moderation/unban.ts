@@ -1,11 +1,4 @@
-import {
-  CaseAction,
-  createCase,
-  getGuildSetting,
-  getModLogChannel,
-  sendModLog,
-  SettingsKey,
-} from "@functions";
+import { CaseAction, createCase } from "@functions";
 import { InGuild, ModRole } from "@guards";
 import { CommandInteraction, Formatters, User } from "discord.js";
 import { Discord, Guard, Slash, SlashOption } from "discordx";
