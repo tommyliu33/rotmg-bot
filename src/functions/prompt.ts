@@ -1,4 +1,6 @@
+import { stripIndents } from "common-tags";
 import {
+  ButtonInteraction,
   Collection,
   CommandInteraction,
   Formatters,
@@ -16,11 +18,8 @@ interface PromptResponses {
   response: string;
 }
 
-const WARNING_STRING =
-  "\nYou have 15 seconds to answer. Type `cancel` to cancel.";
-
 export async function prompt(
-  interaction: CommandInteraction,
+  interaction: CommandInteraction | ButtonInteraction,
   prompts: PromptOptions[],
   responses: PromptResponses[],
   index = 0
@@ -28,14 +27,19 @@ export async function prompt(
   let currentIndex = index;
   const expectedIndex = prompts.length;
 
-  if (responses.length === expectedIndex) return responses;
+  if (responses.length === expectedIndex) {
+    await interaction.deleteReply();
+    return responses;
+  }
 
   const { question } = prompts[currentIndex];
 
   await interaction.editReply({
-    content: `${question}\nYou have 15 seconds to answer. Type ${Formatters.inlineCode(
+    content: stripIndents`
+    ${question}
+    You have 15 seconds to answer. Type ${Formatters.inlineCode(
       "cancel"
-    )} to cancel.`,
+    )} to abort.`,
   });
 
   const filter = (m: Message) => m.author.id === interaction.user.id;
@@ -55,7 +59,8 @@ export async function prompt(
 
   const msg = collected.first()!;
   if (msg.content.toLowerCase() === "cancel") {
-    await interaction.editReply("cancelling");
+    await interaction.editReply("Cancelling...");
+
     return responses;
   }
 

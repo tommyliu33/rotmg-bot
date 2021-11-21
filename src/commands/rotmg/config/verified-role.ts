@@ -4,7 +4,7 @@ import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
 
 @Discord()
 @SlashGroup("config")
-export abstract class Command {
+export abstract class ConfigVerifiedRoleCommand {
   @Slash("verified-role")
   private async execute(
     @SlashOption("role", {

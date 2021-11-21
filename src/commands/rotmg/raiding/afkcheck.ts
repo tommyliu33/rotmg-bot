@@ -49,7 +49,7 @@ export class Command {
   ): Promise<void> {
     const dungeon = dungeons[dungeons.findIndex((d) => d.name === name)];
     if (!dungeon) {
-      await interaction.editReply("dungeon unavailable");
+      await interaction.reply("dungeon unavailable");
       return;
     }
 

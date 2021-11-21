@@ -12,6 +12,11 @@ export class Event {
 
   @On("interactionCreate")
   private async execute([interaction]: ArgsOf<"interactionCreate">) {
+    if (
+      interaction.type !== "APPLICATION_COMMAND" &&
+      interaction.type !== "MESSAGE_COMPONENT"
+    )
+      return;
     await this.client.executeInteraction(interaction);
   }
 }

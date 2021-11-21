@@ -4,7 +4,7 @@ import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
 
 @Discord()
 @SlashGroup("config")
-export abstract class Command {
+export abstract class VetSectionCommand {
   @Slash("vet-section")
   private async execute(
     @SlashOption("channel", {

@@ -15,7 +15,7 @@ import { kDatabase } from "../../../tokens";
 @injectable()
 @Discord()
 @SlashGroup("config")
-export class Command {
+export class ConfigViewCommand {
   public constructor(@inject(kDatabase) public db: Database) {
     this.db = container.resolve<Database>(kDatabase);
   }
