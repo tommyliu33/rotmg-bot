@@ -19,3 +19,10 @@ model guilds {
   veteran_role_id          String
   veteran_section_id       String
 }
+
+model users {
+  id              String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id_             String   @map("id")
+  names           String[]
+  verified_guilds String[]
+}

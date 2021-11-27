@@ -32,6 +32,9 @@
             ],
             "@guards": [
                 "src/functions/guards/index.ts"
+            ],
+            "@util": [
+                "src/util/index.ts"
             ]
         },
     },

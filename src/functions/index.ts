@@ -6,6 +6,12 @@ export * from "./reactions/collector";
 export * from "./settings/getGuildSetting";
 export * from "./settings/setGuildSetting";
 
+// verification
+export * from "./verification/verify";
+export * from "./verification/getPlayer";
+export * from "./verification/getVerifiedGuilds";
+
 // tbd
 export * from "./createChannel";
 export * from "./prompt";
+export * from "./getLogChannel";

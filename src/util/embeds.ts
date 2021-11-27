@@ -1,4 +1,5 @@
-import { MessageEmbed } from "discord.js";
+import { stripIndents } from "common-tags";
+import { GuildMember, MessageEmbed } from "discord.js";
 import type { Dungeon } from "../dungeons";
 
 const buildAfkCheckEmbedDescription = (dungeon: Dungeon): string => {
@@ -75,4 +76,27 @@ export function afkCheckEmbed(dungeon: Dungeon): MessageEmbed {
     .setThumbnail(thumbnail)
     .setColor(color)
     .setDescription(buildAfkCheckEmbedDescription(dungeon));
+}
+
+export function verification_private_profile() {
+  return new MessageEmbed()
+    .setColor("RED")
+    .addField(
+      "\u200b",
+      "Your RealmEye profile is **private**, please set it to public for the verification process."
+    );
+}
+
+export function verification_successful(member: GuildMember, ign: string) {
+  return new MessageEmbed()
+    .setColor("GREEN")
+    .setFooter(
+      `${member.user.tag} (${member.id})`,
+      member.user.displayAvatarURL({ dynamic: true })
+    )
+    .setAuthor(
+      `Successfully verified: ${ign}`,
+      "",
+      "https://www.realmeye.com/player/" + ign
+    );
 }
