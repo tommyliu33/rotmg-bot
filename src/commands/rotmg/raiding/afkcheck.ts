@@ -7,7 +7,7 @@ import {
   GuildTextBasedChannel,
   Message,
   MessageEmbed,
-  Role,
+  Role
 } from "discord.js";
 import { Discord, Guard, Slash, SlashChoice, SlashOption } from "discordx";
 import type { Redis } from "ioredis";
@@ -15,7 +15,7 @@ import { container, inject } from "tsyringe";
 import { dungeons } from "../../../dungeons";
 import {
   getGuildSetting,
-  SettingsKey,
+  SettingsKey
 } from "../../../functions/settings/getGuildSetting";
 import { kRedis } from "../../../tokens";
 import { afkCheckEmbed } from "../../../util/embeds";

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@naval-base/ms": "^3.1.0",
+    "@prisma/client": "^3.5.0",
     "@sapphire/async-queue": "^1.1.9",
     "common-tags": "^1.8.1",
     "discordx": "^8.1.0",
@@ -16,8 +17,8 @@
     "dotenv": "^10.0.0",
     "ioredis": "^4.28.0",
     "module-alias": "^2.2.2",
-    "mongodb": "^4.1.1",
     "nanoid": "^3.1.30",
+    "petitio": "^1.4.0",
     "pino": "^7.1.0",
     "tsyringe": "^4.6.0"
   },
@@ -25,12 +26,14 @@
     "@types/common-tags": "^1.8.1",
     "@types/ioredis": "^4.28.1",
     "@types/node": "^16.7.10",
-    "discord.js": "^13.3.1"
+    "discord.js": "^13.3.1",
+    "prisma": "^3.5.0"
   },
   "_moduleAliases": {
     "@lib": "dist/lib",
     "@functions": "dist/functions",
     "@interfaces": "dist/interfaces",
-    "@guards": "dist/functions/guards"
+    "@guards": "dist/functions/guards",
+    "@util": "dist/util"
   }
 }

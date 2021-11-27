@@ -1,0 +1,21 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongoDb"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model guilds {
+  id                       String @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  afk_check_channel_id     String
+  id_                      String @map("id")
+  log_channel_id           String
+  main_section_id          String
+  verified_role_id         String
+  vet_afk_check_channel_id String
+  veteran_role_id          String
+  veteran_section_id       String
+}

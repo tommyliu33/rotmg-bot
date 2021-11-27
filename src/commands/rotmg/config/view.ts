@@ -1,118 +1,92 @@
-import { Guild } from "@functions";
-import type { Database } from "@lib";
+import { channelMention, codeBlock, roleMention } from "@discordjs/builders";
+import type { PrismaClient } from "@prisma/client";
 import { stripIndents } from "common-tags";
-import {
-  CommandInteraction,
-  Formatters,
-  MessageActionRow,
-  MessageButton,
-} from "discord.js";
+import { CommandInteraction, MessageEmbed } from "discord.js";
 import { Discord, Slash, SlashGroup } from "discordx";
-import { nanoid } from "nanoid";
-import { container, inject, injectable } from "tsyringe";
-import { kDatabase } from "../../../tokens";
+import { container } from "tsyringe";
+import { kPrisma } from "../../../tokens";
 
-@injectable()
+const map = {
+  main_section_id: {
+    name: "Main section",
+    description: "The main raiding section",
+  },
+  afk_check_channel_id: {
+    name: "Afk check channel",
+    description: "The main afk check channel",
+  },
+
+  veteran_section_id: {
+    name: "Veteran section",
+    description: "The veteran raiding section",
+  },
+  vet_afk_check_channel_id: {
+    name: "Veteran afk check channel",
+    description: "The veteran afk check channel",
+  },
+
+  verified_role_id: {
+    name: "Verified raider",
+    description: "The verified raider role",
+  },
+  veteran_role_id: {
+    name: "Veteran raider",
+    description: "The veteran raider role",
+  },
+
+  log_channel_id: { name: "Log channel", description: "The log channel" },
+};
+
+const roles = ["verified_role_id", "veteran_role_id"];
+const sections = ["main_section_id", "veteran_section_id"];
+const channels = [
+  "afk_check_channel_id",
+  "vet_afk_check_channel_id",
+  "log_channel_id",
+];
+
 @Discord()
 @SlashGroup("config")
-export class ConfigViewCommand {
-  public constructor(@inject(kDatabase) public db: Database) {
-    this.db = container.resolve<Database>(kDatabase);
-  }
-
+export abstract class ConfigViewCommand {
   @Slash("view")
   private async execute(interaction: CommandInteraction): Promise<void> {
-    await interaction.deferReply();
-
-    const db = container.resolve<Database>(kDatabase);
-    const data = (await db.guilds.findOne({
-      id: interaction.guildId,
-    })) as unknown as Guild;
-
-    const rotmgKey = nanoid();
-    const modKey = nanoid();
-
-    const rotmgButton = new MessageButton()
-      .setCustomId(rotmgKey)
-      .setLabel("RotMG")
-      .setStyle("PRIMARY");
-
-    const modButton = new MessageButton()
-      .setCustomId(modKey)
-      .setLabel("Moderation")
-      .setStyle("SECONDARY");
-
-    await interaction.editReply({
-      content: "Select a category to view.",
-      components: [
-        new MessageActionRow().addComponents(rotmgButton, modButton),
-      ],
+    const prisma = container.resolve<PrismaClient>(kPrisma);
+    const data = await prisma.guilds.findFirst({
+      where: {
+        id_: interaction.guildId,
+      },
     });
 
-    const collected = await interaction.channel
-      ?.awaitMessageComponent({
-        time: 15000,
-        componentType: "BUTTON",
-        filter: (collected) => collected.user.id === interaction.user.id,
-      })
-      .catch(async () => {
-        try {
-          await interaction.followUp({
-            content:
-              "Collector timed out. Run the command again to view the server config.",
-            ephemeral: true,
-          });
-        } catch {
-          console.log("something happened");
-        }
-      });
+    const embed = new MessageEmbed()
+      .setAuthor(
+        interaction.guild?.name!,
+        interaction.guild?.iconURL({ dynamic: true }) ?? ""
+      )
+      .setColor("DARK_AQUA");
 
-    // TODO: automate config key-values
-    if (collected?.customId === rotmgKey) {
-      const { channels, user_roles, leader_roles, categories } = data.rotmg;
+    let value_ = "";
+    for (const key of Object.keys(map)) {
+      const value = Reflect.get(data!, key);
+      const { name, description } = Reflect.get(map, key);
 
-      // TODO: probably can automate this
-      const body = stripIndents`
-			__Channels__
-				-> Setting: Afk check Value: ${
-          channels.afk_check ?? "n/a"
-        } (The main afk check channel)
-				-> Setting: Veteran afk check ${
-          channels.vet_afk_check ?? "n/a"
-        } (The veteran afk check channel)
+      if (roles.includes(key)) {
+        value_ = value === "" || !value ? "not set" : roleMention(value);
+      } else if (sections.includes(key)) {
+        value_ =
+          (await interaction.guild?.channels.fetch(value))?.name ?? "not set";
+      } else if (channels.includes(key)) {
+        value_ = value === "" || !value ? "not set" : channelMention(value);
+      }
 
-				__User Roles__
-				-> Setting: Verified Value: ${
-          user_roles.main ?? "n/a"
-        } (The verified raider role)
-				-> Setting: Veteran ${user_roles.veteran ?? "n/a"} (The veteran raider role)
-
-				__Leader Roles__
-				-> ${leader_roles ?? "n/a"}
-
-				__Categories__
-				-> Setting: Main Value: ${categories.main ?? "n/a"} (The main raiding section)
-				-> Setting: Veteran Value: ${categories.veteran} (The veteran raiding section)
-			`;
-
-      await interaction.editReply({
-        content: Formatters.codeBlock(body),
-        components: [],
-      });
-    } else if (collected?.customId === modKey) {
-      const { moderation } = data;
-
-      // TODO: probably can automate this
-      const body = stripIndents`
-			Mod role id ${moderation.mod_role_id}
-
-			Mod log channel id ${moderation.mod_log_channel_id}
-			`;
-
-      await interaction.editReply({
-        content: Formatters.codeBlock(body),
-        components: [],
-      });
+      embed.addField(
+        name,
+        stripIndents`
+    ${codeBlock(description)}
+    ${value_}`,
+        true
+      );
     }
+
+    await interaction.reply({ embeds: [embed] });
   }
 }

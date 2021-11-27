@@ -1,63 +1,36 @@
-import { CaseInfo } from "@functions";
-import type { Database } from "@lib";
+import type { PrismaClient } from ".prisma/client";
 import type { Snowflake } from "discord.js";
-import { get } from "dot-prop";
 import { container } from "tsyringe";
-import { kDatabase } from "../../tokens";
-
-export interface Guild {
-  id: Snowflake;
-
-  // general
-  moderation: {
-    mod_log_channel_id: Snowflake;
-    mod_role_id: Snowflake;
-    cases: CaseInfo[];
-  };
-
-  // rotmg
-  rotmg: {
-    channels: {
-      afk_check: Snowflake;
-      vet_afk_check: Snowflake;
-    };
-    categories: {
-      main: Snowflake;
-      veteran: Snowflake;
-    };
-    user_roles: {
-      main: Snowflake;
-      veteran: Snowflake;
-    };
-    leader_roles: {};
-  };
-}
+import { kPrisma } from "../../tokens";
 
 export enum SettingsKey {
-  // moderation
-  ModLogChannel = "moderation.mod_log_channel_id",
-  ModRoleId = "moderation.mod_role_id",
-  Cases = "moderation.cases",
+  AfkCheck = "afk_check_channel_id",
+  VetAfkCheck = "vet_afk_check_channel_id",
 
-  // rotmg
-  AfkCheck = "rotmg.channels.afk_check",
-  VetAfkCheck = "rotmg.channels.vet_afk_check",
+  MainSection = "main_section_id",
+  VetSection = "veteran_section_id",
 
-  MainCategory = "rotmg.categories.main",
-  VetCategory = "rotmg.categories.veteran",
+  MainUserRole = "verified_role_id",
+  VetUserRole = "veteran_role_id",
 
-  MainUserRole = "rotmg.user_roles.main",
-  VetUserRole = "rotmg.user_roles.veteran",
+  LogChannel = "log_channel_id",
 }
 
-// probably a better way to do this when requiring multiple keys
-// TODO: set guild config if n/a to predefined
 export async function getGuildSetting(
   guildId: Snowflake,
   key: SettingsKey
 ): Promise<Snowflake> {
-  const db = container.resolve<Database>(kDatabase);
-  const data = await db.guilds.findOne({ id: guildId });
+  const prisma = container.resolve<PrismaClient>(kPrisma);
 
-  return get(data!, key!) as Snowflake;
+  const select = {};
+  Reflect.set(select, key, true);
+
+  const data = await prisma.guilds.findFirst({
+    where: {
+      id_: guildId,
+    },
+    select,
+  });
+
+  return Reflect.get(data!, key);
 }

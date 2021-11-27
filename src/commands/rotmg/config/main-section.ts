@@ -17,7 +17,7 @@ export abstract class ConfigMainSectionCommand {
   ): Promise<void> {
     await setGuildSetting(
       interaction.guildId,
-      SettingsKey.MainCategory,
+      SettingsKey.MainSection,
       channel.id
     );
 

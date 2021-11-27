@@ -17,7 +17,7 @@ export abstract class VetSectionCommand {
   ): Promise<void> {
     await setGuildSetting(
       interaction.guildId,
-      SettingsKey.VetCategory,
+      SettingsKey.VetSection,
       channel.id
     );
 
