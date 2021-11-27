@@ -1,4 +1,3 @@
-import { stripIndents } from "common-tags";
 import { GuildMember, MessageEmbed } from "discord.js";
 import type { Dungeon } from "../dungeons";
 

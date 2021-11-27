@@ -75,13 +75,46 @@ export interface Stats {
   wisdom: number;
 }
 
+type FilterChoices =
+  | "player"
+  | "donator"
+  | "chars"
+  | "skins"
+  | "skins_rank"
+  | "fame"
+  | "fame_rank"
+  | "exp"
+  | "exp_rank"
+  | "rank"
+  | "account_fame"
+  | "account_fame_rank"
+  | "guild"
+  | "guild_confirmed"
+  | "guild_rank"
+  | "created"
+  | "player_last_seen"
+  | "desc1"
+  | "desc2"
+  | "desc3"
+  | "characters"
+  | "characters_hidden";
+
 export async function getPlayer(
-  name: string
+  name: string,
+  filter?: FilterChoices[]
 ): Promise<RealmEyePlayer | { error: string }> {
   const url = new URL(API);
   url.searchParams.append("player", name);
 
-  const req = await fetch(url.toString(), "GET").send();
+  let url_ = url.toString();
+  if (filter) {
+    // hacky
+    url_ += `&filter=${filter.join("+")}`;
+  }
+
+  console.log("url", url_.toString());
+
+  const req = await fetch(url_.toString(), "GET").send();
 
   const json = await req.json();
   if ("error" in json && json.error === `${name} could not be found!`) {
