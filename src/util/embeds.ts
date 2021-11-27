@@ -87,7 +87,11 @@ export function verification_private_profile() {
     );
 }
 
-export function verification_successful(member: GuildMember, ign: string) {
+export function verification_successful(
+  member: GuildMember,
+  ign: string,
+  alt?: boolean
+) {
   return new MessageEmbed()
     .setColor("GREEN")
     .setFooter(
@@ -95,7 +99,7 @@ export function verification_successful(member: GuildMember, ign: string) {
       member.user.displayAvatarURL({ dynamic: true })
     )
     .setAuthor(
-      `Successfully verified: ${ign}`,
+      `${alt ? "Added alt" : "Successfully verified"}: ${ign}`,
       "",
       "https://www.realmeye.com/player/" + ign
     );

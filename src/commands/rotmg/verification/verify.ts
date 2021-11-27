@@ -1,15 +1,10 @@
 import { inlineCode } from "@discordjs/builders";
-import {
-  getGuildSetting,
-  getLogChannel,
-  getPlayer,
-  SettingsKey,
-  verify,
-} from "@functions";
-import { verification_private_profile, verification_successful } from "@util";
+import { getGuildSetting, getPlayer, SettingsKey, verify } from "@functions";
+import { verification_private_profile } from "@util";
 import { stripIndents } from "common-tags";
 import { CommandInteraction } from "discord.js";
 import { Discord, Slash, SlashOption } from "discordx";
+import { nanoid } from "nanoid";
 
 // TODO: implement verification methods
 // addalt command
@@ -30,14 +25,12 @@ export abstract class VerifyCommand {
   ): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
-    const logChannel = await getLogChannel(interaction.guildId);
-
     const player = await getPlayer(ign);
     if ("error" in player) {
-      return await interaction.reply({
+      await interaction.editReply({
         embeds: [verification_private_profile()],
-        ephemeral: true,
       });
+      return;
     }
 
     const roleId = await getGuildSetting(
@@ -63,12 +56,6 @@ export abstract class VerifyCommand {
         content: stripIndents`
         I am unable to add the verified role for you.
         If the issue persists, contact the server staff for additional support.`,
-      });
-    }
-
-    if (logChannel) {
-      await logChannel?.send({
-        embeds: [verification_successful(member!, ign)],
       });
     }
 

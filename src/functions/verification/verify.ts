@@ -1,8 +1,10 @@
 import type { PrismaClient } from ".prisma/client";
+import { getLogChannel } from "../getLogChannel";
 import type { Bot } from "@lib";
 import type { Snowflake } from "discord-api-types";
 import { container } from "tsyringe";
 import { kClient, kPrisma } from "../../tokens";
+import { verification_successful } from "@util";
 
 export async function verify(
   guildId: Snowflake,
@@ -71,6 +73,11 @@ export async function verify(
         data: {
           verified_guilds: guilds,
         },
+      });
+
+      const logChannel = await getLogChannel(guildId);
+      await logChannel?.send({
+        embeds: [verification_successful(member!, name, names.length !== 1)],
       });
 
       await member
