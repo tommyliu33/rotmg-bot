@@ -112,8 +112,6 @@ export async function getPlayer(
     url_ += `&filter=${filter.join("+")}`;
   }
 
-  console.log("url", url_.toString());
-
   const req = await fetch(url_.toString(), "GET").send();
 
   const json = await req.json();
