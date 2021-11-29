@@ -76,16 +76,6 @@ export function afkCheckEmbed(dungeon: Dungeon): MessageEmbed {
     .setColor(color)
     .setDescription(buildAfkCheckEmbedDescription(dungeon));
 }
-
-export function verification_private_profile() {
-  return new MessageEmbed()
-    .setColor("RED")
-    .addField(
-      "\u200b",
-      "Your RealmEye profile is **private**, please set it to public for the verification process."
-    );
-}
-
 export function verification_successful(
   member: GuildMember,
   ign: string,

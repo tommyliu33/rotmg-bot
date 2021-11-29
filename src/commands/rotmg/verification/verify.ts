@@ -1,16 +1,13 @@
-import { inlineCode } from "@discordjs/builders";
+import { inlineCode, bold } from "@discordjs/builders";
 import { getPlayer, RealmEyePlayer, verify } from "@functions";
 import {
   awaitingVerificationCode,
   failedAwaitingVerificationCode,
-  verificationAborted,
-  verification_private_profile,
 } from "@util";
 import { stripIndents } from "common-tags";
 import { ButtonInteraction, CommandInteraction } from "discord.js";
 import { ButtonComponent, Discord, Slash, SlashOption } from "discordx";
 import type { Redis } from "ioredis";
-import { nanoid } from "nanoid";
 import { container } from "tsyringe";
 import { kRedis } from "../../../tokens";
 
@@ -37,54 +34,68 @@ export abstract class VerifyCommand {
   ): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
-    const player = await getPlayer(ign, ["player"]);
-    if (Reflect.get(player, "error")) {
+    const member = await interaction.guild?.members.fetch(interaction.user.id);
+    if (
+      member?.displayName
+        .split(" | ")
+        .map((n) => n.toLowerCase())
+        .includes(ign.toLowerCase())
+    ) {
       await interaction.editReply({
-        embeds: [verification_private_profile()],
+        content: "You are already verified under that name.",
       });
       return;
     }
 
-    const verificationId = nanoid(12);
-    const verificationData = {
-      name: ign,
-      profile_url: `https://www.realmeye.com/player/${ign}`,
-      code: verificationId,
-    };
+    const player = await getPlayer(ign, ["player"]);
+    if ("error" in player && player.error === `${ign} could not be found!`) {
+      await interaction.editReply({
+        content: "Could not find your name or your profile is private. ",
+      });
+      return;
+    }
 
+    const verificationId = "spId9Rkg9nVi"; // nanoid(12);
     await redis.set(
       `verification:${interaction.guildId}:${interaction.user.id}`,
-      JSON.stringify(verificationData)
+      JSON.stringify({
+        name: ign,
+        code: verificationId,
+        profile_url: `https://www.realmeye.com/player/${ign}`,
+      })
     );
 
     await interaction.editReply(awaitingVerificationCode(ign, verificationId));
     return;
   }
 
-  @ButtonComponent("yes")
-  private async continueVerification(interaction: ButtonInteraction) {
+  @ButtonComponent("verification-continue-btn")
+  private async continue(interaction: ButtonInteraction) {
     await interaction.deferReply({ ephemeral: true });
 
-    const verificationInfo = await redis.get(
+    const data = await redis.get(
       `verification:${interaction.guildId}:${interaction.user.id}`
     );
-
-    if (!verificationInfo) {
-      await interaction.editReply({
-        content: verificationAborted,
-      });
+    if (!data) {
+      await interaction.editReply(stripIndents`
+      Could not find your verification session or you were successfully verified.
+      If you accidently cancelled the verification process, run the command again to restart.
+      
+      ${bold("NOTE THAT THE PREVIOUS CODE IS NOW INVALIDATED!")}
+      `);
       return;
     }
 
-    const { name, code } = JSON.parse(verificationInfo!);
-
+    const { name, code } = JSON.parse(data);
     const player = await getPlayer(name, ["player", "desc1", "desc2", "desc3"]);
-    if (Reflect.get(player, "error")) {
+    if ("error" in player && player.error === `${name} could not be found!`) {
       await interaction.editReply({
-        content: "An error occured, try again.",
+        content: "Could not find your name or your profile is private. ",
       });
       return;
     }
+
+    await interaction.editReply({ content: "Loading RealmEye profile..." });
 
     const player_ = player as RealmEyePlayer;
 
@@ -105,26 +116,23 @@ export abstract class VerifyCommand {
           interaction.guild?.name!
         )}!
         
-        If you did not get the role, please contact a staff member for support.`,
+        If you did not get the role or nickname, please contact a staff member for support.`,
       });
     }
   }
 
-  @ButtonComponent("no")
-  private async cancelVerification(interaction: ButtonInteraction) {
+  @ButtonComponent("verification-abort-btn")
+  private async abort(interaction: ButtonInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
-    const data = await redis.get(
+    const has = await redis.exists(
       `verification:${interaction.guildId}:${interaction.user.id}`
     );
 
-    if (!data) {
+    if (!has) {
       await interaction.editReply({
-        content: stripIndents`
-        It seems you have not started verification.
-        Run the command again to start the process.`,
+        content: "Cannot do that.",
       });
-
       return;
     }
 
@@ -132,8 +140,8 @@ export abstract class VerifyCommand {
       `verification:${interaction.guildId}:${interaction.user.id}`
     );
     await interaction.editReply({
-      content: stripIndents`Aborting.
-      If you want to verify, run the command again.`,
+      content: "Aborting.",
     });
+    return;
   }
 }

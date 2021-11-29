@@ -1,7 +1,7 @@
 import { bold, codeBlock, hyperlink } from "@discordjs/builders";
 import { stripIndents } from "common-tags";
 import {
-  MessageOptions,
+  GuildMember,
   MessageActionRow,
   MessageButton,
   MessageEmbed,
@@ -10,42 +10,47 @@ import {
 const PROFILE_URL = (ign: string): string =>
   `https://www.realmeye.com/player/${ign}`;
 
-export const verificationAborted = stripIndents`
-Could not find your verification info, you may need to restart.
-
-If you accidently cancelled the verification process, run the command to start again.
-
-${bold("NOTE THAT THE PREVIOUS CODE IS NOW INVALIDATED!")}
-`;
-
-export function awaitingVerificationCode(
+export const verificationSuccessful = (
+  member: GuildMember,
   ign: string,
-  code: string
-): MessageOptions {
+  alt?: boolean
+) => {
+  return new MessageEmbed()
+    .setColor("GREEN")
+    .setFooter(
+      `${member.user.tag} (${member.id})`,
+      member.user.displayAvatarURL({ dynamic: true })
+    )
+    .setAuthor(
+      `${alt ? "Added alt" : "Successfully verified"}: ${ign}`,
+      "",
+      "https://www.realmeye.com/player/" + ign
+    );
+};
+
+export const awaitingVerificationCode = (ign: string, code: string) => {
   const embed = new MessageEmbed().setDescription(
     stripIndents`
 		Add the code to any line of your ${hyperlink(
       "Realmeye description",
       PROFILE_URL(ign)
     )}: ${codeBlock(code)}
+    Once you are done, click on one of the following buttons.
 		${bold("You may need to wait for the API to catch updates.")}`
   );
 
   const buttons = new MessageActionRow().addComponents([
     new MessageButton()
-      .setCustomId("yes")
+      .setCustomId("verification-continue-btn")
       .setLabel("I have added the code to my RealmEye description")
       .setStyle("SUCCESS"),
-    new MessageButton().setCustomId("no").setLabel("Cancel").setStyle("DANGER"),
+    new MessageButton().setCustomId("verification-abort-btn").setLabel("Cancel").setStyle("DANGER"),
   ]);
 
   return { embeds: [embed], components: [buttons] };
-}
+};
 
-export function failedAwaitingVerificationCode(
-  ign: string,
-  code: string
-): MessageOptions {
+export const failedAwaitingVerificationCode = (ign: string, code: string) => {
   const embed = new MessageEmbed()
     .setDescription(
       stripIndents`
@@ -68,4 +73,4 @@ export function failedAwaitingVerificationCode(
   ]);
 
   return { embeds: [embed], components: [buttons] };
-}
+};
