@@ -1,17 +1,12 @@
-import { CommandInteraction, VoiceChannel } from "discord.js";
+import type { CommandInteraction, VoiceChannel } from "discord.js";
 import { Discord, Slash, SlashGroup, SlashOption } from "discordx";
 import type { Redis } from "ioredis";
-import { container, inject, injectable } from "tsyringe";
+import { container, inject } from "tsyringe";
 import { kRedis } from "../../../../tokens";
 
-@injectable()
 @Discord()
 @SlashGroup("channel")
-export class CapChannelCommand {
-  public constructor(@inject(kRedis) public readonly redis: Redis) {
-    this.redis = container.resolve<Redis>(kRedis);
-  }
-
+export abstract class CapChannelCommand {
   @Slash("cap", {
     description: "Sets a user cap to the channel",
   })
@@ -28,7 +23,8 @@ export class CapChannelCommand {
     number: number,
     interaction: CommandInteraction
   ): Promise<void> {
-    const active = await this.redis.get(`channel:${interaction.user.id}`);
+    const redis = container.resolve<Redis>(kRedis);
+    const active = await redis.get(`channel:${interaction.user.id}`);
     if (!active) {
       return interaction.reply({
         content: "Create a channel first.",

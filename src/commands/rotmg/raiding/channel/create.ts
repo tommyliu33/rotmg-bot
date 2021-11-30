@@ -9,14 +9,9 @@ import { kRedis } from "../../../../tokens";
 const truncate = (str: string, max: number) =>
   str.length > max ? str.slice(0, max) : str;
 
-@injectable()
 @Discord()
 @SlashGroup("channel")
-export class CreateChannelCommand {
-  public constructor(@inject(kRedis) public readonly redis: Redis) {
-    this.redis = container.resolve<Redis>(kRedis);
-  }
-
+export abstract class CreateChannelCommand {
   @Guard(AfkCheckChannel())
   @Slash("create", {
     description: "Create a channel with a custom name and template",
@@ -30,7 +25,8 @@ export class CreateChannelCommand {
     name: string,
     interaction: CommandInteraction
   ) {
-    const active = await this.redis.get(`channel:${interaction.user.id}`);
+    const redis = container.resolve<Redis>(kRedis);
+    const active = await redis.get(`channel:${interaction.user.id}`);
     if (active) {
       return interaction.reply({
         content: "Close your current channel before starting another.",
@@ -89,7 +85,9 @@ export class CreateChannelCommand {
       msgId: m?.id!,
       roleId,
       state: "LOCKED",
+      name: channelName,
     };
-    this.redis.set(`channel:${interaction.user.id}`, JSON.stringify(raid));
+
+    await redis.set(`channel:${interaction.user.id}`, JSON.stringify(raid));
   }
 }

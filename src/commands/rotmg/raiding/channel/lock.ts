@@ -1,22 +1,18 @@
 import { CommandInteraction, Formatters, MessageEmbed } from "discord.js";
 import { Discord, Slash, SlashGroup } from "discordx";
 import type { Redis } from "ioredis";
-import { container, inject, injectable } from "tsyringe";
+import { container } from "tsyringe";
 import { kRedis } from "../../../../tokens";
 
-@injectable()
 @Discord()
 @SlashGroup("channel")
 export class LockChannelCommand {
-  public constructor(@inject(kRedis) public readonly redis: Redis) {
-    this.redis = container.resolve<Redis>(kRedis);
-  }
-
   @Slash("lock", {
     description: "Locks the channel",
   })
   private async lock(interaction: CommandInteraction): Promise<void> {
-    const active = await this.redis.get(`channel:${interaction.user.id}`);
+    const redis = container.resolve<Redis>(kRedis);
+    const active = await redis.get(`channel:${interaction.user.id}`);
     if (!active) {
       return interaction.reply({
         content: "Create a channel first.",
@@ -39,7 +35,7 @@ export class LockChannelCommand {
       CONNECT: false,
     });
 
-    await this.redis.set(
+    await redis.set(
       `channel:${interaction.user.id}`,
       JSON.stringify({ ...raid, state: "LOCKED" })
     );
