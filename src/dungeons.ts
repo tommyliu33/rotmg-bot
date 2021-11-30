@@ -93,7 +93,6 @@ const dungeons: Dungeon[] = [
       "https://i.imgur.com/bnKFZjt.png",
       "https://i.imgur.com/qL3BVpR.png",
       "https://i.imgur.com/lmde5Ct.png",
-      "https://i.imgur.com/l3zfHbk.gif",
     ],
   },
 
@@ -314,6 +313,89 @@ const dungeons: Dungeon[] = [
 
     color: 0x13044f,
     images: ["https://i.imgur.com/7JGSvMq.png"],
+  },
+
+  {
+    name: "o3",
+    full_name: "Oryx Sanctuary",
+    keys: [
+      {
+        name: "inc",
+        emote: "<:WineCellarIncantation:886330945404272671>",
+        limit: 2,
+      },
+      {
+        name: "sword_rune",
+        emote: "<:SwordRune:886134621127991337>",
+        limit: 2,
+      },
+      {
+        name: "helmet_rune",
+        emote: "<:HelmetRune:886134621685837824>",
+        limit: 2,
+      },
+      {
+        name: "shield_rune",
+        emote: "<:ShieldRune:886134621178331167>",
+        limit: 2,
+      },
+    ],
+    portal: "<:OryxSanctuaryPortal:908398287994896444>",
+    main_reacts: [
+      {
+        name: "warrior",
+        emote: Reacts.WARRIOR,
+        limit: 0,
+      },
+      {
+        name: "paladin",
+        emote: Reacts.PALADIN,
+        limit: 0,
+      },
+      {
+        name: "wizard",
+        emote: Reacts.WIZARD,
+        limit: 0,
+      },
+      {
+        name: "mystic",
+        emote: Reacts.MYSTIC,
+        limit: 0,
+      },
+      {
+        name: "trickster",
+        emote: Reacts.TRICKSTER,
+        limit: 0,
+      },
+    ],
+    optional_reacts: [
+      {
+        name: "fungal_tome",
+        emote: Reacts.FUNGAL_TOME,
+        limit: 0,
+      },
+      {
+        name: "m_seal",
+        emote: Reacts.MARBLE_SEAL,
+        limit: 0,
+      },
+      {
+        name: "slow",
+        emote: Reacts.SLOW,
+        limit: 1,
+      },
+      {
+        name: "armor_break",
+        emote: Reacts.ARMOR_BREAK,
+        limit: 1,
+      },
+    ],
+
+    color: 0xf1c40f,
+    images: [
+      "https://i.imgur.com/3Biywi7.png",
+      "https://i.imgur.com/DSVqdZo.png",
+    ],
   },
 ];
 
