@@ -13,7 +13,7 @@ export async function createChannel(
   const mainRoleId = await getGuildSetting(guildId, SettingsKey.MainUserRole);
   const vetRoleId = await getGuildSetting(guildId, SettingsKey.VetUserRole);
 
-  const key = veteran ? SettingsKey.VetCategory : SettingsKey.MainCategory;
+  const key = veteran ? SettingsKey.VetSection : SettingsKey.MainSection;
   const parentId = await getGuildSetting(guildId, key);
 
   const permissions: OverwriteResolvable[] = [
