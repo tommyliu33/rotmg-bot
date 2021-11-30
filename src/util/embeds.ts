@@ -76,20 +76,3 @@ export function afkCheckEmbed(dungeon: Dungeon): MessageEmbed {
     .setColor(color)
     .setDescription(buildAfkCheckEmbedDescription(dungeon));
 }
-export function verification_successful(
-  member: GuildMember,
-  ign: string,
-  alt?: boolean
-) {
-  return new MessageEmbed()
-    .setColor("GREEN")
-    .setFooter(
-      `${member.user.tag} (${member.id})`,
-      member.user.displayAvatarURL({ dynamic: true })
-    )
-    .setAuthor(
-      `${alt ? "Added alt" : "Successfully verified"}: ${ign}`,
-      "",
-      "https://www.realmeye.com/player/" + ign
-    );
-}
