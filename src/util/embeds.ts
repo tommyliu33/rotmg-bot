@@ -1,5 +1,6 @@
-import { GuildMember, MessageEmbed } from "discord.js";
+import { MessageEmbed } from "discord.js";
 import type { Dungeon } from "../dungeons";
+import { inlineCode } from "@discordjs/builders";
 
 const buildAfkCheckEmbedDescription = (dungeon: Dungeon): string => {
   const { portal, keys, optional_reacts, rusher } = dungeon;
@@ -41,6 +42,8 @@ const buildAfkCheckEmbedDescription = (dungeon: Dungeon): string => {
         ?.map((c) => c.emote)
         .join("")}`
     );
+  } else {
+    description.pop();
   }
 
   description.push("");
@@ -50,7 +53,7 @@ const buildAfkCheckEmbedDescription = (dungeon: Dungeon): string => {
         dungeon.name === "shatters"
           ? "monuments"
           : dungeon.name === "cult"
-          ? "pots"
+          ? "pot rooms"
           : ""
       }, react with ${rusher.emote}`
     );
@@ -72,6 +75,7 @@ export function afkCheckEmbed(dungeon: Dungeon): MessageEmbed {
   const thumbnail = images[Math.floor(Math.random() * images.length)];
 
   return new MessageEmbed()
+    .setTitle(inlineCode(dungeon.full_name))
     .setThumbnail(thumbnail)
     .setColor(color)
     .setDescription(buildAfkCheckEmbedDescription(dungeon));
