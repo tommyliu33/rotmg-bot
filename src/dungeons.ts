@@ -162,11 +162,6 @@ const dungeons: Dungeon[] = [
         emote: Reacts.KNIGHT,
         limit: 0,
       },
-      {
-        name: "mystic",
-        emote: Reacts.MYSTIC,
-        limit: 0,
-      },
     ],
     optional_reacts: [
       {
