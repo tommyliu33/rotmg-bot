@@ -28,6 +28,7 @@ export interface Dungeon {
 
   rusher?: {
     emote: string;
+    what: string;
   };
 
   color: ColorResolvable;
@@ -85,6 +86,7 @@ const dungeons: Dungeon[] = [
 
     rusher: {
       emote: "<:ShattersRusher:895458059894284319>",
+      what: "monuments",
     },
 
     color: 0x4e4e4e,
@@ -129,6 +131,7 @@ const dungeons: Dungeon[] = [
 
     rusher: {
       emote: "<:Planewalker:886332230362861608>",
+      what: "pot rooms",
     },
 
     color: 0xe74c3c,
@@ -172,11 +175,6 @@ const dungeons: Dungeon[] = [
       {
         name: "daze",
         emote: Reacts.DAZE,
-        limit: 1,
-      },
-      {
-        name: "armor_break",
-        emote: Reacts.ARMOR_BREAK,
         limit: 1,
       },
     ],
