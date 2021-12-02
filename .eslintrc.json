@@ -1,0 +1,7 @@
+{
+  "extends": ["marine/node", "marine/prettier"],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": "latest"
+  }
+}
