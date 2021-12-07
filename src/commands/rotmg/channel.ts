@@ -1,14 +1,15 @@
-import type { CommandInteraction } from "discord.js";
-import { Command, Channel, emitter } from "@struct";
+import type { CommandInteraction, Snowflake } from "discord.js";
+import { Command, Channel, Raids } from "@struct";
 
 import { inAfkChannel } from "@util";
 import { createChannel, getGuildSetting, SettingsKey } from "@functions";
 
 import { container } from "tsyringe";
-import { kRedis } from "../../tokens";
+import { kRaids, kRedis } from "../../tokens";
 import type { Redis } from "ioredis";
 
 const redis = container.resolve<Redis>(kRedis);
+const emitter = container.resolve<Raids>(kRaids);
 const truncate = (str: string, max: number) =>
   str.length > max ? str.slice(0, max) : str;
 
@@ -63,15 +64,30 @@ export default class implements Command {
   ];
 
   public async execute(interaction: CommandInteraction) {
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
 
     const subcommand = interaction.options.getSubcommand();
     if (["create"].includes(subcommand)) {
       await inAfkChannel(interaction);
     }
 
-    // @ts-ignore
-    await this[subcommand].call(interaction);
+    switch (subcommand) {
+      case "create":
+        await this.create(interaction);
+        break;
+      case "close":
+        await this.close(interaction);
+        break;
+      case "unlock":
+        await this.unlock(interaction);
+        break;
+      case "lock":
+        await this.lock(interaction);
+        break;
+      case "cap":
+        await this.cap(interaction);
+        break;
+    }
   }
 
   private async create(interaction: CommandInteraction): Promise<void> {
@@ -113,10 +129,10 @@ export default class implements Command {
         return undefined;
       });
 
-    const channelInfo = {
-      name: channel?.name,
+    const channelInfo: Omit<Channel, "messageId"> = {
+      name: channel?.name as Snowflake,
       channelId: interaction.channelId,
-      voiceChannelId: channel?.id,
+      voiceChannelId: channel?.id as Snowflake,
 
       leaderId: interaction.user.id,
       leaderName: member?.displayName,
@@ -130,7 +146,9 @@ export default class implements Command {
       `channel:${interaction.user.id}`,
       JSON.stringify(channelInfo)
     );
+
     emitter.emit("channelStart", interaction, channelInfo);
+    await interaction.editReply({ content: "Created your channel." });
   }
 
   private async close(interaction: CommandInteraction): Promise<void> {
@@ -150,6 +168,7 @@ export default class implements Command {
       ...channel_,
       state: "CLOSED",
     });
+    await interaction.editReply({ content: "Closed your channel." });
   }
 
   private async unlock(interaction: CommandInteraction): Promise<void> {
@@ -173,10 +192,18 @@ export default class implements Command {
       return;
     }
 
+    await redis.set(
+      key,
+      JSON.stringify({
+        ...channel_,
+        state: "OPENED",
+      })
+    );
     emitter.emit("channelOpen", interaction, {
       ...channel_,
       state: "OPENED",
     });
+    await interaction.editReply({ content: "Opened your channel." });
   }
 
   private async lock(interaction: CommandInteraction): Promise<void> {
@@ -200,6 +227,13 @@ export default class implements Command {
       return;
     }
 
+    await redis.set(
+      key,
+      JSON.stringify({
+        ...channel_,
+        state: "LOCKED",
+      })
+    );
     emitter.emit("channelLocked", interaction, {
       ...channel_,
       state: "LOCKED",
@@ -227,7 +261,8 @@ export default class implements Command {
         ...channel_,
         state: "LOCKED",
       },
-      interaction.options.getInteger("cap")
+      interaction.options.getInteger("cap", true)
     );
+    await interaction.editReply({ content: "Updated channel cap." });
   }
 }

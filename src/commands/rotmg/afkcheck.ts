@@ -1,10 +1,10 @@
 import type { CommandInteraction, EmojiResolvable } from "discord.js";
-import { Command, Raid, emitter } from "@struct";
+import { Command, Raids } from "@struct";
 
 import { inAfkChannel } from "@util";
 import { dungeons } from "../../dungeons";
 
-import { kRedis } from "../../tokens";
+import { kRaids, kRedis } from "../../tokens";
 import { container } from "tsyringe";
 import type { Redis } from "ioredis";
 
@@ -39,6 +39,11 @@ export default class implements Command {
         )
       ]!;
 
+    console.log(
+      "member cached",
+      interaction.guild?.members.cache.get(interaction.user.id)
+    );
+
     const member = await interaction.guild?.members
       .fetch(interaction.user.id)
       .catch(() => {
@@ -64,7 +69,7 @@ export default class implements Command {
       reacts.push(rusher.emote);
     }
 
-    const data: Omit<Raid, "voiceChannelId" | "messageId"> = {
+    const data = {
       dungeon,
       reacts: [...reacts.filter((c) => c !== ""), "❌"],
 
@@ -81,6 +86,6 @@ export default class implements Command {
         JSON.stringify(data)
       );
 
-    emitter.emit("raidStart", interaction, data);
+    container.resolve<Raids>(kRaids).emit("raidStart", interaction, data);
   }
 }

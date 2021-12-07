@@ -6,7 +6,7 @@ import "module-alias/register";
 import { Bot } from "./struct/Bot";
 import { PrismaClient } from "@prisma/client";
 import { logger } from "./logger";
-import type { Event, Command } from "@struct";
+import type { Event, Command } from "@struct"; // eslint-disable-line no-duplicate-imports
 
 import readdirp from "readdirp";
 
@@ -20,8 +20,10 @@ const commands = new Map<string, Command>();
 async function init() {
   const redis = new Redis(process.env.REDIS_HOST);
   container.register(kRedis, { useValue: redis });
+
+  const { Raids } = await import("@struct");
   container.register(kRaids, {
-    useValue: (await import("./struct/Raids")).emitter,
+    useValue: new Raids(),
   });
 
   const prisma = new PrismaClient();

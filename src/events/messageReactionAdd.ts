@@ -1,14 +1,15 @@
 import type { MessageReaction, User, VoiceChannel } from "discord.js";
-import type { Event, Raid } from "@struct";
+import { Event, Raid, Raids } from "@struct";
 
 import { MessageEmbed } from "discord.js"; // eslint-disable-line no-duplicate-imports
 import { time } from "@discordjs/builders";
 
 import { container } from "tsyringe";
-import { kRedis } from "../tokens";
+import { kRedis, kRaids } from "../tokens";
 import type { Redis } from "ioredis";
 
 const redis = container.resolve<Redis>(kRedis);
+const emitter = container.resolve<Raids>(kRaids);
 
 export default class implements Event {
   public name = "messageReactionAdd";
@@ -57,10 +58,11 @@ export default class implements Event {
         const embed = new MessageEmbed(react.message.embeds[0])
           .setTitle("")
           .setThumbnail("")
+          .setTimestamp(null)
           .setDescription(
-            `Raid has started in ${channel.name} ${time(new Date(), "R")}`
+            `Raid started in ${channel.name} ${time(new Date(), "R")}`
           )
-          .setFooter(`The afk check has been ended by ${leaderName}`);
+          .setFooter(`The afk check has been ended by ${leaderName as string}`);
 
         await react.message.edit({
           content: " ",

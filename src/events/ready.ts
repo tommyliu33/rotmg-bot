@@ -1,9 +1,9 @@
-import type { Event, Bot } from "@struct";
+import type { Bot, Event } from "@struct";
 
+import { getInteractions } from "@util";
 import { container } from "tsyringe";
 import { logger } from "../logger";
 import { kClient } from "../tokens";
-import { getInteractions } from "@util";
 
 export default class implements Event {
   public name = "ready";
