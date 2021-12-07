@@ -1,6 +1,6 @@
 import type { PrismaClient } from ".prisma/client";
 import { getGuildSetting, SettingsKey } from "@functions";
-import type { Bot } from "@lib";
+import type { Bot } from "../../struct/Bot";
 import type { Snowflake } from "discord-api-types";
 import { container } from "tsyringe";
 import { kClient, kPrisma } from "../../tokens";
@@ -20,7 +20,6 @@ export async function verify(
   const member = await guild.members.fetch(userId)!;
 
   const logChannel = await getLogChannel(guildId);
-  const roleId = await getGuildSetting(guild.id, SettingsKey.MainUserRole);
 
   const data = await prisma.guilds.findFirst({
     where: {
@@ -51,14 +50,14 @@ export async function verify(
       },
     }));
 
-  const names = data_?.names;
+  const names = data_.names;
   // assume they're adding an alt
   if (!names.includes(name)) {
-    names?.push(name);
+    names.push(name);
 
     await prisma.users.update({
       where: {
-        id: data_?.id,
+        id: data_.id,
       },
       data: {
         names,
@@ -66,12 +65,12 @@ export async function verify(
     });
   }
 
-  const guilds = data_?.verified_guilds;
-  if (guilds.indexOf(guildId) === -1) guilds?.push(guildId);
+  const guilds = data_.verified_guilds;
+  if (!guilds.includes(guildId)) guilds.push(guildId);
 
   await prisma.users.update({
     where: {
-      id: data_?.id,
+      id: data_.id,
     },
     data: {
       verified_guilds: guilds,
@@ -79,12 +78,12 @@ export async function verify(
   });
 
   await logChannel?.send({
-    embeds: [verificationSuccessful(member!, name, names.length !== 1)],
+    embeds: [verificationSuccessful(member, name, names.length !== 1)],
   });
 
-  if (!member?.manageable) {
+  if (!member.manageable) {
     const tag = ` ${member.user.tag} (\`${member.id}\`)`;
-    if (!guild?.me?.permissions.has("MANAGE_ROLES")) {
+    if (!guild.me?.permissions.has("MANAGE_ROLES")) {
       await logChannel?.send({
         embeds: [
           {
@@ -96,7 +95,7 @@ export async function verify(
       });
     }
 
-    if (!guild?.me?.permissions.has("MANAGE_NICKNAMES")) {
+    if (!guild.me?.permissions.has("MANAGE_NICKNAMES")) {
       await logChannel?.send({
         embeds: [
           {

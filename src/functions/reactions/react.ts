@@ -3,20 +3,28 @@
 
 import type { EmojiResolvable, Message } from "discord.js";
 
-export async function react(
+export function react(
   msg: Message,
   reacts: EmojiResolvable[],
-  delay: number = 550
-): Promise<any> {
+  delay = 550
+): void {
   let i = 0;
-  const interval = setInterval(async () => {
+  const interval = setInterval(() => {
+    // if the leader reacts to ❌ before
+    if (msg.reactions.cache.has("❌")) {
+      clearInterval(interval);
+      return;
+    }
+
     if (i < reacts.length) {
       if (msg.deleted) {
         clearInterval(interval);
         return;
       }
 
-      await msg.react(reacts[i]).catch(() => {});
+      msg.react(reacts[i]).catch(() => {
+        return undefined;
+      });
     } else {
       clearInterval(interval);
     }

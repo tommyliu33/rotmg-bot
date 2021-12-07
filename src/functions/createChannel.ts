@@ -49,7 +49,5 @@ export async function createChannel(
   } catch (e) {
     const err = e as Error;
     logger.error(err, err.message);
-
-    return;
   }
 }

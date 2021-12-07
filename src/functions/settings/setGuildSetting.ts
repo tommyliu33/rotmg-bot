@@ -1,9 +1,10 @@
 import { PrismaClient } from ".prisma/client";
-import type { Snowflake } from "discord.js";
 import { set } from "dot-prop";
 import { container } from "tsyringe";
 import { kPrisma } from "../../tokens";
 import { SettingsKey } from "./getGuildSetting";
+
+import type { Snowflake } from "discord.js";
 
 export async function setGuildSetting(
   guildId: Snowflake,
@@ -18,6 +19,7 @@ export async function setGuildSetting(
   });
 
   const { id, ...data_ } = data!;
+
   await prisma.guilds.update({
     where: {
       id,

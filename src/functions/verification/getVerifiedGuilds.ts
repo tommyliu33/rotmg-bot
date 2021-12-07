@@ -1,5 +1,5 @@
 import type { PrismaClient } from ".prisma/client";
-import type { Bot } from "@lib";
+import type { Bot } from "../../struct/Bot";
 import type { Snowflake } from "discord-api-types";
 import { container } from "tsyringe";
 import { kClient, kPrisma } from "../../tokens";

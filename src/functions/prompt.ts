@@ -1,17 +1,11 @@
-import { stripIndents } from "common-tags";
-import {
+import type {
   ButtonInteraction,
-  Collection,
   CommandInteraction,
-  Formatters,
   Message,
-  Snowflake,
 } from "discord.js";
 
-export interface PromptOptions {
-  question: string;
-  expected: string;
-}
+import { stripIndents } from "common-tags";
+import { inlineCode } from "@discordjs/builders";
 
 interface PromptResponses {
   question: string;
@@ -20,7 +14,7 @@ interface PromptResponses {
 
 export async function prompt(
   interaction: CommandInteraction | ButtonInteraction,
-  prompts: PromptOptions[],
+  prompts: string[],
   responses: PromptResponses[],
   index = 0
 ): Promise<PromptResponses[]> {
@@ -32,44 +26,41 @@ export async function prompt(
     return responses;
   }
 
-  const { question } = prompts[currentIndex];
+  const question = prompts[currentIndex];
 
   await interaction.editReply({
     content: stripIndents`
-    ${question}
-    You have 15 seconds to answer. Type ${Formatters.inlineCode(
-      "cancel"
-    )} to abort.`,
+      ${question}
+      You have 15 seconds to answer. Type ${inlineCode("cancel")} to abort.
+    `,
+    components: [],
+    embeds: [],
   });
 
   const filter = (m: Message) => m.author.id === interaction.user.id;
-  const collector = await interaction.channel
+  const collectedMessage = await interaction.channel
     ?.awaitMessages({
       filter,
       max: 1,
       time: 15000,
       errors: ["time"],
     })
-    .catch(async () => {
-      await interaction.editReply("Exiting due to no response.");
-    });
+    .catch(() => undefined);
 
-  if (!collector) return [];
-  const collected = collector as Collection<Snowflake, Message>;
-
-  const msg = collected.first()!;
-  if (msg.content.toLowerCase() === "cancel") {
+  const msg = collectedMessage?.first();
+  if (msg?.content.toLowerCase() === "cancel") {
     await interaction.editReply("Cancelling...");
+    if (msg.deletable) await msg.delete();
 
     return responses;
   }
 
   responses.push({
     question,
-    response: msg.content,
+    response: msg?.content as string,
   });
 
-  if (msg.deletable) await msg.delete();
+  if (msg?.deletable) await msg.delete();
 
   ++currentIndex;
   if (!responses[expectedIndex]) {

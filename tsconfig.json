@@ -1,48 +1,34 @@
 {
-    "compilerOptions": {
-        "target": "ES2020",
-        "rootDir": "./src",
-        "outDir": "./dist",
-        "declaration": false,
-        "skipLibCheck": true,
-        "baseUrl": ".",
-        "removeComments": true,
-        "importHelpers": true,
-        "strict": true,
-        "strictBindCallApply": true,
-        "strictNullChecks": true,
-        "strictFunctionTypes": true,
-        "strictPropertyInitialization": true,
-        "importsNotUsedAsValues": "preserve",
-        "noImplicitAny": true,
-        "noImplicitReturns": true,
-        "noImplicitThis": true,
-        //"noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "module": "commonjs",
-        "esModuleInterop": true,
-        "paths": {
-            "@lib": [
-                "src/lib/index.ts"
-            ],
-            "@functions": [
-                "src/functions/index.ts"
-            ],
-            "@guards": [
-                "src/functions/guards/index.ts"
-            ],
-            "@util": [
-                "src/util/index.ts"
-            ]
-        },
-    },
-    "exclude": [
-        "./dist",
-        "./node_modules"
-    ],
-    "include": [
-        "./src"
-    ]
+  "compilerOptions": {
+    "target": "ES2020",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declaration": false,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "removeComments": true,
+    "importHelpers": true,
+    "strict": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "importsNotUsedAsValues": "preserve",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "paths": {
+      "@functions": ["src/functions/index.ts"],
+      "@util": ["src/util/index.ts"],
+      "@struct": ["src/struct/index.ts"]
+    }
+  },
+  "exclude": ["./dist", "./node_modules"],
+  "include": ["./src"]
 }

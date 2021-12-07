@@ -1,52 +1,32 @@
-import type { Bot } from "@lib";
-import type { PrismaClient } from "@prisma/client";
-import { ArgsOf, Discord, On } from "discordx";
-import { container, inject, injectable } from "tsyringe";
-import { kClient, kPrisma } from "../tokens";
+import type { Interaction } from "discord.js";
+import type { Command, Event } from "@struct";
 
-const keys = [
-  "afk_check_channel_id",
-  "vet_afk_check_channel_id",
-  "verified_role_id",
-  "veteran_role_id",
-  "log_channel_id",
-  "main_section_id",
-  "veteran_section_id",
-];
+import { container } from "tsyringe";
+import { logger } from "../logger";
+import { kCommands } from "../tokens";
 
-@Discord()
-@injectable()
-export class Event {
-  public constructor(@inject(kClient) public readonly client: Bot) {
-    this.client = container.resolve<Bot>(kClient);
-  }
+export default class implements Event {
+  public name = "interactionCreate";
 
-  @On("interactionCreate")
-  private async execute([interaction]: ArgsOf<"interactionCreate">) {
-    if (
-      interaction.type !== "APPLICATION_COMMAND" &&
-      interaction.type !== "MESSAGE_COMPONENT"
-    )
-      return;
+  public execute(interaction: Interaction) {
+    if (!interaction.isCommand()) return;
 
-    const prisma = container.resolve<PrismaClient>(kPrisma);
-    if (
-      interaction.inGuild() &&
-      !(await prisma.guilds.findFirst({
-        where: {
-          id_: interaction.guildId,
-        },
-      }))
-    ) {
-      await prisma.guilds.create({
-        // @ts-ignore it already handles empty strings
-        data: {
-          ...keys.reduce((a, v) => ({ ...a, [v]: "" }), {}),
-          id_: interaction.guildId,
-        },
-      });
+    const { commandName } = interaction;
+    const commands = container.resolve<Map<string, Command>>(kCommands);
+
+    const command = commands.get(commandName);
+
+    if (command) {
+      try {
+        void command.execute(interaction);
+
+        logger.info(
+          `${interaction.user.tag} (${interaction.user.id}) ran an command: ${commandName}`
+        );
+      } catch (e) {
+        const err = e as Error;
+        logger.error(`Command error: ${err.stack ?? err.message}`);
+      }
     }
-
-    await this.client.executeInteraction(interaction);
   }
 }

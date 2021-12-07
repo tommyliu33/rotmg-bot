@@ -117,8 +117,7 @@ export async function getPlayer(
   const json = await req.json();
   if ("error" in json && json.error === `${name} could not be found!`) {
     return json;
-  } else {
-    const json_ = json as RealmEyePlayer;
-    return json_;
   }
+  const json_ = json as RealmEyePlayer;
+  return json_;
 }

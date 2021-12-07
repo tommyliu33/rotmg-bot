@@ -1,9 +1,8 @@
+import { getGuildSetting, SettingsKey } from "@functions";
+import type { Bot } from "../struct/Bot";
 import type { TextChannel } from "discord.js";
 import { container } from "tsyringe";
-import { getGuildSetting, SettingsKey } from "@functions";
 import { kClient } from "../tokens";
-import type { Bot } from "@lib";
-import { Collection } from "@discordjs/collection";
 
 export async function getLogChannel(guildId: string) {
   const client = container.resolve<Bot>(kClient);
@@ -13,7 +12,7 @@ export async function getLogChannel(guildId: string) {
 
   try {
     const return_ = await guild.channels.fetch(channelId);
-    if (return_ instanceof Collection) {
+    if (return_ instanceof Map) {
       return null;
     }
 

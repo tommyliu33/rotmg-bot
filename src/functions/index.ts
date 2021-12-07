@@ -3,6 +3,7 @@ export * from "./reactions/react";
 export * from "./reactions/collector";
 
 // settings
+export * from "./settings/getGuild";
 export * from "./settings/getGuildSetting";
 export * from "./settings/setGuildSetting";
 

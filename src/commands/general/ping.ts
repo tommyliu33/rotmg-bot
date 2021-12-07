@@ -1,10 +1,11 @@
 import type { CommandInteraction } from "discord.js";
-import { Discord, Slash } from "discordx";
+import { Command } from "@struct";
 
-@Discord()
-export abstract class PingCommand {
-  @Slash("ping", { description: "pong." })
-  private async execute(interaction: CommandInteraction): Promise<void> {
-    return await interaction.reply("pong.");
+export default class implements Command {
+  public name = "ping";
+  public description = "pong.";
+
+  public execute(interaction: CommandInteraction) {
+    void interaction.reply("pong.");
   }
 }
