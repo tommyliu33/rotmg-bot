@@ -15,10 +15,12 @@ import type {
 import type { Dungeon } from "../dungeons";
 
 import { container } from "tsyringe";
-import { kRedis } from "../tokens";
+import { kClient, kRedis } from "../tokens";
 import type { Redis } from "ioredis";
+import { Bot } from "@struct";
 
 const redis = container.resolve<Redis>(kRedis);
+const client = container.resolve<Bot>(kClient);
 
 const title = (str: string) =>
   str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
@@ -77,33 +79,25 @@ export class Raids extends (EventEmitter as new () => TypedEmitter<RaidEvents>) 
     this.on("channelCapUpdate", this.channelCapUpdate.bind(null));
   }
 
+  // #region Afk check
   private async raidStart(
-    interaction: CommandInteraction,
     raid: Omit<Raid, "voiceChannelId" | "messageId">
   ): Promise<void> {
-    if (interaction.replied || !interaction.deferred) return;
+    const { guildId, channelId } = raid;
 
     const vetChannelId = await getGuildSetting(
-      interaction.guildId,
+      guildId,
       SettingsKey.VetAfkCheck
     );
 
-    const key = vetChannelId
-      ? `vet_raid_number:${interaction.guildId}`
-      : `raid_number:${interaction.guildId}`;
+    const guild = await client.guilds.fetch(guildId).catch(() => undefined);
 
-    let number = await redis.get(key);
-    if (!number) number = "1";
-
+    const key = vetChannelId ? `vet_raid:${guildId}` : `raid:${guildId}`;
     const voiceChannel = await createChannel(
-      interaction.guild!,
-      `Raiding ${number}`,
-      interaction.channelId === vetChannelId
+      guild!,
+      `Raiding ${await redis.incr(key)}`,
+      channelId === vetChannelId
     );
-
-    if (!voiceChannel) return;
-
-    await redis.set(key, Number(number) + 1);
 
     const { images, color, name, full_name } = raid.dungeon;
 
@@ -115,49 +109,40 @@ export class Raids extends (EventEmitter as new () => TypedEmitter<RaidEvents>) 
       .setTitle(inlineCode(full_name))
       .setThumbnail(images[Math.floor(Math.random() * images.length)]);
 
-    await interaction.editReply({
-      content: "Loading...",
-    });
-    await interaction.deleteReply();
-
-    const channel = await interaction.guild?.channels
+    const channel = await guild?.channels
       .fetch(raid.channelId)
-      .catch(() => {
-        return undefined;
+      .catch(() => undefined);
+
+    if (channel) {
+      const channel_ = channel as TextChannel;
+      const m = await channel_.send({
+        content: stripIndents`
+        @here ${raid.leaderName} has started a ${title(name)} raid in ${
+          voiceChannel?.name
+        }.`,
+        allowedMentions: {
+          parse: ["everyone"],
+        },
+        embeds: [embed],
       });
 
-    if (!channel) return;
+      await react(m, raid.reacts);
 
-    const channel_ = channel as TextChannel;
-    const m = await channel_.send({
-      content: stripIndents`
-      @here ${raid.leaderName} has started a ${title(name)} raid in ${
-        voiceChannel.name
-      }.`,
-      allowedMentions: {
-        parse: ["everyone"],
-      },
-      embeds: [embed],
-    });
-
-    await react(m, raid.reacts);
-
-    const key_ = `raid:${interaction.guildId}:${interaction.user.id}`;
-    const info = await redis.get(key_);
-
-    const raid_: Raid = JSON.parse(info!);
-    await redis.set(
-      key_,
-      JSON.stringify({
-        ...raid_,
-        messageId: m.id,
-        voiceChannelId: voiceChannel.id,
-      })
-    );
+      await redis.set(
+        `raid:${guildId}:${m.id}`,
+        JSON.stringify({
+          ...raid,
+          messageId: m.id,
+          voiceChannelId: voiceChannel?.id,
+        })
+      );
+    }
   }
 
   private async raidEnd(interaction: CommandInteraction, raid: Raid) {}
+  // #endregion
 
+  // #region Channels
   private async channelStart(
     interaction: CommandInteraction,
     channel: Omit<Channel, "messageId" | "voiceChannelId">
@@ -331,12 +316,14 @@ export class Raids extends (EventEmitter as new () => TypedEmitter<RaidEvents>) 
     const channel_ = vc as VoiceChannel;
     await channel_.setUserLimit(cap);
   }
+  // #endregion
 }
 
 export interface Raid {
   dungeon: Dungeon;
   reacts: EmojiResolvable[];
 
+  guildId: Snowflake;
   channelId: Snowflake;
   voiceChannelId: Snowflake;
 
@@ -357,7 +344,6 @@ export interface Channel extends Omit<Raid, "dungeon" | "reacts"> {
 type Awaitable<T> = T | PromiseLike<T>;
 interface RaidEvents {
   raidStart: (
-    interaction: CommandInteraction,
     raid: Omit<Raid, "voiceChannelId" | "messageId">
   ) => Awaitable<void>;
   raidEnd: (interaction: CommandInteraction, raid: Raid) => Awaitable<void>;

@@ -9,8 +9,11 @@ export class Bot extends Client {
         "GUILD_MEMBERS",
         "GUILD_VOICE_STATES",
         "GUILD_MESSAGE_REACTIONS",
+
+        "DIRECT_MESSAGES",
+        "DIRECT_MESSAGE_REACTIONS",
       ],
-      partials: ["CHANNEL", "REACTION", "GUILD_MEMBER"],
+      partials: ["CHANNEL", "REACTION", "GUILD_MEMBER", "MESSAGE"],
       makeCache: Options.cacheWithLimits({
         GuildInviteManager: 0,
         GuildStickerManager: 0,

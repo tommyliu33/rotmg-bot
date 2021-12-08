@@ -15,24 +15,24 @@ import { kClient, kCommands, kPrisma, kRaids, kRedis } from "./tokens";
 
 import Redis from "ioredis";
 
+const client = new Bot();
+container.register(kClient, { useValue: client });
+
 const commands = new Map<string, Command>();
 
 async function init() {
   const redis = new Redis(process.env.REDIS_HOST);
   container.register(kRedis, { useValue: redis });
 
+  const prisma = new PrismaClient();
+  await prisma.$connect();
+
+  container.register(kPrisma, { useValue: prisma });
+
   const { Raids } = await import("@struct");
   container.register(kRaids, {
     useValue: new Raids(),
   });
-
-  const prisma = new PrismaClient();
-  await prisma.$connect();
-
-  const client = new Bot();
-
-  container.register(kClient, { useValue: client });
-  container.register(kPrisma, { useValue: prisma });
 
   for await (const entry of readdirp("./events")) {
     const event: Event = new (await import(entry.fullPath)).default();

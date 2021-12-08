@@ -8,6 +8,9 @@ import { kRaids, kRedis } from "../../tokens";
 import { container } from "tsyringe";
 import type { Redis } from "ioredis";
 
+const redis = container.resolve<Redis>(kRedis);
+const emitter = container.resolve<Raids>(kRaids);
+
 export default class implements Command {
   public name = "afkcheck";
   public description = "starts an afk check.";
@@ -39,11 +42,6 @@ export default class implements Command {
         )
       ]!;
 
-    console.log(
-      "member cached",
-      interaction.guild?.members.cache.get(interaction.user.id)
-    );
-
     const member = await interaction.guild?.members
       .fetch(interaction.user.id)
       .catch(() => {
@@ -73,19 +71,14 @@ export default class implements Command {
       dungeon,
       reacts: [...reacts.filter((c) => c !== ""), "❌"],
 
+      guildId: interaction.guildId,
       channelId: interaction.channelId,
 
       leaderId: interaction.user.id,
       leaderName: member?.displayName as string,
     };
 
-    await container
-      .resolve<Redis>(kRedis)
-      .set(
-        `raid:${interaction.guildId}:${interaction.user.id}`,
-        JSON.stringify(data)
-      );
-
-    container.resolve<Raids>(kRaids).emit("raidStart", interaction, data);
+    emitter.emit("raidStart", data);
+    await interaction.deleteReply();
   }
 }
