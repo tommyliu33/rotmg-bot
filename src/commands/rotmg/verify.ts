@@ -185,10 +185,7 @@ export default class implements Command {
   // Used to handle interactions after first attempt
   private async onInteractionCreate(interaction: Interaction) {
     if (interaction.isButton()) {
-
-      if (!interaction.deferred) {
-        await interaction.deferReply({ ephemeral: true });
-      }
+      await interaction.deferReply({ ephemeral: true });
 
       const session = await this.redis.get(
         `verification:${interaction.customId}`
