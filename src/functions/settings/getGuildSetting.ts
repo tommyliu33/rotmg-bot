@@ -13,7 +13,8 @@ export enum SettingsKey {
   MainUserRole = "verified_role_id",
   VetUserRole = "veteran_role_id",
 
-  LogChannel = "log_channel_id",
+  RaidLeaderRole = "raid_leader_role_id",
+  VetRaidLeaderRole = "vet_raid_leader_role_id",
 }
 
 export async function getGuildSetting(

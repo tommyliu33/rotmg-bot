@@ -3,7 +3,7 @@ import type { BaseCommandInteraction, Message } from "discord.js";
 
 export async function inAfkChannel(
   interaction: BaseCommandInteraction
-): Promise<void> {
+): Promise<boolean> {
   const channels = [
     await getGuildSetting(interaction.guildId, SettingsKey.AfkCheck),
     await getGuildSetting(interaction.guildId, SettingsKey.VetAfkCheck),
@@ -20,7 +20,11 @@ export async function inAfkChannel(
     if (!message.flags.has("EPHEMERAL")) {
       setTimeout(() => {
         void message.delete();
-      }, 5000);
+      }, 7000);
     }
+
+    return false;
   }
+
+  return true;
 }

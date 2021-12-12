@@ -1,11 +1,9 @@
 import type { PrismaClient } from ".prisma/client";
-import { getGuildSetting, SettingsKey } from "@functions";
-import type { Bot } from "../../struct/Bot";
 import type { Snowflake } from "discord-api-types";
+import type { Bot } from "../../struct/Bot";
+
 import { container } from "tsyringe";
 import { kClient, kPrisma } from "../../tokens";
-import { getLogChannel } from "../getLogChannel";
-import { verificationSuccessful } from "@util";
 
 // TODO: Cleanup
 export async function verify(
@@ -18,8 +16,6 @@ export async function verify(
 
   const guild = await client.guilds.fetch(guildId)!;
   const member = await guild.members.fetch(userId)!;
-
-  const logChannel = await getLogChannel(guildId);
 
   const data = await prisma.guilds.findFirst({
     where: {
@@ -77,42 +73,18 @@ export async function verify(
     },
   });
 
-  await logChannel?.send({
-    embeds: [verificationSuccessful(member, name, names.length !== 1)],
+  const { manageable, roles } = member;
+  if (!manageable || !guild.me?.permissions.has("MANAGE_NICKNAMES")) return;
+
+  const nick = names.length === 1 ? names[0] : names.join(" | ");
+  await member.setNickname(nick).catch(() => {
+    return undefined;
   });
 
-  if (!member.manageable) {
-    const tag = ` ${member.user.tag} (\`${member.id}\`)`;
-    if (!guild.me?.permissions.has("MANAGE_ROLES")) {
-      await logChannel?.send({
-        embeds: [
-          {
-            color: "RED",
-            title: "Verification failure",
-            description: `Unable to add role for ${tag}`,
-          },
-        ],
-      });
-    }
-
-    if (!guild.me?.permissions.has("MANAGE_NICKNAMES")) {
-      await logChannel?.send({
-        embeds: [
-          {
-            color: "RED",
-            title: "Verification failure",
-            description: `Unable to update nickname for ${tag}`,
-          },
-        ],
-      });
-    }
+  const roleId = data?.verified_role_id as string;
+  if (!roles.cache.has(roleId)) {
+    await roles.add(roleId).catch(() => {
+      return undefined;
+    });
   }
-
-  // feat: check for discord name / ign capitalization MAYBE
-  await member
-    .setNickname(names.length === 1 ? names[0] : names.join(" | "))
-    .catch(() => {});
-
-  if (!member.roles.cache.has(data?.verified_role_id!))
-    await member.roles.add(data!.verified_role_id).catch(() => {});
 }

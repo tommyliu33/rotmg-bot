@@ -1,9 +1,11 @@
-import { inlineCode, time } from "@discordjs/builders";
-import { createChannel, getGuildSetting, react, SettingsKey } from "@functions";
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { inlineCode, time, userMention } from "@discordjs/builders";
+import { createChannel, react, getGuildSetting, SettingsKey } from "@functions";
 import EventEmitter from "@tbnritzdoge/events";
 import { stripIndents } from "common-tags";
 import { MessageEmbed, VoiceChannel } from "discord.js";
-import TypedEmitter from "typed-emitter";
+
+import { nanoid } from "nanoid";
 
 // eslint-disable-next-line no-duplicate-imports
 import type {
@@ -25,6 +27,7 @@ const client = container.resolve<Bot>(kClient);
 const title = (str: string) =>
   str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
 
+// TODO: Refactor
 const body = (dungeon: Dungeon): string => {
   const { portal, keys, optional_reacts, rusher } = dungeon;
 
@@ -65,7 +68,7 @@ const body = (dungeon: Dungeon): string => {
     )}\n\nTo end the afk check as the leader, react to ❌`;
 };
 
-export class Raids extends (EventEmitter as new () => TypedEmitter<RaidEvents>) {
+export class Raids extends EventEmitter {
   public constructor() {
     super(); // eslint-disable-line constructor-super
 
@@ -81,9 +84,9 @@ export class Raids extends (EventEmitter as new () => TypedEmitter<RaidEvents>) 
 
   // #region Afk check
   private async raidStart(
-    raid: Omit<Raid, "voiceChannelId" | "messageId">
+    raid: Omit<Raid, "voiceChannelId" | "messageId" | "controlPanelId">
   ): Promise<void> {
-    const { guildId, channelId } = raid;
+    const { guildId, channelId, leaderName, leaderTag, leaderId } = raid;
 
     const vetChannelId = await getGuildSetting(
       guildId,
@@ -92,51 +95,73 @@ export class Raids extends (EventEmitter as new () => TypedEmitter<RaidEvents>) 
 
     const guild = await client.guilds.fetch(guildId).catch(() => undefined);
 
-    const key = vetChannelId ? `vet_raid:${guildId}` : `raid:${guildId}`;
+    const vet = channelId === vetChannelId;
+
+    const key = vet ? `vet_raid:${guildId}` : `raid:${guildId}`;
     const voiceChannel = await createChannel(
       guild!,
       `Raiding ${await redis.incr(key)}`,
-      channelId === vetChannelId
+      vet,
+      "GUILD_VOICE"
     );
 
-    const { images, color, name, full_name } = raid.dungeon;
+    const cpChannel = await createChannel(
+      guild!,
+      leaderTag.replace("#", "-"),
+      vet,
+      "GUILD_TEXT"
+    );
+    await cpChannel.setTopic("raid");
 
+    const channel = await guild?.channels
+      .fetch(channelId)
+      .catch(() => undefined);
+    const channel_ = channel as TextChannel;
+
+    const { images, color, name, full_name } = raid.dungeon;
     const embed = new MessageEmbed()
       .setDescription(body(raid.dungeon))
       .setTimestamp()
       .setColor(color)
-      .setFooter(raid.leaderName as string)
+      .setFooter(leaderName as string)
       .setTitle(inlineCode(full_name))
       .setThumbnail(images[Math.floor(Math.random() * images.length)]);
 
-    const channel = await guild?.channels
-      .fetch(raid.channelId)
-      .catch(() => undefined);
+    const m = await channel_.send({
+      content: stripIndents`
+        @here ${leaderName} has started a ${title(name)} raid in ${
+        voiceChannel.name
+      }.`,
+      allowedMentions: {
+        parse: ["everyone"],
+      },
+      embeds: [embed],
+    });
+    await react(m, raid.reacts);
 
-    if (channel) {
-      const channel_ = channel as TextChannel;
-      const m = await channel_.send({
-        content: stripIndents`
-        @here ${raid.leaderName} has started a ${title(name)} raid in ${
-          voiceChannel?.name
-        }.`,
-        allowedMentions: {
-          parse: ["everyone"],
-        },
-        embeds: [embed],
-      });
+    const embed_ = new MessageEmbed()
+      .setTitle(`${inlineCode(leaderTag)} Control Panel`)
+      .addField("Location", "TBD");
 
-      await react(m, raid.reacts);
+    const m_ = await cpChannel.send({
+      content: `${userMention(leaderId)}, this is your control panel.`,
+      embeds: [embed_],
+    });
+    await m_.react("📝");
+    await m_.react("🗺️");
+    await m_.react("🛑");
+    await m_.react("❌");
 
-      await redis.set(
-        `raid:${guildId}:${m.id}`,
-        JSON.stringify({
-          ...raid,
-          messageId: m.id,
-          voiceChannelId: voiceChannel?.id,
-        })
-      );
-    }
+    // update cache
+    await redis.set(
+      `raid:${guildId}:${m.id}`,
+      JSON.stringify({
+        ...raid,
+        messageId: m.id,
+        controlPanelId: cpChannel.id,
+        voiceChannelId: voiceChannel.id,
+      })
+    );
   }
 
   private async raidEnd(interaction: CommandInteraction, raid: Raid) {}
@@ -323,17 +348,36 @@ export interface Raid {
   dungeon: Dungeon;
   reacts: EmojiResolvable[];
 
+  // this stores only limited reacts
+  reacts_: {
+    userId: Snowflake; // user id who reacted
+    emoji: EmojiResolvable; // the emoji they reacted with
+    state: 1 | 2 | 3; // whether they confirmed with the bot
+    // TODO: enum for reacts confirmed
+    // 1 for not confirmed but reacted
+    // 2 for in progress - bot sent dm
+    // 3 for yes - they said yes
+  }[];
+
+  location: string;
+
   guildId: Snowflake;
   channelId: Snowflake;
   voiceChannelId: Snowflake;
+  controlPanelId: Snowflake;
 
   messageId: Snowflake;
 
   leaderId: Snowflake;
   leaderName?: string;
+  leaderTag: string;
 }
 
-export interface Channel extends Omit<Raid, "dungeon" | "reacts"> {
+export interface Channel
+  extends Omit<
+    Raid,
+    "dungeon" | "reacts" | "reacted" | "reacts_" | "controlPanelId"
+  > {
   name: string;
 
   roleId: Snowflake;
@@ -341,32 +385,63 @@ export interface Channel extends Omit<Raid, "dungeon" | "reacts"> {
   state: "LOCKED" | "CLOSED" | "OPENED";
 }
 
-type Awaitable<T> = T | PromiseLike<T>;
-interface RaidEvents {
-  raidStart: (
-    raid: Omit<Raid, "voiceChannelId" | "messageId">
-  ) => Awaitable<void>;
-  raidEnd: (interaction: CommandInteraction, raid: Raid) => Awaitable<void>;
+export interface RaidEvents {
+  raidStart: [
+    raid: Omit<Raid, "voiceChannelId" | "messageId" | "controlPanelId">
+  ];
+  raidEnd: [interaction: CommandInteraction, raid: Raid];
 
-  channelStart: (
+  channelStart: [
     interaction: CommandInteraction,
     channel: Omit<Channel, "messageId" | "voiceChannelId">
-  ) => Awaitable<void>;
-  channelClose: (
-    interaction: CommandInteraction,
-    channel: Channel
-  ) => Awaitable<void>;
-  channelLocked: (
-    interaction: CommandInteraction,
-    channel: Channel
-  ) => Awaitable<void>;
-  channelOpen: (
-    interaction: CommandInteraction,
-    channel: Channel
-  ) => Awaitable<void>;
-  channelCapUpdate: (
+  ];
+  channelClose: [interaction: CommandInteraction, channel: Channel];
+  channelLocked: [interaction: CommandInteraction, channel: Channel];
+  channelOpen: [interaction: CommandInteraction, channel: Channel];
+  channelCapUpdate: [
     interaction: CommandInteraction,
     channel: Channel,
     cap: number
-  ) => Awaitable<void>;
+  ];
+}
+
+// eslint-disable-next-line no-redeclare
+export interface Raids {
+  on<K extends keyof RaidEvents>(
+    event: K,
+    listener: (...args: RaidEvents[K]) => void
+  ): this;
+  on<S extends string | symbol>(
+    event: Exclude<S, keyof RaidEvents>,
+    listener: (...args: any[]) => void
+  ): this;
+
+  once<K extends keyof RaidEvents>(
+    event: K,
+    listener: (...args: RaidEvents[K]) => void
+  ): this;
+  once<S extends string | symbol>(
+    event: Exclude<S, keyof RaidEvents>,
+    listener: (...args: any[]) => void
+  ): this;
+
+  emit<K extends keyof RaidEvents>(event: K, ...args: RaidEvents[K]): boolean;
+  emit<S extends string | symbol>(
+    event: Exclude<S, keyof RaidEvents>,
+    ...args: any[]
+  ): boolean;
+
+  off<K extends keyof RaidEvents>(
+    event: K,
+    listener: (...args: RaidEvents[K]) => void
+  ): this;
+  off<S extends string | symbol>(
+    event: Exclude<S, keyof RaidEvents>,
+    listener: (...args: any[]) => void
+  ): this;
+
+  removeAllListeners<K extends keyof RaidEvents>(event?: K): this;
+  removeAllListeners<S extends string | symbol>(
+    event?: Exclude<S, keyof RaidEvents>
+  ): this;
 }

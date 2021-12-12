@@ -1,20 +1,23 @@
 import type { Interaction } from "discord.js";
 import type { Command, Event } from "@struct";
 
-import { container } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { logger } from "../logger";
 import { kCommands } from "../tokens";
 
+@injectable()
 export default class implements Event {
   public name = "interactionCreate";
+
+  public constructor(
+    @inject(kCommands) public readonly commands: Map<string, Command>
+  ) {}
 
   public execute(interaction: Interaction) {
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;
-    const commands = container.resolve<Map<string, Command>>(kCommands);
-
-    const command = commands.get(commandName);
+    const command = this.commands.get(commandName);
 
     if (command) {
       try {

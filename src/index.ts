@@ -15,13 +15,14 @@ import { kClient, kCommands, kPrisma, kRaids, kRedis } from "./tokens";
 
 import Redis from "ioredis";
 
+const redis = new Redis(process.env.REDIS_HOST);
+
 const client = new Bot();
 container.register(kClient, { useValue: client });
 
 const commands = new Map<string, Command>();
 
 async function init() {
-  const redis = new Redis(process.env.REDIS_HOST);
   container.register(kRedis, { useValue: redis });
 
   const prisma = new PrismaClient();
@@ -34,28 +35,28 @@ async function init() {
     useValue: new Raids(),
   });
 
+  for await (const entry of readdirp("./commands")) {
+    const cmd = container.resolve<Command>(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      (await import(entry.fullPath)).default
+    );
+
+    logger.info(`Registering command: ${cmd.name}`);
+
+    commands.set(cmd.name, cmd);
+  }
+  container.register(kCommands, { useValue: commands });
+
   for await (const entry of readdirp("./events")) {
-    const event: Event = new (await import(entry.fullPath)).default();
+    const event = container.resolve<Event>(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      (await import(entry.fullPath)).default
+    );
 
     logger.info(`Registering event: ${event.name}`);
 
     client.on(event.name, (...args: unknown[]) => event.execute(...args));
   }
-
-  for await (const entry of readdirp("./commands")) {
-    const cmd: Command = new (await import(entry.fullPath)).default(); // eslint-disable-line prefer-const
-
-    if (commands.has(cmd.name)) {
-      Array.prototype.push.apply(
-        cmd.options,
-        commands.get(cmd.name)?.options ?? []
-      );
-    } else {
-      logger.info(`Registering command: ${cmd.name}`);
-    }
-    commands.set(cmd.name, cmd);
-  }
-  container.register(kCommands, { useValue: commands });
 
   await client.login(process.env.DISCORD_TOKEN);
 }

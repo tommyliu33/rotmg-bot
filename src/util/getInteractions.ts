@@ -1,8 +1,8 @@
+import type { RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v9";
+import type { Command } from "../struct/Command";
+
 import { container } from "tsyringe";
 import { kCommands } from "../tokens";
-
-import type { Command } from "../struct/Command";
-import type { RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v9";
 
 export function getInteractions(): RESTPostAPIApplicationCommandsJSONBody[] {
   const commands = container.resolve<Map<string, Command>>(kCommands);
