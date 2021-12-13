@@ -24,7 +24,7 @@ export default class implements Event {
         void command.execute(interaction);
 
         logger.info(
-          `${interaction.user.tag} (${interaction.user.id}) ran an command: ${commandName} `
+          `${interaction.user.tag} (${interaction.user.id}) ran an command: ${commandName}`
         );
       } catch (e) {
         const err = e as Error;
