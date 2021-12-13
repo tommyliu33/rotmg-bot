@@ -1,65 +1,21 @@
 import { Command } from "@struct";
-import type {
-  CommandInteraction,
-  Message,
-  ButtonInteraction,
-} from "discord.js";
+import type { CommandInteraction } from "discord.js";
 
-// eslint-disable-next-line no-duplicate-imports
+import { getGuildSetting, setGuildSetting, SettingsKey } from "@functions";
 import {
-  MessageEmbed,
-  MessageActionRow,
-  MessageButton,
-  MessageMentions,
-} from "discord.js";
-import {
+  Embed,
   inlineCode,
   channelMention,
   roleMention,
-  codeBlock,
 } from "@discordjs/builders";
-import { getGuild, prompt } from "@functions";
-import { stripIndents } from "common-tags";
 
-const map = [
-  {
-    key: "main_section_id",
-    name: "Main section",
-    description: "The main raiding section",
-    type: "category",
-  },
-  {
-    key: "veteran_section_id",
-    name: "Veteran section",
-    description: "The veteran raiding section",
-    type: "category",
-  },
-  {
-    key: "afk_check_channel_id",
-    name: "Afk check channel",
-    description: "The main afk check channel",
-    type: "channel",
-  },
-  {
-    key: "vet_afk_check_channel_id",
-    name: "Veteran afk check channel",
-    description: "The veteran afk check channel",
-    type: "channel",
-  },
-  {
-    key: "verified_role_id",
-    name: "Verified raider",
-    description: "The verified raider role",
-    type: "role",
-  },
-  {
-    key: "veteran_role_id",
-    name: "Veteran raider",
-    description: "The veteran raider role",
-    type: "role",
-  },
-];
+import { inject, injectable } from "tsyringe";
+import { kRedis } from "../../tokens";
+import type { Redis } from "ioredis";
 
+import { logger } from "../../logger";
+
+@injectable()
 export default class implements Command {
   public name = "config";
   public description = "config command";
@@ -72,142 +28,193 @@ export default class implements Command {
     {
       name: "edit",
       description: "edit the server config.",
+      options: [
+        {
+          name: "verified_role",
+          description: "the main user role",
+          type: 8,
+        },
+        {
+          name: "veteran_role",
+          description: "the veteran raider role",
+          type: 8,
+        },
+        {
+          name: "afk_check",
+          description: "the afk check channel",
+          type: 7,
+          channel_types: [0],
+        },
+        {
+          name: "vet_afk_check",
+          description: "the veteran afk check channel",
+          type: 7,
+          channel_types: [0],
+        },
+        {
+          name: "main_section",
+          description: "the main raiding section",
+          type: 7,
+          channel_types: [4],
+        },
+        {
+          name: "veteran_section",
+          description: "the veteran raiding section",
+          type: 7,
+          channel_types: [4],
+        },
+      ],
       type: 1,
     },
   ];
 
+  public constructor(@inject(kRedis) public readonly redis: Redis) {}
+
   public async execute(interaction: CommandInteraction) {
-    const embed = await this.generateEmbed(interaction);
+    await interaction.deferReply();
 
+    const { guildId, options } = interaction;
     if (interaction.options.getSubcommand() === "view") {
-      return interaction.reply({
-        embeds: [embed.setFooter("Use /config edit to edit these values.")],
-      });
-    }
-
-    const rows: MessageActionRow[] = [];
-    const buttons: MessageButton[] = [];
-
-    for (let i = 0; i < Object.keys(map).length; ++i) {
-      const { name, key }: { name: string; key: string } = Reflect.get(map, i);
-
-      if (buttons.length < 5) {
-        buttons.push(
-          new MessageButton()
-            .setStyle("PRIMARY")
-            .setLabel(name)
-            .setCustomId(key)
-        );
-      } else {
-        rows.push(new MessageActionRow().addComponents(...buttons));
-        for (let j = 0; j < buttons.length; ++i) buttons.pop();
-      }
-    }
-
-    const message = await interaction.reply({
-      embeds: [embed.setDescription(codeBlock("Select a setting to edit"))],
-      components: rows,
-      fetchReply: true,
-    });
-
-    const msg = message as Message;
-    const collectedInteraction = await msg
-      .awaitMessageComponent({
-        filter: async (i) => {
-          await i.deferUpdate();
-          return i.user.id === interaction.user.id;
-        },
-        componentType: "BUTTON",
-        time: 60000,
-      })
-      .catch(async () => {
-        await interaction.editReply({
-          components: [],
-        });
-        return undefined;
-      });
-
-    if (!collectedInteraction) return;
-
-    const index = Object.values(map).findIndex(
-      (c) => c.key === collectedInteraction.customId
-    );
-    const { type, description }: typeof map[0] = Reflect.get(map, index);
-
-    const res = await prompt(
-      collectedInteraction,
-      [`Enter a ${type} for ${description.toLowerCase()}.`],
-      []
-    ).catch(() => {
-      return undefined;
-    });
-
-    if (res?.[0].response) {
-      await this.validateResponse(collectedInteraction, res[0].response, type);
-    }
-  }
-
-  private async generateEmbed(
-    interaction: CommandInteraction
-  ): Promise<MessageEmbed> {
-    const embed = new MessageEmbed()
-      .setTitle(`${inlineCode(interaction.guild?.name as string)} config`)
-      .setColor("DARK_BUT_NOT_BLACK");
-
-    const settings = await getGuild(interaction.guildId);
-
-    for (const key of Object.values(map).map((k) => k.key)) {
-      const entry = Object.values(map).find((c) => c.key === key);
-      const value = Reflect.get(settings!, key);
-
-      const {
-        name,
-        description,
-        type,
-      }: {
-        name: string;
-        description: string;
-        type: string;
-      } = entry!;
-
-      let value_ = "";
-      if (type === "role") {
-        value_ = value === "" || !value ? "not set" : roleMention(value);
-      } else if (type === "category") {
-        value_ =
-          (await interaction.guild?.channels.fetch(value as string))?.name ??
-          "not set";
-      } else if (type === "channel") {
-        value_ = value === "" || !value ? "not set" : channelMention(value);
-      }
-
-      embed.addField(
-        name,
-        stripIndents`
-      ${codeBlock(description)}
-      ${value_}`,
-        true
+      const afkCheck = await getGuildSetting(guildId, SettingsKey.AfkCheck);
+      const vetAfkCheck = await getGuildSetting(
+        guildId,
+        SettingsKey.VetAfkCheck
       );
+
+      const mainSection = await getGuildSetting(
+        guildId,
+        SettingsKey.MainSection
+      );
+      const veteranSection = await getGuildSetting(
+        guildId,
+        SettingsKey.VetSection
+      );
+
+      const verifiedRole = await getGuildSetting(
+        guildId,
+        SettingsKey.MainUserRole
+      );
+      const veteranRole = await getGuildSetting(
+        guildId,
+        SettingsKey.VetUserRole
+      );
+
+      const raidLeaderRole = await getGuildSetting(
+        guildId,
+        SettingsKey.RaidLeaderRole
+      );
+      const vetLeaderRole = await getGuildSetting(
+        guildId,
+        SettingsKey.VetRaidLeaderRole
+      );
+
+      const embed = new Embed()
+        .setTitle(`${inlineCode(interaction.guild?.name as string)} Config`)
+        .setThumbnail(interaction.guild?.iconURL({ dynamic: true }) ?? null)
+        .setDescription("Use `/config edit` to change these values.")
+        .addField({
+          name: inlineCode("Afk check channel"),
+          value: afkCheck ? channelMention(afkCheck) : "❌",
+          inline: true,
+        })
+        .addField({
+          name: inlineCode("Vet Afk check channel"),
+          value: vetAfkCheck ? channelMention(vetAfkCheck) : "❌",
+          inline: true,
+        })
+        .addField({
+          name: "\u200b",
+          value: "\u200b",
+          inline: true,
+        })
+        .addField({
+          name: inlineCode("Main section"),
+          value: mainSection
+            ? (interaction.guild?.channels.cache.get(mainSection)
+                ?.name as string)
+            : "❌",
+          inline: true,
+        })
+        .addField({
+          name: inlineCode("Veteran section"),
+          value: veteranSection
+            ? (interaction.guild?.channels.cache.get(veteranSection)
+                ?.name as string)
+            : "❌",
+          inline: true,
+        })
+        .addField({
+          name: inlineCode("Verified role"),
+          value: verifiedRole ? roleMention(verifiedRole) : "❌",
+          inline: true,
+        })
+        .addField({
+          name: inlineCode("Veteran role"),
+          value: veteranRole ? roleMention(veteranRole) : "❌",
+          inline: true,
+        })
+        .addField({
+          name: inlineCode("Raid leader role"),
+          value: raidLeaderRole ? roleMention(raidLeaderRole) : "❌",
+          inline: true,
+        })
+        .addField({
+          name: inlineCode("Veteran leader role"),
+          value: vetLeaderRole ? roleMention(vetLeaderRole) : "❌",
+          inline: true,
+        });
+
+      await interaction.editReply({ embeds: [embed] });
+      return;
     }
 
-    return embed;
-  }
-
-  // TODO: or refactor to subcommands
-  private async validateResponse(
-    interaction: ButtonInteraction,
-    response: string,
-    type: string
-  ): Promise<void> {
-    if (type === "role") {
-      const regexp = MessageMentions.ROLES_PATTERN;
-
-      if (regexp === null) {
-      }
-
-      // role id
-      if (regexp.exec(response)) {
-      }
+    const options_ = options.data[0].options;
+    if (!options_?.length) {
+      await interaction.editReply({
+        content: "You need to provide a setting to edit.",
+      });
+      return;
     }
+
+    let key: SettingsKey;
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
+    for (let i = 0; i < options_.length; ++i) {
+      const { name, value } = options_[i];
+      switch (name) {
+        // #region roles
+        case "verified_role":
+          key = SettingsKey.MainUserRole;
+          break;
+        case "veteran_role":
+          key = SettingsKey.VetUserRole;
+          break;
+        case "raid_leader_role":
+          key = SettingsKey.RaidLeaderRole;
+          break;
+        case "vet_raid_leader_role":
+          key = SettingsKey.VetRaidLeaderRole;
+          break;
+        // #endregion
+        // #region sections
+        case "main_section":
+          key = SettingsKey.MainSection;
+          break;
+        case "veteran_section":
+          key = SettingsKey.VetSection;
+          break;
+        // #endregion
+        // #region channels
+        case "afk_check":
+          key = SettingsKey.AfkCheck;
+          break;
+        case "vet_afk_check":
+          key = SettingsKey.VetAfkCheck;
+          break;
+        // #endregion
+      }
+      await setGuildSetting(guildId, key!, value);
+    }
+
+    await interaction.editReply({ content: "Done." });
   }
 }
