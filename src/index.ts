@@ -16,6 +16,7 @@ import { kClient, kCommands, kPrisma, kRaids, kRedis } from "./tokens";
 import Redis from "ioredis";
 
 const redis = new Redis(process.env.REDIS_HOST);
+container.register(kRedis, { useValue: redis });
 
 const client = new Bot();
 container.register(kClient, { useValue: client });
@@ -23,8 +24,6 @@ container.register(kClient, { useValue: client });
 const commands = new Map<string, Command>();
 
 async function init() {
-  container.register(kRedis, { useValue: redis });
-
   const prisma = new PrismaClient();
   await prisma.$connect();
 
