@@ -4,9 +4,6 @@ import { createChannel, react, getGuildSetting, SettingsKey } from "@functions";
 import EventEmitter from "@tbnritzdoge/events";
 import { stripIndents } from "common-tags";
 import { MessageEmbed, VoiceChannel } from "discord.js";
-
-import { nanoid } from "nanoid";
-
 // eslint-disable-next-line no-duplicate-imports
 import type {
   EmojiResolvable,
@@ -16,7 +13,7 @@ import type {
 } from "discord.js";
 import type { Dungeon } from "../dungeons";
 
-import { container } from "tsyringe";
+import { container, inject, injectable } from "tsyringe";
 import { kClient, kRedis } from "../tokens";
 import type { Redis } from "ioredis";
 import { Bot } from "@struct";
@@ -68,12 +65,16 @@ const body = (dungeon: Dungeon): string => {
     )}\n\nTo end the afk check as the leader, react to ❌`;
 };
 
+@injectable()
 export class Raids extends EventEmitter {
-  public constructor() {
-    super(); // eslint-disable-line constructor-super
+  public constructor(
+    @inject(kClient) public readonly client: Bot,
+    @inject(kRedis) public readonly redis: Redis
+  ) {
+    super();
 
     this.on("raidStart", this.raidStart.bind(null));
-    this.on("raidEnd", this.raidEnd.bind(null));
+    this.on("raidEnd", this.raidEnd.bind(this));
 
     this.on("channelStart", this.channelStart.bind(null));
     this.on("channelOpen", this.channelOpen.bind(null));
@@ -84,7 +85,13 @@ export class Raids extends EventEmitter {
 
   // #region Afk check
   private async raidStart(
-    raid: Omit<Raid, "voiceChannelId" | "messageId" | "controlPanelId">
+    raid: Omit<
+      Raid,
+      | "voiceChannelId"
+      | "messageId"
+      | "controlPanelId"
+      | "controlPanelMessageId"
+    >
   ): Promise<void> {
     const { guildId, channelId, leaderName, leaderTag, leaderId } = raid;
 
@@ -167,7 +174,31 @@ export class Raids extends EventEmitter {
     );
   }
 
-  private async raidEnd(interaction: CommandInteraction, raid: Raid) {}
+  private async raidEnd(raid: Raid) {
+    const { channelId, messageId, dungeon, leaderName } = raid;
+
+    const channel = (await this.client.channels.fetch(
+      channelId
+    )) as TextChannel;
+    const msg = await channel.messages.fetch(messageId).catch(() => {
+      return undefined;
+    });
+
+    if (msg) {
+      const embed = new MessageEmbed(msg.embeds[0])
+        .setTitle("")
+        .setThumbnail("")
+        .setTimestamp()
+        .setDescription(
+          `${inlineCode(dungeon.full_name)} raid started in ${channel.name}`
+        )
+        .setFooter(`The afk check was ended by ${leaderName as string}`);
+      await msg.edit({
+        content: " ",
+        embeds: [embed],
+      });
+    }
+  }
   // #endregion
 
   // #region Channels
@@ -405,7 +436,7 @@ export interface RaidEvents {
       | "controlPanelMessageId"
     >
   ];
-  raidEnd: [interaction: CommandInteraction, raid: Raid];
+  raidEnd: [raid: Raid];
 
   channelStart: [
     interaction: CommandInteraction,

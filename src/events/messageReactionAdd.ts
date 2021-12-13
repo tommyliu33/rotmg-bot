@@ -1,4 +1,4 @@
-import { Event, Raid } from "@struct";
+import { Event, Raid, Raids } from "@struct";
 import type { User, VoiceChannel, Snowflake, TextChannel } from "discord.js";
 
 // eslint-disable-next-line no-duplicate-imports
@@ -13,7 +13,7 @@ import { oneLine } from "common-tags";
 import { nanoid } from "nanoid";
 
 import { inject, injectable } from "tsyringe";
-import { kRedis } from "../tokens";
+import { kRaids, kRedis } from "../tokens";
 import type { Redis } from "ioredis";
 import { prompt } from "@functions";
 
@@ -27,7 +27,10 @@ const MESSAGE_URL = (
 export default class implements Event {
   public name = "messageReactionAdd";
 
-  public constructor(@inject(kRedis) public readonly redis: Redis) {}
+  public constructor(
+    @inject(kRedis) public readonly redis: Redis,
+    @inject(kRaids) public readonly raids: Raids
+  ) {}
 
   public async execute(react: MessageReaction, user: User) {
     if (!react.message.guild || user.bot) return;
@@ -109,7 +112,8 @@ export default class implements Event {
         const channel = react.message.guild.channels.cache.get(
           controlPanelId
         ) as TextChannel;
-        if (react.emoji.toString() === "📝") {
+        const emoji = react.emoji.toString();
+        if (emoji === "📝") {
           const res = await prompt(
             channel,
             {
@@ -134,18 +138,14 @@ export default class implements Event {
             });
             await msg?.edit({ content: " ", embeds: [embed] });
           }
+        } else if (emoji === "🗺️") {
+          // TODO: Reveal location
+        } else if (emoji === "🛑❌") {
+          // TODO: abort afk check
+        } else if (emoji === "❌") {
+          // TODO: stop afk check
+          await this.raids.emit("raidEnd", JSON.parse(raid) as Raid);
         }
-
-        // switch (react.emoji.toString()) {
-        //   case "📝":
-        //     break;
-        //   case "🗺️":
-        //     break;
-        //   case "❌":
-        //     break;
-        //   case "🛑":
-        //     break;
-        // }
       }
 
       // #endregion

@@ -41,7 +41,7 @@ export default class implements Command {
         dungeons.findIndex(
           (d) => d.name === interaction.options.getString("dungeon")
         )
-      ]!;
+      ];
 
     const { portal, keys, main_reacts, optional_reacts, rusher } = dungeon;
     const reacts: EmojiResolvable[] = [
@@ -62,11 +62,7 @@ export default class implements Command {
       reacts.push(rusher.emote);
     }
 
-    const member = await interaction.guild?.members
-      .fetch(interaction.user.id)
-      .catch(() => {
-        return undefined;
-      });
+    const member = interaction.guild?.members.cache.get(interaction.user.id);
 
     const data = {
       dungeon,
