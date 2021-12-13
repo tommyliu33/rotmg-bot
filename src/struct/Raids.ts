@@ -393,7 +393,7 @@ export interface RaidEvents {
 
   channelStart: [
     interaction: CommandInteraction,
-    channel: Omit<Channel, "messageId" | "voiceChannelId">
+    channel: Omit<Channel, "messageId" | "voiceChannelId" | "location">
   ];
   channelClose: [interaction: CommandInteraction, channel: Channel];
   channelLocked: [interaction: CommandInteraction, channel: Channel];

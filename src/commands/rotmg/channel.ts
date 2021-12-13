@@ -1,18 +1,17 @@
-import type { CommandInteraction, Snowflake } from "discord.js";
+import type { CommandInteraction } from "discord.js";
 import { Command, Channel, Raids } from "@struct";
 
 import { inAfkChannel } from "@util";
 import { createChannel, getGuildSetting, SettingsKey } from "@functions";
 
-import { container } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { kRaids, kRedis } from "../../tokens";
 import type { Redis } from "ioredis";
 
-const redis = container.resolve<Redis>(kRedis);
-const emitter = container.resolve<Raids>(kRaids);
 const truncate = (str: string, max: number) =>
   str.length > max ? str.slice(0, max) : str;
 
+@injectable()
 export default class implements Command {
   public name = "channel";
   public description = "base for managing custom raid channels.";
@@ -63,6 +62,11 @@ export default class implements Command {
     },
   ];
 
+  public constructor(
+    @inject(kRedis) public readonly redis: Redis,
+    @inject(kRaids) public readonly raids: Raids
+  ) {}
+
   public async execute(interaction: CommandInteraction) {
     await interaction.deferReply({ ephemeral: true });
 
@@ -91,7 +95,7 @@ export default class implements Command {
   }
 
   private async create(interaction: CommandInteraction): Promise<void> {
-    if (await redis.exists(`channel:${interaction.user.id}`)) {
+    if (await this.redis.exists(`channel:${interaction.user.id}`)) {
       await interaction.editReply({
         content: "Close your current channel before starting another.",
       });
@@ -116,44 +120,48 @@ export default class implements Command {
     const channel = await createChannel(
       interaction.guild!,
       channelName,
-      veteran
+      veteran,
+      "GUILD_VOICE"
     );
 
-    await channel?.permissionOverwrites.edit(roleId, {
+    await channel.permissionOverwrites.edit(roleId, {
       CONNECT: false,
     });
 
-    const member = await channel?.guild.members
+    const member = await channel.guild.members
       .fetch(interaction.user.id)
       .catch(() => {
         return undefined;
       });
 
-    const channelInfo: Omit<Channel, "messageId"> = {
-      name: channel?.name as Snowflake,
+    const channelInfo: Omit<Channel, "messageId" | "location"> = {
+      name: channel.name,
+
+      guildId: interaction.guildId,
       channelId: interaction.channelId,
-      voiceChannelId: channel?.id as Snowflake,
+      voiceChannelId: channel.id,
 
       leaderId: interaction.user.id,
       leaderName: member?.displayName,
+      leaderTag: interaction.user.tag,
 
       roleId: roleId,
 
       state: "LOCKED",
     };
 
-    await redis.set(
+    await this.redis.set(
       `channel:${interaction.user.id}`,
       JSON.stringify(channelInfo)
     );
 
-    emitter.emit("channelStart", interaction, channelInfo);
+    this.raids.emit("channelStart", interaction, channelInfo);
     await interaction.editReply({ content: "Created your channel." });
   }
 
   private async close(interaction: CommandInteraction): Promise<void> {
     const key = `channel:${interaction.user.id}`;
-    const has = await redis.exists(key);
+    const has = await this.redis.exists(key);
     if (!has) {
       await interaction.editReply({
         content: "Create a channel first.",
@@ -161,10 +169,10 @@ export default class implements Command {
       return;
     }
 
-    const channel = await redis.get(key);
+    const channel = await this.redis.get(key);
     const channel_: Channel = JSON.parse(channel!);
 
-    emitter.emit("channelClose", interaction, {
+    this.raids.emit("channelClose", interaction, {
       ...channel_,
       state: "CLOSED",
     });
@@ -173,7 +181,7 @@ export default class implements Command {
 
   private async unlock(interaction: CommandInteraction): Promise<void> {
     const key = `channel:${interaction.user.id}`;
-    const has = await redis.exists(key);
+    const has = await this.redis.exists(key);
 
     if (!has) {
       await interaction.editReply({
@@ -182,7 +190,7 @@ export default class implements Command {
       return;
     }
 
-    const channel = await redis.get(key);
+    const channel = await this.redis.get(key);
     const channel_: Channel = JSON.parse(channel!);
 
     if (channel_.state === "OPENED") {
@@ -192,14 +200,15 @@ export default class implements Command {
       return;
     }
 
-    await redis.set(
+    await this.redis.set(
       key,
       JSON.stringify({
         ...channel_,
         state: "OPENED",
       })
     );
-    emitter.emit("channelOpen", interaction, {
+
+    this.raids.emit("channelOpen", interaction, {
       ...channel_,
       state: "OPENED",
     });
@@ -208,7 +217,7 @@ export default class implements Command {
 
   private async lock(interaction: CommandInteraction): Promise<void> {
     const key = `channel:${interaction.user.id}`;
-    const has = await redis.exists(key);
+    const has = await this.redis.exists(key);
 
     if (!has) {
       await interaction.editReply({
@@ -217,7 +226,7 @@ export default class implements Command {
       return;
     }
 
-    const channel = await redis.get(key);
+    const channel = await this.redis.get(key);
     const channel_: Channel = JSON.parse(channel!);
 
     if (channel_.state === "LOCKED") {
@@ -227,14 +236,15 @@ export default class implements Command {
       return;
     }
 
-    await redis.set(
+    await this.redis.set(
       key,
       JSON.stringify({
         ...channel_,
         state: "LOCKED",
       })
     );
-    emitter.emit("channelLocked", interaction, {
+
+    this.raids.emit("channelLocked", interaction, {
       ...channel_,
       state: "LOCKED",
     });
@@ -242,7 +252,7 @@ export default class implements Command {
 
   private async cap(interaction: CommandInteraction) {
     const key = `channel:${interaction.user.id}`;
-    const has = await redis.exists(key);
+    const has = await this.redis.exists(key);
 
     if (!has) {
       await interaction.editReply({
@@ -251,10 +261,10 @@ export default class implements Command {
       return;
     }
 
-    const channel = await redis.get(key);
+    const channel = await this.redis.get(key);
     const channel_: Channel = JSON.parse(channel!);
 
-    emitter.emit(
+    this.raids.emit(
       "channelCapUpdate",
       interaction,
       {
