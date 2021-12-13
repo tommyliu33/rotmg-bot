@@ -66,7 +66,6 @@ export default class implements Command {
       return;
     }
 
-    // const code = "spId9Rkg9nVi"; // nanoid(12);
     const code = nanoid(13);
 
     const yesKey = nanoid();
