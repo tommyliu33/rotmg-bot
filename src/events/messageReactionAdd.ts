@@ -1,5 +1,5 @@
 import { Event, Raid } from "@struct";
-import type { User, VoiceChannel, Snowflake } from "discord.js";
+import type { User, VoiceChannel, Snowflake, TextChannel } from "discord.js";
 
 // eslint-disable-next-line no-duplicate-imports
 import {
@@ -15,6 +15,7 @@ import { nanoid } from "nanoid";
 import { inject, injectable } from "tsyringe";
 import { kRedis } from "../tokens";
 import type { Redis } from "ioredis";
+import { prompt } from "@functions";
 
 const MESSAGE_URL = (
   guildId: Snowflake,
@@ -34,11 +35,15 @@ export default class implements Event {
     if (react.partial) await react.fetch(); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
     if (user.partial) await user.fetch(); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
+    if (!react.message.embeds[0]) return;
+
+    // afk check message id
+    const messageId = react.message.embeds[0].footer?.text as string;
+
     // #region End afk check
     const raid = await this.redis.get(
-      `raid:${react.message.guildId as string}:${react.message.id}`
+      `raid:${react.message.guildId as string}:${messageId}`
     );
-    console.log("raid", raid);
     if (raid) {
       const {
         dungeon,
@@ -49,6 +54,7 @@ export default class implements Event {
         reacts_,
         channelId,
         controlPanelId,
+        controlPanelMessageId,
       }: Raid = JSON.parse(raid);
 
       // #region Leader end afk
@@ -100,10 +106,46 @@ export default class implements Event {
 
       // #region Leader control panel reacts
       if (react.message.channelId === controlPanelId && user.id === leaderId) {
-        console.log("leader reacted to control panel");
-      } else {
-        console.log(user);
-        console.log(raid);
+        const channel = react.message.guild.channels.cache.get(
+          controlPanelId
+        ) as TextChannel;
+        if (react.emoji.toString() === "📝") {
+          const res = await prompt(
+            channel,
+            {
+              filter: (m) => m.author.id === leaderId,
+              max: 1,
+              time: 15000,
+              errors: ["time"],
+            },
+            ["Enter a new location for the raid."]
+          );
+
+          if (res[0].response) {
+            await this.redis.set(
+              `raid:${react.message.guildId as string}:${messageId}`,
+              JSON.stringify({ ...JSON.parse(raid), location: res[0].response })
+            );
+
+            const msg = channel.messages.cache.get(controlPanelMessageId);
+            const embed = new MessageEmbed(msg?.embeds[0]).setFields({
+              name: "Location",
+              value: res[0].response,
+            });
+            await msg?.edit({ content: " ", embeds: [embed] });
+          }
+        }
+
+        // switch (react.emoji.toString()) {
+        //   case "📝":
+        //     break;
+        //   case "🗺️":
+        //     break;
+        //   case "❌":
+        //     break;
+        //   case "🛑":
+        //     break;
+        // }
       }
 
       // #endregion

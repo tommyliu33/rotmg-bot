@@ -141,7 +141,8 @@ export class Raids extends EventEmitter {
 
     const embed_ = new MessageEmbed()
       .setTitle(`${inlineCode(leaderTag)} Control Panel`)
-      .addField("Location", "TBD");
+      .addField("Location", "TBD")
+      .setFooter(m.id);
 
     const m_ = await cpChannel.send({
       content: `${userMention(leaderId)}, this is your control panel.`,
@@ -159,6 +160,8 @@ export class Raids extends EventEmitter {
         ...raid,
         messageId: m.id,
         controlPanelId: cpChannel.id,
+        controlPanelMessageId: m_.id,
+
         voiceChannelId: voiceChannel.id,
       })
     );
@@ -365,6 +368,7 @@ export interface Raid {
   channelId: Snowflake;
   voiceChannelId: Snowflake;
   controlPanelId: Snowflake;
+  controlPanelMessageId: Snowflake;
 
   messageId: Snowflake;
 
@@ -376,7 +380,13 @@ export interface Raid {
 export interface Channel
   extends Omit<
     Raid,
-    "dungeon" | "reacts" | "reacted" | "reacts_" | "controlPanelId"
+    | "dungeon"
+    | "reacts"
+    | "reacted"
+    | "reacts_"
+    | "controlPanelId"
+    | "controlPanelMessageId"
+    | "location"
   > {
   name: string;
 
@@ -387,13 +397,19 @@ export interface Channel
 
 export interface RaidEvents {
   raidStart: [
-    raid: Omit<Raid, "voiceChannelId" | "messageId" | "controlPanelId">
+    raid: Omit<
+      Raid,
+      | "voiceChannelId"
+      | "messageId"
+      | "controlPanelId"
+      | "controlPanelMessageId"
+    >
   ];
   raidEnd: [interaction: CommandInteraction, raid: Raid];
 
   channelStart: [
     interaction: CommandInteraction,
-    channel: Omit<Channel, "messageId" | "voiceChannelId" | "location">
+    channel: Omit<Channel, "messageId" | "location">
   ];
   channelClose: [interaction: CommandInteraction, channel: Channel];
   channelLocked: [interaction: CommandInteraction, channel: Channel];

@@ -4,13 +4,10 @@ import { Command, Raids } from "@struct";
 import { inAfkChannel } from "@util";
 import { dungeons } from "../../dungeons";
 
-import { kRaids, kRedis } from "../../tokens";
-import { container } from "tsyringe";
-import type { Redis } from "ioredis";
+import { kRaids } from "../../tokens";
+import { inject, injectable } from "tsyringe";
 
-const redis = container.resolve<Redis>(kRedis);
-const emitter = container.resolve<Raids>(kRaids);
-
+@injectable()
 export default class implements Command {
   public name = "afkcheck";
   public description = "starts an afk check.";
@@ -31,9 +28,13 @@ export default class implements Command {
     },
   ];
 
+  public constructor(@inject(kRaids) public readonly raids: Raids) {}
+
   public async execute(interaction: CommandInteraction) {
     await interaction.deferReply();
-    await inAfkChannel(interaction);
+
+    const inAfkChannel_ = await inAfkChannel(interaction);
+    if (!inAfkChannel_) return;
 
     const dungeon =
       dungeons[
@@ -41,12 +42,6 @@ export default class implements Command {
           (d) => d.name === interaction.options.getString("dungeon")
         )
       ]!;
-
-    const member = await interaction.guild?.members
-      .fetch(interaction.user.id)
-      .catch(() => {
-        return undefined;
-      });
 
     const { portal, keys, main_reacts, optional_reacts, rusher } = dungeon;
     const reacts: EmojiResolvable[] = [
@@ -67,18 +62,29 @@ export default class implements Command {
       reacts.push(rusher.emote);
     }
 
+    const member = await interaction.guild?.members
+      .fetch(interaction.user.id)
+      .catch(() => {
+        return undefined;
+      });
+
     const data = {
       dungeon,
       reacts: [...reacts.filter((c) => c !== ""), "❌"],
+      reacts_: [],
+
+      location: "TBD",
 
       guildId: interaction.guildId,
       channelId: interaction.channelId,
 
       leaderId: interaction.user.id,
-      leaderName: member?.displayName as string,
+      leaderName: member?.displayName,
+      leaderTag: interaction.user.tag,
     };
 
-    emitter.emit("raidStart", data);
+    this.raids.emit("raidStart", data);
+    // TODO: defer the interaction -> send cp message embed -> edit interaction to show message link
     await interaction.deleteReply();
   }
 }
