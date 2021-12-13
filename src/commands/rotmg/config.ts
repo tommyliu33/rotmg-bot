@@ -13,8 +13,6 @@ import { inject, injectable } from "tsyringe";
 import { kRedis } from "../../tokens";
 import type { Redis } from "ioredis";
 
-import { logger } from "../../logger";
-
 @injectable()
 export default class implements Command {
   public name = "config";
@@ -37,6 +35,16 @@ export default class implements Command {
         {
           name: "veteran_role",
           description: "the veteran raider role",
+          type: 8,
+        },
+        {
+          name: "raid_leader",
+          description: "the raid leader role",
+          type: 8,
+        },
+        {
+          name: "vet_raid_leader",
+          description: "the veteran leader role",
           type: 8,
         },
         {
@@ -188,10 +196,10 @@ export default class implements Command {
         case "veteran_role":
           key = SettingsKey.VetUserRole;
           break;
-        case "raid_leader_role":
+        case "raid_leader":
           key = SettingsKey.RaidLeaderRole;
           break;
-        case "vet_raid_leader_role":
+        case "vet_raid_leader":
           key = SettingsKey.VetRaidLeaderRole;
           break;
         // #endregion
