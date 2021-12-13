@@ -9,5 +9,22 @@ export async function inAfkChannel(
     await getGuildSetting(interaction.guildId, SettingsKey.VetAfkCheck),
   ];
 
-  return channels.includes(interaction.channelId);
+  if (!channels.includes(interaction.channelId)) {
+    const message = (await interaction[
+      interaction.deferred ? "editReply" : "reply"
+    ]({
+      content: "This command can only be used in an afk check channel.",
+      fetchReply: true,
+    })) as Message;
+
+    if (!message.flags.has("EPHEMERAL")) {
+      setTimeout(() => {
+        void message.delete();
+      }, 7000);
+    }
+
+    return false;
+  }
+
+  return true;
 }

@@ -72,7 +72,8 @@ export default class implements Command {
 
     const subcommand = interaction.options.getSubcommand();
     if (["create"].includes(subcommand)) {
-      await inAfkChannel(interaction);
+      const inAfkChannel_ = await inAfkChannel(interaction);
+      if (!inAfkChannel_) return;
     }
 
     switch (subcommand) {
