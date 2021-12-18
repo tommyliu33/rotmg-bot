@@ -14,8 +14,11 @@ model guilds {
   id_                      String @map("id")
   log_channel_id           String
   main_section_id          String
+  raid_leader_role_id      String
+  suspend_role_id          String
   verified_role_id         String
   vet_afk_check_channel_id String
+  vet_raid_leader_role_id  String
   veteran_role_id          String
   veteran_section_id       String
 }
