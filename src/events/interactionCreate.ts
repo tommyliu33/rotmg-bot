@@ -14,21 +14,21 @@ export default class implements Event {
   ) {}
 
   public execute(interaction: Interaction) {
-    if (!interaction.isCommand()) return;
+    if (interaction.isCommand()) {
+      const { commandName } = interaction;
+      const command = this.commands.get(commandName);
 
-    const { commandName } = interaction;
-    const command = this.commands.get(commandName);
+      if (command) {
+        try {
+          void command.execute(interaction);
 
-    if (command) {
-      try {
-        void command.execute(interaction);
-
-        logger.info(
-          `${interaction.user.tag} (${interaction.user.id}) ran an command: ${commandName}`
-        );
-      } catch (e) {
-        const err = e as Error;
-        logger.error(err.stack ?? err.message);
+          logger.info(
+            `${interaction.user.tag} (${interaction.user.id}) ran an command: ${commandName}`
+          );
+        } catch (e) {
+          const err = e as Error;
+          logger.error(err.stack ?? err.message);
+        }
       }
     }
   }

@@ -1,25 +1,25 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { inlineCode, time, userMention } from "@discordjs/builders";
+import { inlineCode, time, userMention, Embed } from "@discordjs/builders";
 import { createChannel, react, getGuildSetting, SettingsKey } from "@functions";
 import EventEmitter from "@tbnritzdoge/events";
 import { stripIndents } from "common-tags";
-import { MessageEmbed, VoiceChannel } from "discord.js";
+import { MessageEmbed } from "discord.js"; // TODO: Refactor to use @discordjs/builders Embed
+import { Collection } from "@discordjs/collection";
 // eslint-disable-next-line no-duplicate-imports
 import type {
   EmojiResolvable,
   Snowflake,
   CommandInteraction,
   TextChannel,
+  VoiceChannel,
 } from "discord.js";
 import type { Dungeon } from "../dungeons";
 
-import { container, inject, injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { kClient, kRedis } from "../tokens";
 import type { Redis } from "ioredis";
-import { Bot } from "@struct";
-
-const redis = container.resolve<Redis>(kRedis);
-const client = container.resolve<Bot>(kClient);
+import type { Bot } from "@struct";
+import { text } from "stream/consumers";
 
 const title = (str: string) =>
   str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
@@ -65,22 +65,28 @@ const body = (dungeon: Dungeon): string => {
     )}\n\nTo end the afk check as the leader, react to ❌`;
 };
 
+// also for custom raiding channels
 @injectable()
-export class Raids extends EventEmitter {
+export class RaidManager extends EventEmitter {
+  public readonly raids: Collection<string, Raid>;
+  public readonly channels: Collection<string, Channel>;
   public constructor(
-    @inject(kClient) public readonly client: Bot,
-    @inject(kRedis) public readonly redis: Redis
+    @inject(kRedis) public readonly redis: Redis,
+    @inject(kClient) public readonly client: Bot
   ) {
     super();
 
-    this.on("raidStart", this.raidStart.bind(null));
+    this.raids = new Collection();
+    this.channels = new Collection();
+
+    this.on("raidStart", this.raidStart.bind(this));
     this.on("raidEnd", this.raidEnd.bind(this));
 
-    this.on("channelStart", this.channelStart.bind(null));
-    this.on("channelOpen", this.channelOpen.bind(null));
-    this.on("channelClose", this.channelClose.bind(null));
-    this.on("channelLocked", this.channelLocked.bind(null));
-    this.on("channelCapUpdate", this.channelCapUpdate.bind(null));
+    this.on("channelStart", this.channelStart.bind(this));
+    this.on("channelOpen", this.channelOpen.bind(this));
+    this.on("channelClose", this.channelClose.bind(this));
+    this.on("channelLocked", this.channelLocked.bind(this));
+    this.on("channelCapUpdate", this.channelCapUpdate.bind(this));
   }
 
   // #region Afk check
@@ -100,14 +106,16 @@ export class Raids extends EventEmitter {
       SettingsKey.VetAfkCheck
     );
 
-    const guild = await client.guilds.fetch(guildId).catch(() => undefined);
+    const guild = await this.client.guilds
+      .fetch(guildId)
+      .catch(() => undefined);
 
     const vet = channelId === vetChannelId;
 
     const key = vet ? `vet_raid:${guildId}` : `raid:${guildId}`;
     const voiceChannel = await createChannel(
       guild!,
-      `Raiding ${await redis.incr(key)}`,
+      `Raiding ${await this.redis.incr(key)}`,
       vet,
       "GUILD_VOICE"
     );
@@ -148,8 +156,7 @@ export class Raids extends EventEmitter {
 
     const embed_ = new MessageEmbed()
       .setTitle(`${inlineCode(leaderTag)} Control Panel`)
-      .addField("Location", "TBD")
-      .setFooter(m.id);
+      .addField("Location", "TBD");
 
     const m_ = await cpChannel.send({
       content: `${userMention(leaderId)}, this is your control panel.`,
@@ -160,8 +167,16 @@ export class Raids extends EventEmitter {
     await m_.react("🛑");
     await m_.react("❌");
 
+    await this.raids.set(`raid:${guildId}:${m.id}`, {
+      ...raid,
+      messageId: m.id,
+      controlPanelId: cpChannel.id,
+      controlPanelMessageId: m_.id,
+      voiceChannelId: voiceChannel.id,
+    });
+
     // update cache
-    await redis.set(
+    await this.redis.set(
       `raid:${guildId}:${m.id}`,
       JSON.stringify({
         ...raid,
@@ -175,123 +190,104 @@ export class Raids extends EventEmitter {
   }
 
   private async raidEnd(raid: Raid) {
-    const { channelId, messageId, dungeon, leaderName } = raid;
+    const { channelId, voiceChannelId, messageId, dungeon, leaderName } = raid;
 
-    const channel = (await this.client.channels.fetch(
+    const textChannel = this.client.channels.cache.get(
       channelId
-    )) as TextChannel;
-    const msg = await channel.messages.fetch(messageId).catch(() => {
+    ) as TextChannel;
+    const msg = await textChannel.messages.fetch(messageId).catch(() => {
       return undefined;
     });
 
     if (msg) {
+      const voiceChannel = this.client.channels.cache.get(
+        voiceChannelId
+      ) as VoiceChannel;
       const embed = new MessageEmbed(msg.embeds[0])
         .setTitle("")
         .setThumbnail("")
         .setTimestamp()
         .setDescription(
-          `${inlineCode(dungeon.full_name)} raid started in ${channel.name}`
+          `${inlineCode(dungeon.full_name)} raid started in ${
+            voiceChannel.name
+          }`
         )
         .setFooter(`The afk check was ended by ${leaderName as string}`);
       await msg.edit({
         content: " ",
         embeds: [embed],
       });
+      await msg.reactions.removeAll();
     }
   }
   // #endregion
 
   // #region Channels
-  private async channelStart(
-    interaction: CommandInteraction,
-    channel: Omit<Channel, "messageId" | "voiceChannelId">
-  ) {
-    const { name } = channel;
+  private async channelStart(channel: Omit<Channel, "messageId">) {
+    const { name, channelId, leaderId } = channel;
 
-    const m = await interaction.channel?.send({
+    const channel_ = this.client.channels.cache.get(channelId) as TextChannel;
+
+    const m = await channel_.send({
       content: stripIndents`
         @here ${inlineCode(name)} is now starting.`,
       allowedMentions: {
         parse: ["everyone"],
       },
       embeds: [
-        new MessageEmbed()
-          .setFields([])
-          .setColor("YELLOW")
-          .setTitle(`${inlineCode(name)}`)
+        new Embed()
+          .setColor(0xfee75c)
+          .setTitle(inlineCode(name))
           .setDescription("Please wait for the channel to unlock."),
       ],
     });
 
-    await redis.set(
-      `channel:${interaction.user.id}`,
-      JSON.stringify({
-        ...channel,
-        messageId: m?.id,
-      })
-    );
+    await this.channels.set(`channel:${leaderId}`, {
+      ...channel,
+      messageId: m.id,
+    });
   }
 
-  private async channelClose(
-    interaction: CommandInteraction,
-    channel: Channel
-  ) {
-    await redis.del(`channel:${interaction.user.id}`);
+  private async channelClose(channel: Channel) {
+    const { guildId, leaderId, channelId, voiceChannelId, messageId, name } =
+      channel;
+    await this.channels.delete(`channel:${leaderId}`);
 
-    const { name, channelId, voiceChannelId, messageId } = channel;
-    const channel_ = await interaction.guild?.channels
-      .fetch(voiceChannelId)
-      .catch(() => {
-        return undefined;
-      });
+    const guild = this.client.guilds.cache.get(guildId);
 
-    if (!(channel_ instanceof Map)) {
-      await channel_?.delete();
+    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+    if (voiceChannel) {
+      await voiceChannel.delete();
     }
 
-    const textChannel = await interaction.guild?.channels
-      .fetch(channelId)
-      .catch(() => {
-        return undefined;
-      });
+    const textChannel = guild?.channels.cache.get(channelId) as TextChannel;
+    const message = textChannel.messages.cache.get(messageId);
 
-    if (textChannel) {
-      const msg = await (textChannel as TextChannel).messages
-        .fetch(messageId)
-        .catch(() => {
-          return undefined;
-        });
-
-      await msg?.edit({
-        content: " ",
-        embeds: [
-          new MessageEmbed(msg.embeds[0])
-            .setFields([])
-            .setColor("DARK_RED")
-            .setTitle(inlineCode(name))
-            .setDescription(`Channel closed ${time(new Date(), "R")}`),
-        ],
-      });
-    }
+    await message?.edit({
+      content: " ",
+      embeds: [
+        new Embed()
+          .setColor(0x992d22)
+          .setTitle(inlineCode(name))
+          .setDescription(`Channel closed ${time(new Date(), "R")}`),
+      ],
+    });
   }
 
-  private async channelOpen(interaction: CommandInteraction, channel: Channel) {
+  private async channelOpen(channel: Channel) {
     const { name, channelId, voiceChannelId, messageId, roleId } = channel;
-    const channel_ = await interaction.guild?.channels
-      .fetch(voiceChannelId)
-      .catch(() => {
-        return undefined;
-      });
 
-    await channel_?.permissionOverwrites.edit(roleId, {
+    const voiceChannel = this.client.channels.cache.get(
+      voiceChannelId
+    ) as VoiceChannel;
+
+    await voiceChannel.permissionOverwrites.edit(roleId, {
       CONNECT: true,
     });
 
-    const textChannel = (await interaction.guild?.channels
-      .fetch(channelId)
-      .catch(() => {
-        return undefined;
-      })) as TextChannel;
+    const textChannel = this.client.channels.cache.get(
+      channelId
+    ) as TextChannel;
 
     const m = await textChannel.send({
       content: `@here ${inlineCode(name)} has opened (re-ping)`,
@@ -304,76 +300,54 @@ export class Raids extends EventEmitter {
       return undefined;
     });
 
-    const msg_ = await textChannel.messages.fetch(messageId).catch(() => {
-      return undefined;
+    const msg = textChannel.messages.cache.get(messageId);
+    await msg?.edit({
+      content: " ",
+      embeds: [
+        new Embed()
+          .setColor(0x57f287)
+          .setTitle(inlineCode(name))
+          .setDescription(`Channel opened ${time(new Date(), "R")}`),
+      ],
     });
-
-    if (msg_) {
-      await msg_.edit({
-        content: " ",
-        embeds: [
-          new MessageEmbed(msg_.embeds[0])
-            .setFields([])
-            .setColor("GREEN")
-            .setTitle(inlineCode(name))
-            .setDescription(`Channel opened ${time(new Date(), "R")}`),
-        ],
-      });
-    }
   }
 
-  private async channelLocked(
-    interaction: CommandInteraction,
-    channel: Channel
-  ) {
+  private async channelLocked(channel: Channel) {
     const { name, channelId, voiceChannelId, messageId, roleId } = channel;
-    const channel_ = await interaction.guild?.channels
-      .fetch(voiceChannelId)
-      .catch(() => {
-        return undefined;
-      });
 
-    await channel_?.permissionOverwrites.edit(roleId, {
+    const voiceChannel = this.client.channels.cache.get(
+      voiceChannelId
+    ) as VoiceChannel;
+
+    const textChannel = this.client.channels.cache.get(
+      channelId
+    ) as TextChannel;
+
+    await voiceChannel.permissionOverwrites.edit(roleId, {
       CONNECT: false,
     });
 
-    const textChannel = (await interaction.guild?.channels
-      .fetch(channelId)
-      .catch(() => {
-        return undefined;
-      })) as TextChannel;
-
-    const msg = await textChannel.messages.fetch(messageId).catch(() => {
-      return undefined;
-    });
+    const msg = textChannel.messages.cache.get(messageId);
 
     await msg?.edit({
       content: " ",
       embeds: [
-        new MessageEmbed(msg.embeds[0])
-          .setFields([])
-          .setColor("RED")
+        new Embed()
+          .setColor(0xed4245)
           .setTitle(inlineCode(name))
           .setDescription(`Channel locked ${time(new Date(), "R")}`),
       ],
     });
   }
 
-  private async channelCapUpdate(
-    interaction: CommandInteraction,
-    channel: Channel,
-    cap: number
-  ) {
+  private async channelCapUpdate(channel: Channel, cap: number) {
     const { voiceChannelId } = channel;
 
-    const vc = await interaction.guild?.channels
-      .fetch(voiceChannelId)
-      .catch(() => {
-        return undefined;
-      });
+    const voiceChannel = this.client.channels.cache.get(
+      voiceChannelId
+    ) as VoiceChannel;
 
-    const channel_ = vc as VoiceChannel;
-    await channel_.setUserLimit(cap);
+    await voiceChannel.setUserLimit(cap);
   }
   // #endregion
 }
@@ -401,7 +375,7 @@ export interface Raid {
   controlPanelId: Snowflake;
   controlPanelMessageId: Snowflake;
 
-  messageId: Snowflake;
+  messageId: Snowflake; // the afk check msg id
 
   leaderId: Snowflake;
   leaderName?: string;
@@ -438,22 +412,15 @@ export interface RaidEvents {
   ];
   raidEnd: [raid: Raid];
 
-  channelStart: [
-    interaction: CommandInteraction,
-    channel: Omit<Channel, "messageId" | "location">
-  ];
-  channelClose: [interaction: CommandInteraction, channel: Channel];
-  channelLocked: [interaction: CommandInteraction, channel: Channel];
-  channelOpen: [interaction: CommandInteraction, channel: Channel];
-  channelCapUpdate: [
-    interaction: CommandInteraction,
-    channel: Channel,
-    cap: number
-  ];
+  channelStart: [channel: Omit<Channel, "messageId" | "location">];
+  channelClose: [channel: Channel];
+  channelLocked: [channel: Channel];
+  channelOpen: [channel: Channel];
+  channelCapUpdate: [channel: Channel, cap: number];
 }
 
 // eslint-disable-next-line no-redeclare
-export interface Raids {
+export interface RaidManager {
   on<K extends keyof RaidEvents>(
     event: K,
     listener: (...args: RaidEvents[K]) => void

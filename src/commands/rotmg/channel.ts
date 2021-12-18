@@ -1,5 +1,5 @@
 import type { CommandInteraction } from "discord.js";
-import { Command, Channel, Raids } from "@struct";
+import { Command, Channel, RaidManager } from "@struct";
 
 import { inAfkChannel } from "@util";
 import { createChannel, getGuildSetting, SettingsKey } from "@functions";
@@ -64,7 +64,7 @@ export default class implements Command {
 
   public constructor(
     @inject(kRedis) public readonly redis: Redis,
-    @inject(kRaids) public readonly raids: Raids
+    @inject(kRaids) public readonly manager: RaidManager
   ) {}
 
   public async execute(interaction: CommandInteraction) {
@@ -96,7 +96,7 @@ export default class implements Command {
   }
 
   private async create(interaction: CommandInteraction): Promise<void> {
-    if (await this.redis.exists(`channel:${interaction.user.id}`)) {
+    if (this.manager.channels.has(`channel:${interaction.user.id}`)) {
       await interaction.editReply({
         content: "Close your current channel before starting another.",
       });
@@ -129,11 +129,7 @@ export default class implements Command {
       CONNECT: false,
     });
 
-    const member = await channel.guild.members
-      .fetch(interaction.user.id)
-      .catch(() => {
-        return undefined;
-      });
+    const member = channel.guild.members.cache.get(interaction.user.id);
 
     const channelInfo: Omit<Channel, "messageId" | "location"> = {
       name: channel.name,
@@ -151,127 +147,108 @@ export default class implements Command {
       state: "LOCKED",
     };
 
-    await this.redis.set(
-      `channel:${interaction.user.id}`,
-      JSON.stringify(channelInfo)
-    );
-
-    this.raids.emit("channelStart", interaction, channelInfo);
+    this.manager.emit("channelStart", channelInfo);
     await interaction.editReply({ content: "Created your channel." });
   }
 
   private async close(interaction: CommandInteraction): Promise<void> {
-    const key = `channel:${interaction.user.id}`;
-    const has = await this.redis.exists(key);
-    if (!has) {
+    if (!this.manager.channels.has(`channel:${interaction.user.id}`)) {
       await interaction.editReply({
         content: "Create a channel first.",
       });
       return;
     }
 
-    const channel = await this.redis.get(key);
-    const channel_: Channel = JSON.parse(channel!);
+    const channel = this.manager.channels.get(
+      `channel:${interaction.user.id}`
+    )!;
 
-    this.raids.emit("channelClose", interaction, {
-      ...channel_,
+    const data: Channel = {
+      ...channel,
       state: "CLOSED",
-    });
+    };
+
+    this.manager.emit("channelClose", data);
+    this.manager.channels.set(`channel:${interaction.user.id}`, data);
     await interaction.editReply({ content: "Closed your channel." });
   }
 
   private async unlock(interaction: CommandInteraction): Promise<void> {
-    const key = `channel:${interaction.user.id}`;
-    const has = await this.redis.exists(key);
-
-    if (!has) {
+    if (!this.manager.channels.has(`channel:${interaction.user.id}`)) {
       await interaction.editReply({
         content: "Create a channel first.",
       });
       return;
     }
 
-    const channel = await this.redis.get(key);
-    const channel_: Channel = JSON.parse(channel!);
-
-    if (channel_.state === "OPENED") {
+    const channel = this.manager.channels.get(`channel:${interaction.user.id}`);
+    if (channel?.state === "OPENED") {
       await interaction.editReply({
         content: "Channel is already opened.",
       });
       return;
     }
 
-    await this.redis.set(
-      key,
-      JSON.stringify({
-        ...channel_,
-        state: "OPENED",
-      })
-    );
-
-    this.raids.emit("channelOpen", interaction, {
-      ...channel_,
+    const data: Channel = {
+      ...channel!,
       state: "OPENED",
-    });
+    };
+
+    this.manager.emit("channelOpen", data);
+    this.manager.channels.set(`channel:${interaction.user.id}`, data);
     await interaction.editReply({ content: "Opened your channel." });
   }
 
   private async lock(interaction: CommandInteraction): Promise<void> {
-    const key = `channel:${interaction.user.id}`;
-    const has = await this.redis.exists(key);
-
-    if (!has) {
+    if (!this.manager.channels.has(`channel:${interaction.user.id}`)) {
       await interaction.editReply({
         content: "Create a channel first.",
       });
       return;
     }
 
-    const channel = await this.redis.get(key);
-    const channel_: Channel = JSON.parse(channel!);
-
-    if (channel_.state === "LOCKED") {
+    const channel = this.manager.channels.get(`channel:${interaction.user.id}`);
+    if (channel?.state === "LOCKED") {
       await interaction.editReply({
         content: "Channel is already locked.",
       });
       return;
     }
 
-    await this.redis.set(
-      key,
-      JSON.stringify({
-        ...channel_,
-        state: "LOCKED",
-      })
-    );
-
-    this.raids.emit("channelLocked", interaction, {
-      ...channel_,
+    const data: Channel = {
+      ...channel!,
       state: "LOCKED",
-    });
+    };
+
+    this.manager.emit("channelLocked", data);
+    this.manager.channels.set(`channel:${interaction.user.id}`, data);
+    await interaction.editReply({ content: "Opened your channel." });
   }
 
   private async cap(interaction: CommandInteraction) {
-    const key = `channel:${interaction.user.id}`;
-    const has = await this.redis.exists(key);
-
-    if (!has) {
+    if (!this.manager.channels.has(`channel:${interaction.user.id}`)) {
       await interaction.editReply({
         content: "Create a channel first.",
       });
       return;
     }
 
-    const channel = await this.redis.get(key);
-    const channel_: Channel = JSON.parse(channel!);
+    const channel = this.manager.channels.get(`channel:${interaction.user.id}`);
+    if (channel?.state === "LOCKED") {
+      await interaction.editReply({
+        content: "Channel is already locked.",
+      });
+      return;
+    }
 
-    this.raids.emit(
+    const data: Channel = {
+      ...channel!,
+      state: "LOCKED",
+    };
+
+    this.manager.emit(
       "channelCapUpdate",
-      interaction,
-      {
-        ...channel_,
-        state: "LOCKED",
-      },
+      data,
       interaction.options.getInteger("cap", true)
     );
     await interaction.editReply({ content: "Updated channel cap." });
