@@ -71,6 +71,18 @@ export default class implements Command {
           type: 7,
           channel_types: [4],
         },
+
+        {
+          name: "log_channel",
+          description: "channel used for logs",
+          type: 7,
+          channel_types: [0],
+        },
+        {
+          name: "suspend_role",
+          description: "role used for suspensions",
+          type: 8,
+        },
       ],
       type: 1,
     },
@@ -82,12 +94,13 @@ export default class implements Command {
     await interaction.deferReply();
 
     const { guildId, options } = interaction;
-    if (interaction.options.getSubcommand() === "view") {
+    if (options.getSubcommand() === "view") {
       const afkCheck = await getGuildSetting(guildId, SettingsKey.AfkCheck);
       const vetAfkCheck = await getGuildSetting(
         guildId,
         SettingsKey.VetAfkCheck
       );
+      const logChannel = await getGuildSetting(guildId, SettingsKey.LogChannel);
 
       const mainSection = await getGuildSetting(
         guildId,
@@ -98,6 +111,10 @@ export default class implements Command {
         SettingsKey.VetSection
       );
 
+      const suspendRole = await getGuildSetting(
+        guildId,
+        SettingsKey.SuspendRole
+      );
       const verifiedRole = await getGuildSetting(
         guildId,
         SettingsKey.MainUserRole
@@ -131,8 +148,8 @@ export default class implements Command {
           inline: true,
         })
         .addField({
-          name: "\u200b",
-          value: "\u200b",
+          name: inlineCode("Logs channel"),
+          value: logChannel ? channelMention(logChannel) : "❌",
           inline: true,
         })
         .addField({
@@ -149,6 +166,11 @@ export default class implements Command {
             ? (interaction.guild?.channels.cache.get(veteranSection)
                 ?.name as string)
             : "❌",
+          inline: true,
+        })
+        .addField({
+          name: inlineCode("Suspend role"),
+          value: suspendRole ? roleMention(suspendRole) : "❌",
           inline: true,
         })
         .addField({
