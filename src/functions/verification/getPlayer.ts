@@ -1,4 +1,5 @@
 import fetch from "petitio";
+import { logger } from "../../logger";
 
 const API = "https://nightfirec.at/realmeye-api/";
 
@@ -75,43 +76,19 @@ export interface Stats {
   wisdom: number;
 }
 
-type FilterChoices =
-  | "player"
-  | "donator"
-  | "chars"
-  | "skins"
-  | "skins_rank"
-  | "fame"
-  | "fame_rank"
-  | "exp"
-  | "exp_rank"
-  | "rank"
-  | "account_fame"
-  | "account_fame_rank"
-  | "guild"
-  | "guild_confirmed"
-  | "guild_rank"
-  | "created"
-  | "player_last_seen"
-  | "desc1"
-  | "desc2"
-  | "desc3"
-  | "characters"
-  | "characters_hidden";
-
 export async function getPlayer(
   name: string,
-  filter?: FilterChoices[]
+  filter?: [keyof RealmEyePlayer]
 ): Promise<RealmEyePlayer | { error: string }> {
   const url = new URL(API);
   url.searchParams.append("player", name);
 
   let url_ = url.toString();
   if (filter) {
-    // hacky
     url_ += `&filter=${filter.join("+")}`;
   }
 
+  logger.info(`fetching player ${url_.toString()}`);
   const req = await fetch(url_.toString(), "GET").send();
 
   const json = await req.json();
