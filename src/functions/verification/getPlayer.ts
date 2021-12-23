@@ -78,15 +78,13 @@ export interface Stats {
 
 export async function getPlayer(
   name: string,
-  filter?: [keyof RealmEyePlayer]
+  filter?: Array<keyof RealmEyePlayer>
 ): Promise<RealmEyePlayer | { error: string }> {
   const url = new URL(API);
   url.searchParams.append("player", name);
 
   let url_ = url.toString();
-  if (filter) {
-    url_ += `&filter=${filter.join("+")}`;
-  }
+  if (filter) url_ += `&filter=${filter.join("+")}`;
 
   logger.info(`fetching player ${url_.toString()}`);
   const req = await fetch(url_.toString(), "GET").send();
