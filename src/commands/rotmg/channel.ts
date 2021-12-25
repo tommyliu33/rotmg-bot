@@ -1,256 +1,168 @@
-import type { CommandInteraction } from "discord.js";
-import { Command, Channel, RaidManager } from "@struct";
+import type { CommandInteraction } from 'discord.js';
+import { Command, Channel, RaidManager } from '@struct';
 
-import { inAfkChannel } from "@util";
-import { createChannel, getGuildSetting, SettingsKey } from "@functions";
+import { inAfkChannel, inVetChannel } from '@util';
+import { createRaidChannel, getGuildSetting, SettingsKey } from '@functions';
 
-import { inject, injectable } from "tsyringe";
-import { kRaids, kRedis } from "../../tokens";
-import type { Redis } from "ioredis";
-
-const truncate = (str: string, max: number) =>
-  str.length > max ? str.slice(0, max) : str;
+import { inject, injectable } from 'tsyringe';
+import { kRaids } from '../../tokens';
 
 @injectable()
 export default class implements Command {
-  public name = "channel";
-  public description = "base for managing custom raid channels.";
-  public options = [
-    {
-      name: "create",
-      description: "create a custom channel.",
-      type: 1,
-      options: [
-        {
-          name: "name",
-          description: "name of the channel to create.",
-          type: 3,
-          required: true,
-        },
-      ],
-    },
-    {
-      name: "close",
-      description: "deletes your custom channel.",
-      type: 1,
-    },
-    {
-      name: "lock",
-      description: "prevent raiders from joining your custom channel.",
-      type: 1,
-    },
-    {
-      name: "unlock",
-      description: "allow raiders to join your custom channel.",
-      type: 1,
-    },
-    {
-      name: "cap",
-      description: "change user cap for your custom channel.",
-      type: 1,
-      options: [
-        {
-          name: "cap",
-          description: "the new channel cap (0-99)",
-          required: true,
-          type: 4,
-          // TODO: discord.js v13.4
-          // min_value: 0,
-          // max_value: 99,
-        },
-      ],
-    },
-  ];
+	public name = 'channel';
+	public description = 'For custom raiding voice channels';
+	public options = [
+		{
+			name: 'create',
+			description: 'Create a custom raiding channel.',
+			type: 1,
+			options: [
+				{
+					name: 'name',
+					description: 'Name of the channel',
+					type: 3,
+					required: true,
+				},
+			],
+		},
+		{
+			name: 'close',
+			description: 'Shut down your raiding channel',
+			type: 1,
+		},
+		{
+			name: 'lock',
+			description: 'Prevents users from joining the channel',
+			type: 1,
+		},
+		{
+			name: 'unlock',
+			description: 'Allows users to join the channel',
+			type: 1,
+		},
+		{
+			name: 'cap',
+			description: 'Modify the user cap for the channel',
+			type: 1,
+			options: [
+				{
+					name: 'limit',
+					description: 'The new channel cap (0-99)',
+					type: 4,
+					min_value: 0,
+					max_value: 99,
+					required: true,
+				},
+			],
+		},
+	];
 
-  public constructor(
-    @inject(kRedis) public readonly redis: Redis,
-    @inject(kRaids) public readonly manager: RaidManager
-  ) {}
+	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
-  public async execute(interaction: CommandInteraction) {
-    await interaction.deferReply({ ephemeral: true });
+	private hasChannel(userId: string) {
+		return this.manager.channels.has(`channel:${userId}`);
+	}
 
-    const subcommand = interaction.options.getSubcommand();
-    if (["create"].includes(subcommand)) {
-      const inAfkChannel_ = await inAfkChannel(interaction);
-      if (!inAfkChannel_) return;
-    }
+	public async execute(interaction: CommandInteraction) {
+		if (!interaction.inCachedGuild()) return;
 
-    switch (subcommand) {
-      case "create":
-        await this.create(interaction);
-        break;
-      case "close":
-        await this.close(interaction);
-        break;
-      case "unlock":
-        await this.unlock(interaction);
-        break;
-      case "lock":
-        await this.lock(interaction);
-        break;
-      case "cap":
-        await this.cap(interaction);
-        break;
-    }
-  }
+		await interaction.deferReply({ ephemeral: true });
 
-  private async create(interaction: CommandInteraction): Promise<void> {
-    if (this.manager.channels.has(`channel:${interaction.user.id}`)) {
-      await interaction.editReply({
-        content: "Close your current channel before starting another.",
-      });
-      return;
-    }
+		const subcommand = interaction.options.getSubcommand();
 
-    const vetChannelId = await getGuildSetting(
-      interaction.guildId,
-      SettingsKey.VetAfkCheck
-    );
+		if (['close', 'unlock', 'lock', 'cap'].includes(subcommand) && !this.hasChannel(interaction.user.id)) {
+			await interaction.editReply({
+				content: 'Create a channel first.',
+			});
+			return;
+		}
 
-    const veteran = interaction.channelId === vetChannelId;
-    const roleId = await getGuildSetting(
-      interaction.guildId,
-      veteran ? SettingsKey.VetUserRole : SettingsKey.MainUserRole
-    );
+		if (subcommand === 'create') {
+			await inAfkChannel(interaction);
 
-    const channelName = truncate(
-      interaction.options.getString("name", true),
-      100
-    );
-    const channel = await createChannel(
-      interaction.guild!,
-      channelName,
-      veteran,
-      "GUILD_VOICE"
-    );
+			if (this.manager.channels.has(`channel:${interaction.user.id}`)) {
+				await interaction.editReply({
+					content: 'Close your existing channel before starting another.',
+				});
+				return;
+			}
 
-    await channel.permissionOverwrites.edit(roleId, {
-      CONNECT: false,
-    });
+			const veteran = await inVetChannel(interaction.guildId, interaction.channelId);
+			const roleId = await getGuildSetting(
+				interaction.guildId,
+				veteran ? SettingsKey.VetUserRole : SettingsKey.MainUserRole
+			);
 
-    const member = channel.guild.members.cache.get(interaction.user.id);
+			const channelName = interaction.options.getString('name', true).substring(0, 100);
+			const channel = await createRaidChannel(interaction.guild, channelName, veteran)!;
 
-    const channelInfo: Omit<Channel, "messageId" | "location"> = {
-      name: channel.name,
+			const member = channel.guild.members.cache.get(interaction.user.id);
 
-      guildId: interaction.guildId,
-      channelId: interaction.channelId,
-      voiceChannelId: channel.id,
+			const channelInfo: Omit<Channel, 'messageId' | 'location'> = {
+				name: channel.name,
 
-      leaderId: interaction.user.id,
-      leaderName: member?.displayName,
-      leaderTag: interaction.user.tag,
+				guildId: interaction.guildId,
+				channelId: interaction.channelId,
+				voiceChannelId: channel.id,
 
-      roleId: roleId,
+				leaderId: interaction.user.id,
+				leaderName: member?.displayName,
+				leaderTag: interaction.user.tag,
 
-      state: "LOCKED",
-    };
+				roleId: roleId,
 
-    this.manager.emit("channelStart", channelInfo);
-    await interaction.editReply({ content: "Created your channel." });
-  }
+				state: 'LOCKED',
+			};
 
-  private async close(interaction: CommandInteraction): Promise<void> {
-    if (!this.manager.channels.has(`channel:${interaction.user.id}`)) {
-      await interaction.editReply({
-        content: "Create a channel first.",
-      });
-      return;
-    }
+			this.manager.emit('channelStart', channelInfo);
+			await interaction.editReply({ content: 'Created your channel.' });
+		}
 
-    const channel = this.manager.channels.get(
-      `channel:${interaction.user.id}`
-    )!;
+		const channel = this.manager.channels.get(`channel:${interaction.user.id}`)!;
+		if (subcommand === 'close') {
+			this.manager.channels.set(`channel:${interaction.user.id}`, { ...channel, state: 'CLOSED' });
+			this.manager.emit('channelClose', { ...channel, state: 'CLOSED' });
 
-    const data: Channel = {
-      ...channel,
-      state: "CLOSED",
-    };
+			await interaction.editReply({ content: 'Closed your channel.' });
+		}
 
-    this.manager.emit("channelClose", data);
-    this.manager.channels.set(`channel:${interaction.user.id}`, data);
-    await interaction.editReply({ content: "Closed your channel." });
-  }
+		if (subcommand === 'unlock') {
+			this.manager.channels.set(`channel:${interaction.user.id}`, { ...channel, state: 'OPENED' });
+			this.manager.emit('channelOpen', { ...channel, state: 'OPENED' });
 
-  private async unlock(interaction: CommandInteraction): Promise<void> {
-    if (!this.manager.channels.has(`channel:${interaction.user.id}`)) {
-      await interaction.editReply({
-        content: "Create a channel first.",
-      });
-      return;
-    }
+			await interaction.editReply({ content: 'Opened your channel.' });
+		}
 
-    const channel = this.manager.channels.get(`channel:${interaction.user.id}`);
-    if (channel?.state === "OPENED") {
-      await interaction.editReply({
-        content: "Channel is already opened.",
-      });
-      return;
-    }
+		if (subcommand === 'lock') {
+			if (channel.state === 'LOCKED') {
+				await interaction.editReply({
+					content: 'Channel is already locked.',
+				});
+				return;
+			}
 
-    const data: Channel = {
-      ...channel!,
-      state: "OPENED",
-    };
+			this.manager.emit('channelLocked', {
+				...channel,
+				state: 'LOCKED',
+			});
+			this.manager.channels.set(`channel:${interaction.user.id}`, {
+				...channel,
+				state: 'LOCKED',
+			});
+			await interaction.editReply({ content: 'Locked your channel.' });
+		}
 
-    this.manager.emit("channelOpen", data);
-    this.manager.channels.set(`channel:${interaction.user.id}`, data);
-    await interaction.editReply({ content: "Opened your channel." });
-  }
+		if (subcommand === 'cap') {
+			const channel = this.manager.channels.get(`channel:${interaction.user.id}`);
+			if (channel?.state === 'LOCKED') {
+				await interaction.editReply({
+					content: 'Channel is already locked.',
+				});
+				return;
+			}
 
-  private async lock(interaction: CommandInteraction): Promise<void> {
-    if (!this.manager.channels.has(`channel:${interaction.user.id}`)) {
-      await interaction.editReply({
-        content: "Create a channel first.",
-      });
-      return;
-    }
-
-    const channel = this.manager.channels.get(`channel:${interaction.user.id}`);
-    if (channel?.state === "LOCKED") {
-      await interaction.editReply({
-        content: "Channel is already locked.",
-      });
-      return;
-    }
-
-    const data: Channel = {
-      ...channel!,
-      state: "LOCKED",
-    };
-
-    this.manager.emit("channelLocked", data);
-    this.manager.channels.set(`channel:${interaction.user.id}`, data);
-    await interaction.editReply({ content: "Opened your channel." });
-  }
-
-  private async cap(interaction: CommandInteraction) {
-    if (!this.manager.channels.has(`channel:${interaction.user.id}`)) {
-      await interaction.editReply({
-        content: "Create a channel first.",
-      });
-      return;
-    }
-
-    const channel = this.manager.channels.get(`channel:${interaction.user.id}`);
-    if (channel?.state === "LOCKED") {
-      await interaction.editReply({
-        content: "Channel is already locked.",
-      });
-      return;
-    }
-
-    const data: Channel = {
-      ...channel!,
-      state: "LOCKED",
-    };
-
-    this.manager.emit(
-      "channelCapUpdate",
-      data,
-      interaction.options.getInteger("cap", true)
-    );
-    await interaction.editReply({ content: "Updated channel cap." });
-  }
+			this.manager.emit('channelCapUpdate', channel!, interaction.options.getInteger('cap', true));
+			await interaction.editReply({ content: 'Updated channel cap.' });
+		}
+	}
 }
