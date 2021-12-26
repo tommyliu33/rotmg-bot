@@ -5,13 +5,13 @@ import { Embed, inlineCode, codeBlock } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 
 export default class implements Command {
-	public name = 'verification_message';
+	public name = 'verify_message';
 	public description = "Sends an embed with the server's verification requirements for that section";
 
 	public options = [
 		{
 			name: 'section',
-			description: 'Section to send the message in',
+			description: 'The section requirements to use',
 			type: 3,
 			choices: [
 				{
