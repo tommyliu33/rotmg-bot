@@ -1,64 +1,63 @@
-import { inlineCode } from "@discordjs/builders";
-import { stripIndents } from "common-tags";
-import type { AwaitMessagesOptions, Message, TextChannel } from "discord.js";
+import { inlineCode } from '@discordjs/builders';
+import type { TextBasedChannelTypes } from '@sapphire/discord.js-utilities';
+import type { AwaitMessagesOptions, Message } from 'discord.js';
+
+import { stripIndents } from 'common-tags';
 
 interface PromptResponses {
-  question: string;
-  response: string;
+	question: string;
+	response: string;
 }
 
 export async function prompt(
-  channel: TextChannel,
-  options: AwaitMessagesOptions,
-  prompts: string[],
-  responses: PromptResponses[] = [],
-  message?: Message,
-  index = 0
+	channel: TextBasedChannelTypes,
+	options: AwaitMessagesOptions,
+	prompts: string[],
+	responses: PromptResponses[] = [],
+	message?: Message,
+	index = 0
 ): Promise<PromptResponses[]> {
-  let currentIndex = index;
-  const expectedIndex = prompts.length;
+	let currentIndex = index;
+	const expectedIndex = prompts.length;
 
-  if (responses.length === expectedIndex) {
-    if (message?.deletable) await message.delete();
-    return responses;
-  }
+	if (responses.length === expectedIndex) {
+		await message?.delete().catch(() => undefined);
+		return responses;
+	}
 
-  const question = prompts[currentIndex];
+	const question = prompts[currentIndex];
 
-  // prompt msg
-  let msg: Message;
-  if (!message) {
-    msg = await channel.send({
-      content: stripIndents`
+	let msg: Message;
+	if (!message) {
+		msg = await channel.send({
+			content: stripIndents`
         ${question}
-        You have 15 seconds to answer. Type ${inlineCode("cancel")} to abort.
+        You have 15 seconds to answer. Type ${inlineCode('cancel')} to abort.
       `,
-    });
-  }
+		});
+	}
 
-  const collectedMessage = await channel
-    .awaitMessages(options)
-    .catch(() => undefined);
+	const collectedMessage = await channel.awaitMessages(options).catch(() => undefined);
 
-  const msg_ = collectedMessage?.first();
-  if (msg_?.content.toLowerCase() === "cancel") {
-    await msg!.edit({ content: "Cancelling..." });
-    if (msg!.deletable) await msg!.delete();
+	const msg_ = collectedMessage?.first();
+	if (msg_?.content.toLowerCase() === 'cancel') {
+		await msg!.edit({ content: 'Cancelling...' });
+		await msg_.delete().catch(() => undefined);
 
-    return responses;
-  }
+		return responses;
+	}
 
-  responses.push({
-    question,
-    response: msg_?.content as string,
-  });
+	responses.push({
+		question,
+		response: msg_?.content as string,
+	});
 
-  if (msg_?.deletable) await msg_.delete();
+	await msg_?.delete().catch(() => undefined);
 
-  ++currentIndex;
-  if (!responses[expectedIndex]) {
-    await prompt(channel, options, prompts, responses, msg!, currentIndex);
-  }
+	++currentIndex;
+	if (!responses[expectedIndex]) {
+		await prompt(channel, options, prompts, responses, msg!, currentIndex);
+	}
 
-  return responses;
+	return responses;
 }
