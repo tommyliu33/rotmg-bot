@@ -1,9 +1,11 @@
 import type { CommandInteraction } from 'discord.js';
 import { Command } from '@struct';
 
+import { updateGuildSetting, SettingsKey } from '@functions';
+
 export default class implements Command {
 	public name = 'requirements';
-	public description = 'Configure verification requirements for a section.';
+	public description = 'Configure verification requirements for a section';
 
 	public options = [
 		{
@@ -23,7 +25,7 @@ export default class implements Command {
 			required: true,
 		},
 		{
-			name: 'private_loc',
+			name: 'private_location',
 			description: 'User requires private location to verify',
 			type: 5,
 		},
@@ -68,6 +70,26 @@ export default class implements Command {
 
 	public async execute(interaction: CommandInteraction) {
 		if (!interaction.inCachedGuild()) return;
+
+		const section = interaction.options.getString('section', true);
+
+		const dungeons = interaction.options.data
+			.filter((o) => !['section', 'private_loc', 'rank'].includes(o.name) && o.type === 'INTEGER')
+			.map((c) => c.name);
+
+		// This may be removed in the future
+		if (section !== 'veteran' && ['o3', 'void', 'shatters', 'nest', 'fungal'].some((v) => dungeons.includes(v))) {
+			await interaction.reply({ content: 'Dungeon requirements can only be used for Veteran verification.' });
+			return;
+		}
+
+		if (section === 'main') {
+			const options = interaction.options.data.filter((o) => ['private_location', 'rank'].includes(o.name));
+			const keys = [SettingsKey.PrivateLocation, SettingsKey.Rank];
+
+			// eslint-disable-next-line @typescript-eslint/prefer-for-of
+			for (let i = 0; i < options.length; ++i) await updateGuildSetting(interaction.guildId, keys[i], options[i].value);
+		}
 
 		await interaction.reply('hello world');
 	}
