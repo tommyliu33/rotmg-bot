@@ -30,7 +30,6 @@ interface VerificationSession {
 }
 
 // TODO: refactor
-// TODO: use redis caching for database calls
 
 @injectable()
 export default class implements Event {
@@ -63,13 +62,23 @@ export default class implements Event {
 
 		if (interaction.isButton()) {
 			if (interaction.inCachedGuild()) {
-				const buttonIds = [
-					await getGuildSetting(interaction.guildId, SettingsKey.MainVerificationButton),
-					await getGuildSetting(interaction.guildId, SettingsKey.VeteranVerificationButton),
-				];
+				await interaction.deferReply({ ephemeral: true }).catch(() => undefined);
 
-				if (interaction.customId === buttonIds[0]) {
-					await this.respond(interaction, { content: 'You have started verification. Check your DMs to continue.' });
+				let mainButtonId = await this.redis.get(`${interaction.guildId}:main_button_id`);
+				let vetButtonId = await this.redis.get(`${interaction.guildId}:vet_button_id`);
+
+				if (!mainButtonId) {
+					mainButtonId = await getGuildSetting(interaction.guildId, SettingsKey.MainVerificationButton);
+					await this.redis.setex(`${interaction.guildId}:main_button_id`, 3.6e6, mainButtonId!);
+				}
+
+				if (!vetButtonId) {
+					vetButtonId = await getGuildSetting(interaction.guildId, SettingsKey.VeteranVerificationButton);
+					await this.redis.setex(`${interaction.guildId}:vet_button_id`, 3.6e6, vetButtonId!);
+				}
+
+				if (interaction.customId === mainButtonId) {
+					await interaction.editReply({ content: 'You have started verification. Check your DMs to continue.' });
 
 					const channel = await interaction.user.createDM().catch(() => undefined);
 					if (!channel) return;
@@ -88,7 +97,7 @@ export default class implements Event {
 					);
 
 					const res = await prompter.run(channel, interaction.user).catch(async () => {
-						await this.respond(interaction, {
+						await interaction.editReply({
 							content: "You didn't enter a response in time, click the button to restart.",
 						});
 						await prompter.strategy.appliedMessage?.delete();
@@ -99,7 +108,7 @@ export default class implements Event {
 
 					if (res.content.toLowerCase() === 'cancel') {
 						await prompter.strategy.appliedMessage?.delete();
-						await this.respond(interaction, {
+						await interaction.editReply({
 							content: 'You have exited verification, click the button to restart.',
 						});
 
@@ -107,9 +116,9 @@ export default class implements Event {
 					}
 
 					const name = res.content;
-					const code = nanoid(15);
+					// const code = nanoid(15);
 
-					//const code = 'olZMjp8p5yhmq';
+					const code = 'olZMjp8p5yhmq';
 
 					const yesKey = nanoid();
 					const noKey = nanoid();
@@ -143,11 +152,11 @@ export default class implements Event {
 						yesKey,
 						noKey,
 
-						veteran: interaction.customId === buttonIds[1],
+						veteran: interaction.customId === vetButtonId,
 					});
 				}
 
-				if (interaction.customId === buttonIds[1]) {
+				if (interaction.customId === vetButtonId) {
 					const requiredCompletes: number[] = [
 						await getGuildSetting(interaction.guildId, SettingsKey.OryxSanctuary),
 						await getGuildSetting(interaction.guildId, SettingsKey.TheVoid),
@@ -156,8 +165,6 @@ export default class implements Event {
 						await getGuildSetting(interaction.guildId, SettingsKey.TheNest),
 						await getGuildSetting(interaction.guildId, SettingsKey.FungalCavern),
 					];
-
-					await this.respond(interaction, { content: 'You have started veteran verification.' });
 
 					const data = await getUserSettings(interaction.user.id);
 					const loggedCompletes: number[] = Reflect.get(data.stats, interaction.guildId);
@@ -182,15 +189,14 @@ export default class implements Event {
 					}
 
 					if (missing.length) {
-						await this.respond(interaction, { content: missing.join('\n') });
+						await interaction.editReply({ content: missing.join('\n') });
 						return;
 					}
 
-					await this.respond(interaction, { content: 'you are now vet verified' });
+					await interaction.editReply({ content: 'you are now vet verified' });
 				}
 			}
 
-			// For main verification only
 			if (
 				isDMChannel(interaction.channel) &&
 				this.sessions.find((s) => [s.yesKey, s.noKey].indexOf(interaction.customId) !== -1) // eslint-disable-line @typescript-eslint/prefer-includes
