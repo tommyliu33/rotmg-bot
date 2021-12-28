@@ -278,11 +278,4 @@ export default class implements Event {
 			}
 		}
 	}
-
-	private async respond(interaction: Interaction, ops: MessageOptions) {
-		if (!interaction.isCommand() && !interaction.isButton()) return;
-
-		if (interaction.replied || interaction.deferred) await interaction.editReply(ops);
-		else await interaction.reply(ops);
-	}
 }
