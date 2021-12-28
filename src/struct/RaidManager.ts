@@ -1,4 +1,4 @@
-import { Embed, inlineCode, time } from '@discordjs/builders';
+import { channelMention, Embed, inlineCode, time } from '@discordjs/builders';
 import { createChannel, react, getGuildSetting, SettingsKey } from '@functions';
 import EventEmitter from '@tbnritzdoge/events';
 import { stripIndents } from 'common-tags';
@@ -35,10 +35,8 @@ export class RaidManager extends EventEmitter {
 	}
 
 	// #region Afk check
-	private async raidStart(
-		raid: Omit<Raid, 'voiceChannelId' | 'messageId' | 'controlPanelId' | 'controlPanelMessageId'>
-	): Promise<void> {
-		const { guildId, channelId, leaderName, leaderTag } = raid;
+	private async raidStart(raid: Omit<Raid, 'messageId' | 'controlPanelId' | 'controlPanelMessageId'>): Promise<void> {
+		const { guildId, channelId, voiceChannelId, leaderName, leaderTag } = raid;
 
 		const vetChannelId = await getGuildSetting(guildId, SettingsKey.VetAfkCheck);
 
@@ -47,8 +45,7 @@ export class RaidManager extends EventEmitter {
 
 		const vet = channelId === vetChannelId;
 
-		const key = vet ? `vet_raid:${guildId}` : `raid:${guildId}`;
-		const voiceChannel = await createChannel(guild, `Raiding ${await this.redis.incr(key)}`, vet, 'GUILD_VOICE');
+		const voiceChannel = guild.channels.cache.get(voiceChannelId) as VoiceChannel;
 
 		const channel = guild.channels.cache.get(channelId) as TextChannel;
 
@@ -85,6 +82,9 @@ export class RaidManager extends EventEmitter {
 			.setTitle(`${inlineCode(leaderTag)} Control Panel`)
 			.setDescription(
 				stripIndents`
+			${inlineCode('Dungeon')} ${raid.dungeon.full_name}
+			${inlineCode('Voice channel')} ${channelMention(voiceChannelId)}
+
 			${inlineCode('Edit location')} 📝 
 			${inlineCode('Reveal location')} 🗺️
 			${inlineCode('Abort afk')} 🛑
@@ -106,7 +106,6 @@ export class RaidManager extends EventEmitter {
 			messageId: m.id,
 			controlPanelId: channel_.id,
 			controlPanelMessageId: m_.id,
-			voiceChannelId: voiceChannel.id,
 		});
 	}
 
@@ -294,7 +293,7 @@ export interface Channel
 }
 
 export interface RaidEvents {
-	raidStart: [raid: Omit<Raid, 'voiceChannelId' | 'messageId' | 'controlPanelId' | 'controlPanelMessageId'>];
+	raidStart: [raid: Omit<Raid, 'messageId' | 'controlPanelId' | 'controlPanelMessageId'>];
 	raidEnd: [raid: Raid];
 
 	channelStart: [channel: Omit<Channel, 'messageId' | 'location'>];

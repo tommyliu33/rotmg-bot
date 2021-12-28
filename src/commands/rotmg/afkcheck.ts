@@ -1,86 +1,105 @@
-import type { CommandInteraction, EmojiResolvable } from "discord.js";
-import { Command, Raids } from "@struct";
+import { CommandInteraction, MessageActionRow, MessageSelectMenu, VoiceChannel } from 'discord.js';
+import { Command, RaidManager } from '@struct';
 
-import { inAfkChannel } from "@util";
-import { dungeons } from "../../dungeons";
+import { awaitComponent, inAfkChannel, inVetChannel } from '@util';
+import { dungeons } from '../../dungeons';
 
-import { kRaids } from "../../tokens";
-import { inject, injectable } from "tsyringe";
+import { kRaids } from '../../tokens';
+import { inject, injectable } from 'tsyringe';
+
+import { nanoid } from 'nanoid';
+import { getGuildSetting, SettingsKey } from '@functions';
 
 @injectable()
 export default class implements Command {
-  public name = "afkcheck";
-  public description = "starts an afk check.";
-  public options = [
-    {
-      name: "dungeon",
-      description: "the dungeon to run",
-      type: 3,
-      choices: [
-        { name: "Oryx Sanctuary", value: "o3" },
-        { name: "The Void", value: "void" },
-        { name: "The Shatters", value: "shatters" },
-        { name: "Cultist Hideout", value: "cult" },
-        { name: "The Nest", value: "nest" },
-        { name: "Fungal Cavern", value: "fungal" },
-      ],
-      required: true,
-    },
-  ];
+	public name = 'afkcheck';
+	public description = 'Starts an afk check';
+	public options = [
+		{
+			name: 'dungeon',
+			description: 'The dungeon to run for the raid',
+			type: 3,
+			choices: [
+				{ name: 'Oryx Sanctuary', value: 'o3' },
+				{ name: 'The Void', value: 'void' },
+				{ name: 'The Shatters', value: 'shatters' },
+				{ name: 'Cultist Hideout', value: 'cult' },
+				{ name: 'The Nest', value: 'nest' },
+				{ name: 'Fungal Cavern', value: 'fungal' },
+			],
+			required: true,
+		},
+	];
 
-  public constructor(@inject(kRaids) public readonly raids: Raids) {}
+	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
-  public async execute(interaction: CommandInteraction) {
-    await interaction.deferReply();
+	public async execute(interaction: CommandInteraction) {
+		if (!interaction.inCachedGuild()) return;
 
-    const inAfkChannel_ = await inAfkChannel(interaction);
-    if (!inAfkChannel_) return;
+		await inAfkChannel(interaction);
 
-    const dungeon =
-      dungeons[
-        dungeons.findIndex(
-          (d) => d.name === interaction.options.getString("dungeon")
-        )
-      ];
+		const m = await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
-    const { portal, keys, main_reacts, optional_reacts, rusher } = dungeon;
-    const reacts: EmojiResolvable[] = [
-      portal,
-      ...keys.map((c) => c.emote),
-      rusher?.emote ?? "",
-      dungeon.name === "shatters"
-        ? "<:LightsOutPuzzle:908439164087840819>"
-        : "",
-      ...main_reacts.map((c) => c.emote),
-    ];
+		const vet = await inVetChannel(interaction.guildId, interaction.channelId);
+		let channelIds: string[] = await getGuildSetting(interaction.guildId, SettingsKey.MainSectionVoiceChannels);
+		if (vet) {
+			channelIds = (await getGuildSetting(interaction.guildId, SettingsKey.VetSectionVoiceChannels)) as string[];
+		}
 
-    if (optional_reacts) {
-      reacts.push(...optional_reacts.map((c) => c.emote));
-    }
+		// @ts-ignore
+		const selectMenuOptions: [{ label: string; value: string }] = [];
 
-    if (dungeon.name !== "shatters" && rusher) {
-      reacts.push(rusher.emote);
-    }
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let i = 0; i < channelIds.length; ++i) {
+			const channel = await interaction.guild.channels.fetch(channelIds[i]);
+			selectMenuOptions.push({
+				label: channel?.name as string,
+				value: channelIds[i],
+			});
+		}
 
-    const member = interaction.guild?.members.cache.get(interaction.user.id);
+		const selectMenuId = nanoid();
+		const selectMenu = new MessageSelectMenu().setCustomId(selectMenuId).setMaxValues(1).setOptions(selectMenuOptions);
 
-    const data = {
-      dungeon,
-      reacts: [...reacts.filter((c) => c !== ""), "❌"],
-      reacts_: [],
+		await interaction.editReply({
+			content: 'Select a voice channel for the raid.',
+			components: [new MessageActionRow().addComponents(selectMenu)],
+		});
 
-      location: "TBD",
+		const collectedInteraction = await awaitComponent(interaction.client, m, {
+			componentType: 'SELECT_MENU',
+			filter: async (i) => {
+				await i.deferUpdate();
+				return i.user.id === interaction.user.id;
+			},
+			time: 60000,
+		}).catch(async () => {
+			await interaction.editReply({ content: 'You failed to select a voice channel, aborting.', components: [] });
+			return undefined;
+		});
 
-      guildId: interaction.guildId,
-      channelId: interaction.channelId,
+		if (!collectedInteraction) return;
 
-      leaderId: interaction.user.id,
-      leaderName: member?.displayName,
-      leaderTag: interaction.user.tag,
-    };
+		const dungeon = dungeons[dungeons.findIndex((d) => d.name === interaction.options.getString('dungeon'))];
+		const member = interaction.guild.members.cache.get(interaction.user.id);
 
-    this.raids.emit("raidStart", data);
-    // TODO: defer the interaction -> send cp message embed -> edit interaction to show message link
-    await interaction.deleteReply();
-  }
+		const data = {
+			dungeon,
+			reacts: [dungeon.portal, ...dungeon.keys.map((k) => k.emote), '❌'],
+			reacts_: [],
+
+			location: 'TBD',
+
+			guildId: interaction.guildId,
+			channelId: interaction.channelId,
+
+			voiceChannelId: collectedInteraction.values[0],
+
+			leaderId: interaction.user.id,
+			leaderName: member?.displayName,
+			leaderTag: interaction.user.tag,
+		};
+
+		this.manager.emit('raidStart', data);
+	}
 }
