@@ -1,30 +1,16 @@
-import { getGuildSetting, SettingsKey } from "@functions";
-import type { BaseCommandInteraction, Message } from "discord.js";
+import { getGuildSetting, SettingsKey } from '@functions';
+import type { BaseCommandInteraction } from 'discord.js';
 
-export async function inAfkChannel(
-  interaction: BaseCommandInteraction
-): Promise<boolean> {
-  const channels = [
-    await getGuildSetting(interaction.guildId, SettingsKey.AfkCheck),
-    await getGuildSetting(interaction.guildId, SettingsKey.VetAfkCheck),
-  ];
+export async function inAfkChannel(interaction: BaseCommandInteraction) {
+	if (!interaction.inCachedGuild()) return;
 
-  if (!channels.includes(interaction.channelId)) {
-    const message = (await interaction[
-      interaction.deferred ? "editReply" : "reply"
-    ]({
-      content: "This command can only be used in an afk check channel.",
-      fetchReply: true,
-    })) as Message;
+	const channels = [
+		await getGuildSetting(interaction.guildId, SettingsKey.AfkCheck),
+		await getGuildSetting(interaction.guildId, SettingsKey.VetAfkCheck),
+	];
 
-    if (!message.flags.has("EPHEMERAL")) {
-      setTimeout(() => {
-        void message.delete();
-      }, 7000);
-    }
-
-    return false;
-  }
-
-  return true;
+	// eslint-disable-next-line @typescript-eslint/prefer-includes
+	if (channels.indexOf(interaction.channelId) !== -1) {
+		throw new Error('This command can only be used in an afk check channel.');
+	}
 }
