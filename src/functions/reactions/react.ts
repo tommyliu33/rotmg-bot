@@ -1,33 +1,32 @@
-// Copyright (c) 2020-2021 ewang2002/ZeroRaidBot. All rights reserved. MIT license.
-// In particular, FastReactionMenuManager#reactFaster
+import type { EmojiResolvable, Message } from 'discord.js';
 
-import type { EmojiResolvable, Message } from "discord.js";
+const deletedMessages = new Set<string>();
 
-export function react(
-  msg: Message,
-  reacts: EmojiResolvable[],
-  delay = 550
-): void {
-  let i = 0;
-  const interval = setInterval(() => {
-    // if the leader reacts to ❌ before
-    if (msg.reactions.cache.has("❌")) {
-      clearInterval(interval);
-      return;
-    }
+export function react(msg: Message, reacts: EmojiResolvable[], delay = 550): void {
+	if (msg.client.listenerCount('messageDelete') === 0) {
+		msg.client.once('messageDelete', (msg) => void deletedMessages.add(msg.id));
+	}
 
-    if (i < reacts.length) {
-      if (msg.deleted) {
-        clearInterval(interval);
-        return;
-      }
+	let i = 0;
+	const interval = setInterval(() => {
+		// TODO: check if the afk check ended before
+		if (msg.reactions.cache.has('❌')) {
+			clearInterval(interval);
+			return;
+		}
 
-      msg.react(reacts[i]).catch(() => {
-        return undefined;
-      });
-    } else {
-      clearInterval(interval);
-    }
-    i++;
-  }, delay);
+		if (i < reacts.length) {
+			if (deletedMessages.has(msg.id)) {
+				clearInterval(interval);
+				return;
+			}
+
+			void msg.react(reacts[i]).catch(() => {
+				return undefined;
+			});
+		} else {
+			clearInterval(interval);
+		}
+		i++;
+	}, delay);
 }
