@@ -4,7 +4,7 @@ import EventEmitter from '@tbnritzdoge/events';
 import { stripIndents } from 'common-tags';
 import { Collection } from '@discordjs/collection';
 
-import type { EmojiResolvable, Snowflake, TextChannel, VoiceChannel } from 'discord.js';
+import { EmojiResolvable, Message, MessageButton, Snowflake, TextChannel, VoiceChannel } from 'discord.js';
 import type { Dungeon } from '../dungeons';
 
 import { inject, injectable } from 'tsyringe';
@@ -13,6 +13,7 @@ import type { Redis } from 'ioredis';
 import type { Bot } from '@struct';
 
 import { toTitleCase } from '@sapphire/utilities';
+import { EmojiRegex, createPartitionedMessageRow } from '@sapphire/discord.js-utilities';
 
 @injectable()
 export class RaidManager extends EventEmitter {
@@ -46,19 +47,30 @@ export class RaidManager extends EventEmitter {
 		const vet = channelId === vetChannelId;
 
 		const voiceChannel = guild.channels.cache.get(voiceChannelId) as VoiceChannel;
-
 		const channel = guild.channels.cache.get(channelId) as TextChannel;
 
 		const { images, color, name, full_name } = raid.dungeon;
 
+		const components = [new MessageButton().setEmoji(raid.dungeon.portal).setCustomId('join').setStyle('SUCCESS')];
+		if (raid.dungeon.buttons) {
+			for (const { emote, id } of raid.dungeon.buttons) {
+				components.push(
+					new MessageButton()
+						.setEmoji(emote)
+						.setCustomId(id)
+						.setStyle(id === 'key' ? 'PRIMARY' : 'SECONDARY')
+				);
+			}
+		}
+
 		const embed = new Embed()
 			.setDescription(
 				stripIndents`
-				To participate, join the voice channel and then react to ${raid.dungeon.portal}
-				If you have a key and are willing to pop, react to ${raid.dungeon.keys.map((k) => k.emote).join('')}
-
-				To indicate class or gear choices, react below
-			`
+				Click here to join <#${voiceChannelId}> and then click ${raid.dungeon.portal}
+				If you have a key and are willing to pop, click ${raid.dungeon.keys.map((k) => k.emote).join('')}
+				
+				To indicate class or gear choices, click on the 
+				corresponding button if available`
 			)
 			.setTimestamp()
 			.setColor(color)
@@ -72,8 +84,10 @@ export class RaidManager extends EventEmitter {
 				parse: ['everyone'],
 			},
 			embeds: [embed],
+			components: createPartitionedMessageRow(components),
 		});
-		await react(m, raid.reacts);
+
+		// await react(m, raid.reacts);
 
 		const channel_ = await createChannel(guild, leaderTag.replace('#', '-'), vet, 'GUILD_TEXT');
 		await channel_.setTopic('raid');
