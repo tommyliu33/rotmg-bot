@@ -1,4 +1,4 @@
-import { CommandInteraction, MessageActionRow, MessageSelectMenu, VoiceChannel } from 'discord.js';
+import { CommandInteraction, MessageActionRow, MessageSelectMenu } from 'discord.js';
 import { Command, RaidManager } from '@struct';
 
 import { awaitComponent, inAfkChannel, inVetChannel } from '@util';
