@@ -78,28 +78,26 @@ export default class implements Command {
 			return undefined;
 		});
 
-		if (!collectedInteraction) return;
+		if (collectedInteraction) {
+			const dungeon = dungeons[dungeons.findIndex((d) => d.name === interaction.options.getString('dungeon'))];
+			const member = interaction.guild.members.cache.get(interaction.user.id);
 
-		const dungeon = dungeons[dungeons.findIndex((d) => d.name === interaction.options.getString('dungeon'))];
-		const member = interaction.guild.members.cache.get(interaction.user.id);
+			this.manager.emit('raidStart', {
+				dungeon,
+				reacts: [dungeon.portal, ...dungeon.keys.map((k) => k.emote), '❌'],
+				reacts_: [],
 
-		const data = {
-			dungeon,
-			reacts: [dungeon.portal, ...dungeon.keys.map((k) => k.emote), '❌'],
-			reacts_: [],
+				location: 'TBD',
 
-			location: 'TBD',
+				guildId: interaction.guildId,
+				channelId: interaction.channelId,
 
-			guildId: interaction.guildId,
-			channelId: interaction.channelId,
+				voiceChannelId: collectedInteraction.values[0],
 
-			voiceChannelId: collectedInteraction.values[0],
-
-			leaderId: interaction.user.id,
-			leaderName: member?.displayName,
-			leaderTag: interaction.user.tag,
-		};
-
-		this.manager.emit('raidStart', data);
+				leaderId: interaction.user.id,
+				leaderName: member?.displayName,
+				leaderTag: interaction.user.tag,
+			});
+		}
 	}
 }
