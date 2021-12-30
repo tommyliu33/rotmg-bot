@@ -5,29 +5,50 @@ export default class implements Command {
 	public name = 'logs';
 	public description = 'Displays the most recent logs for a specific action of a user';
 
-	/**
-	 * TODO:
-	 * logs view type user
-	 * logs toggle type
-	 */
 	public options = [
 		{
-			name: 'type',
-			description: 'Log type to use (stores from 5min ago)',
-			type: 3,
-			choices: [
+			name: 'view',
+			description: 'View logs for a user',
+			type: 1,
+			options: [
 				{
-					name: 'Voice state',
-					value: 'voiceState',
+					name: 'type',
+					description: 'Log type to use (stores from 5min ago)',
+					type: 3,
+					choices: [
+						{
+							name: 'Voice state (join, leave, deafen)',
+							value: 'voiceState',
+						},
+					],
+					required: true,
+				},
+				{
+					name: 'user',
+					description: 'User to target',
+					type: 6,
+					required: true,
 				},
 			],
-			required: true,
 		},
 		{
-			name: 'user',
-			description: 'User to target',
-			type: 6,
-			required: true,
+			name: 'toggle',
+			description: 'Toggle whether to store logs for an action',
+			type: 1,
+			options: [
+				{
+					name: 'type',
+					description: 'Log type to use',
+					type: 3,
+					choices: [
+						{
+							name: 'Voice state (join, leave, deafen)',
+							value: 'voiceState',
+						},
+					],
+					required: true,
+				},
+			],
 		},
 	];
 
