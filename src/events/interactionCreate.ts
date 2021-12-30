@@ -1,12 +1,14 @@
-import { Collection, Interaction, Message, MessageActionRow, MessageButton } from 'discord.js';
+import type { Interaction, TextChannel } from 'discord.js';
 import type { Command, Event, RaidManager } from '@struct';
+
+import { Collection, Message, MessageActionRow, MessageButton } from 'discord.js'; // eslint-disable-line no-duplicate-imports
 
 import { inject, injectable } from 'tsyringe';
 import { logger } from '../logger';
 import { kCommands, kRaids, kRedis } from '../tokens';
 import type { Redis } from 'ioredis';
 
-import { getGuildSetting, SettingsKey, lookup, getUserSettings, getGuild } from '@functions';
+import { getGuildSetting, SettingsKey, lookup, getUserSettings } from '@functions';
 import { MessagePrompter, isDMChannel } from '@sapphire/discord.js-utilities';
 
 import { stripIndents } from 'common-tags';
@@ -63,6 +65,7 @@ export default class implements Event {
 		}
 		// #endregion
 
+		// #region buttons
 		if (interaction.isButton()) {
 			if (interaction.inCachedGuild()) {
 				// #region verification
@@ -204,23 +207,89 @@ export default class implements Event {
 				// #endregion
 
 				// #region raiding
-				const raid = this.manager.raids.find((c) => c.controlPanelId === interaction.channelId);
+				const raid = this.manager.raids.find(
+					(c) => c.controlPanelId === interaction.channelId || c.messageId === interaction.message.id
+				);
 				if (raid) {
-					const emoji = interaction.component.emoji?.name as string;
-					switch (emoji) {
-						case '📝':
-							await interaction.editReply({ content: 'Edit location.' });
-							break;
-						case '🗺️':
-							await interaction.editReply({ content: 'Revealing location.' });
-							break;
-						case '🛑':
+					if (interaction.channelId === raid.controlPanelId) {
+						const emoji = interaction.component.emoji?.name as string;
+						if (emoji === '📝') {
+							const prompter = new MessagePrompter(
+								{
+									content: stripIndents`
+								Enter a new location for the raid.
+								You have 15 seconds to respond. Type ${inlineCode('cancel')} to exit.
+							`,
+								},
+								'message',
+								{
+									timeout: 15000,
+								}
+							);
+
+							const res = await prompter.run(interaction.channel!, interaction.user).catch(async () => {
+								await interaction.editReply({
+									content: "You didn't enter a response in time, click the button to try again.",
+								});
+								await prompter.strategy.appliedMessage?.delete();
+								return undefined;
+							});
+
+							if (!(res instanceof Message)) return;
+
+							this.manager.raids.set(`raid:${raid.guildId}:${raid.messageId}`, {
+								...raid,
+								location: res.content,
+							});
+							await prompter.strategy.appliedMessage?.delete().catch(() => undefined);
+							await interaction.editReply({ content: `Updated location to ${inlineCode(res.content)}` });
+
+							const controlPanelChannel = interaction.client.channels.cache.get(raid.controlPanelId) as TextChannel;
+							const message = controlPanelChannel.messages.cache.get(raid.controlPanelMessageId);
+
+							if (res.deletable) await res.delete().catch(() => undefined);
+
+							await message
+								?.edit({
+									embeds: [message.embeds[0].setFields({ name: 'Location', value: res.content })],
+									components: message.components,
+								})
+								.catch(() => undefined);
+						} else if (emoji === '🗺️') {
+							const afkCheckChannel = interaction.client.channels.cache.get(raid.channelId) as TextChannel;
+							const message = afkCheckChannel.messages.cache.get(raid.messageId);
+
+							const embed = new Embed()
+								.setColor(message?.embeds[0]?.color as number)
+								.setThumbnail(message?.embeds[0]?.thumbnail?.url as string)
+								.setDescription(
+									stripIndents`
+									${message?.embeds[0]?.description}
+
+									The location for this run was revealed ${inlineCode(raid.location)}
+								`
+								)
+								.setFooter({ text: raid.leaderName as string })
+								.setTitle(inlineCode(raid.dungeon.full_name))
+								.setTimestamp();
+
+							await message?.edit({
+								embeds: [embed],
+							});
+							await interaction.editReply({ content: 'Revealing location to everyone.' });
+						} else if (emoji === '🛑') {
 							await this.manager.emit('raidAbort', raid);
 							await interaction.editReply({ content: 'Aborting afk check.' });
-							break;
-						case '❌':
+						} else if (emoji === '❌') {
 							await this.manager.emit('raidEnd', raid);
 							await interaction.editReply({ content: 'Ending afk check.' });
+						}
+					}
+
+					if (interaction.channelId === raid.channelId) {
+						if (interaction.customId === 'portal') {
+							await interaction.editReply({ content: 'You successfully joined the raid.' });
+						}
 					}
 				}
 				// #endregion
@@ -307,6 +376,7 @@ export default class implements Event {
 				await interaction.editReply(responses.length ? responses.join('\n') : 'You were successfully verified.');
 			}
 		}
+		// #endregion
 		// #endregion
 	}
 }
