@@ -1,10 +1,10 @@
 import { channelMention, Embed, inlineCode, time } from '@discordjs/builders';
-import { createChannel, react, getGuildSetting, SettingsKey } from '@functions';
+import { createChannel, getGuildSetting, SettingsKey } from '@functions';
 import EventEmitter from '@tbnritzdoge/events';
 import { stripIndents } from 'common-tags';
 import { Collection } from '@discordjs/collection';
 
-import { EmojiResolvable, Message, MessageButton, Snowflake, TextChannel, VoiceChannel } from 'discord.js';
+import { EmojiResolvable, MessageButton, Snowflake, TextChannel, VoiceChannel } from 'discord.js';
 import type { Dungeon } from '../dungeons';
 
 import { inject, injectable } from 'tsyringe';
@@ -13,7 +13,8 @@ import type { Redis } from 'ioredis';
 import type { Bot } from '@struct';
 
 import { toTitleCase } from '@sapphire/utilities';
-import { EmojiRegex, createPartitionedMessageRow } from '@sapphire/discord.js-utilities';
+import { createPartitionedMessageRow } from '@sapphire/discord.js-utilities';
+import { nanoid } from 'nanoid';
 
 @injectable()
 export class RaidManager extends EventEmitter {
@@ -27,6 +28,7 @@ export class RaidManager extends EventEmitter {
 
 		this.on('raidStart', this.raidStart.bind(this));
 		this.on('raidEnd', this.raidEnd.bind(this));
+		this.on('raidAbort', this.raidAbort.bind(this));
 
 		this.on('channelStart', this.channelStart.bind(this));
 		this.on('channelOpen', this.channelOpen.bind(this));
@@ -69,8 +71,7 @@ export class RaidManager extends EventEmitter {
 				Click here to join <#${voiceChannelId}> and then click ${raid.dungeon.portal}
 				If you have a key and are willing to pop, click ${raid.dungeon.keys.map((k) => k.emote).join('')}
 				
-				To indicate class or gear choices, click on the 
-				corresponding button if available`
+				To indicate class or gear choices, click on the button`
 			)
 			.setTimestamp()
 			.setColor(color)
@@ -86,8 +87,6 @@ export class RaidManager extends EventEmitter {
 			embeds: [embed],
 			components: createPartitionedMessageRow(components),
 		});
-
-		// await react(m, raid.reacts);
 
 		const channel_ = await createChannel(guild, leaderTag.replace('#', '-'), vet, 'GUILD_TEXT');
 		await channel_.setTopic('raid');
@@ -105,15 +104,18 @@ export class RaidManager extends EventEmitter {
 			${inlineCode('End afk')} ❌
 			`
 			)
-			.addField({ name: 'Location', value: 'Not set' });
+			.addField({ name: 'Location', value: 'Not set' })
+			.setThumbnail(channel.guild.members.cache.get(raid.leaderId)?.displayAvatarURL({ dynamic: true }) as string);
+
+		const components_ = [];
+		for (const emoji of ['📝', '🗺️', '🛑', '❌']) {
+			components_.push(new MessageButton().setEmoji(emoji).setStyle('PRIMARY').setCustomId(nanoid()));
+		}
 
 		const m_ = await channel_.send({
 			embeds: [embed_],
+			components: createPartitionedMessageRow(components_),
 		});
-		await m_.react('📝');
-		await m_.react('🗺️');
-		await m_.react('🛑');
-		await m_.react('❌');
 
 		await this.raids.set(`raid:${guildId}:${m.id}`, {
 			...raid,
@@ -127,23 +129,38 @@ export class RaidManager extends EventEmitter {
 		const { channelId, voiceChannelId, messageId, dungeon, leaderName } = raid;
 
 		const textChannel = this.client.channels.cache.get(channelId) as TextChannel;
-		const msg = await textChannel.messages.fetch(messageId).catch(() => undefined);
+		const msg = textChannel.messages.cache.get(messageId);
 
-		if (msg) {
-			const voiceChannel = this.client.channels.cache.get(voiceChannelId) as VoiceChannel;
-			// @ts-ignore
-			const embed = new Embed(msg.embeds[0])
-				.setTitle('')
-				.setThumbnail('')
-				.setTimestamp()
-				.setDescription(`${inlineCode(dungeon.full_name)} raid started in ${voiceChannel.name}`)
-				.setFooter({ text: `The afk check was ended by ${leaderName as string}` });
-			await msg.edit({
-				content: ' ',
-				embeds: [embed],
-			});
-			await msg.reactions.removeAll();
-		}
+		const voiceChannel = this.client.channels.cache.get(voiceChannelId) as VoiceChannel;
+		const embed = new Embed()
+			.setColor(raid.dungeon.color)
+			.setTimestamp()
+			.setDescription(`${inlineCode(dungeon.full_name)} raid started in ${voiceChannel.name}`)
+			.setFooter({ text: `The afk check was ended by ${leaderName as string}` });
+		await msg?.edit({
+			content: ' ',
+			embeds: [embed],
+			components: [],
+		});
+	}
+
+	private async raidAbort(raid: Raid) {
+		const { channelId, voiceChannelId, messageId, dungeon, leaderName } = raid;
+
+		const textChannel = this.client.channels.cache.get(channelId) as TextChannel;
+		const msg = textChannel.messages.cache.get(messageId);
+
+		const voiceChannel = this.client.channels.cache.get(voiceChannelId) as VoiceChannel;
+		const embed = new Embed()
+			.setColor(0xC32135)
+			.setTimestamp()
+			.setDescription(`${inlineCode(dungeon.full_name)} raid was cancelled in ${voiceChannel.name}`)
+			.setFooter({ text: `The afk check was aborted by ${leaderName as string}` });
+		await msg?.edit({
+			content: ' ',
+			embeds: [embed],
+			components: [],
+		});
 	}
 	// #endregion
 
@@ -309,6 +326,7 @@ export interface Channel
 export interface RaidEvents {
 	raidStart: [raid: Omit<Raid, 'messageId' | 'controlPanelId' | 'controlPanelMessageId'>];
 	raidEnd: [raid: Raid];
+	raidAbort: [raid: Raid];
 
 	channelStart: [channel: Omit<Channel, 'messageId' | 'location'>];
 	channelClose: [channel: Channel];

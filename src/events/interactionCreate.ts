@@ -1,12 +1,12 @@
-import { Collection, Interaction, Message, MessageActionRow, MessageButton, MessageOptions } from 'discord.js';
-import type { Command, Event } from '@struct';
+import { Collection, Interaction, Message, MessageActionRow, MessageButton } from 'discord.js';
+import type { Command, Event, RaidManager } from '@struct';
 
 import { inject, injectable } from 'tsyringe';
 import { logger } from '../logger';
-import { kCommands, kRedis } from '../tokens';
+import { kCommands, kRaids, kRedis } from '../tokens';
 import type { Redis } from 'ioredis';
 
-import { getGuildSetting, SettingsKey, lookup, getUserSettings } from '@functions';
+import { getGuildSetting, SettingsKey, lookup, getUserSettings, getGuild } from '@functions';
 import { MessagePrompter, isDMChannel } from '@sapphire/discord.js-utilities';
 
 import { stripIndents } from 'common-tags';
@@ -38,12 +38,14 @@ export default class implements Event {
 
 	public constructor(
 		@inject(kCommands) public readonly commands: Map<string, Command>,
-		@inject(kRedis) public readonly redis: Redis
+		@inject(kRedis) public readonly redis: Redis,
+		@inject(kRaids) public readonly manager: RaidManager
 	) {
 		this.sessions = new Collection();
 	}
 
 	public async execute(interaction: Interaction) {
+		// #region / commands
 		if (interaction.isCommand()) {
 			const { commandName } = interaction;
 			const command = this.commands.get(commandName);
@@ -59,9 +61,11 @@ export default class implements Event {
 				}
 			}
 		}
+		// #endregion
 
 		if (interaction.isButton()) {
 			if (interaction.inCachedGuild()) {
+				// #region verification
 				await interaction.deferReply({ ephemeral: true }).catch(() => undefined);
 
 				let mainButtonId = await this.redis.get(`${interaction.guildId}:main_button_id`);
@@ -193,10 +197,36 @@ export default class implements Event {
 						return;
 					}
 
+					// TODO: add the roles and cleanup
+
 					await interaction.editReply({ content: 'you are now vet verified' });
 				}
+				// #endregion
+
+				// #region raiding
+				const raid = this.manager.raids.find((c) => c.controlPanelId === interaction.channelId);
+				if (raid) {
+					const emoji = interaction.component.emoji?.name as string;
+					switch (emoji) {
+						case '📝':
+							await interaction.editReply({ content: 'Edit location.' });
+							break;
+						case '🗺️':
+							await interaction.editReply({ content: 'Revealing location.' });
+							break;
+						case '🛑':
+							await this.manager.emit('raidAbort', raid);
+							await interaction.editReply({ content: 'Aborting afk check.' });
+							break;
+						case '❌':
+							await this.manager.emit('raidEnd', raid);
+							await interaction.editReply({ content: 'Ending afk check.' });
+					}
+				}
+				// #endregion
 			}
 
+			// #region dm verification
 			if (
 				isDMChannel(interaction.channel) &&
 				this.sessions.find((s) => [s.yesKey, s.noKey].indexOf(interaction.customId) !== -1) // eslint-disable-line @typescript-eslint/prefer-includes
@@ -277,5 +307,6 @@ export default class implements Event {
 				await interaction.editReply(responses.length ? responses.join('\n') : 'You were successfully verified.');
 			}
 		}
+		// #endregion
 	}
 }
