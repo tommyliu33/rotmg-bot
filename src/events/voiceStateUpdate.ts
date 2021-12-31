@@ -5,8 +5,7 @@ import { inject, injectable } from 'tsyringe';
 import type { Redis } from 'ioredis';
 import { kRedis } from '../tokens';
 
-import dayjs from 'dayjs';
-import { inlineCode, time } from '@discordjs/builders';
+import { time } from '@discordjs/builders';
 
 @injectable()
 export default class implements Event {
