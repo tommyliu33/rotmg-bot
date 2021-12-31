@@ -1,5 +1,5 @@
 import { channelMention, Embed, inlineCode, time } from '@discordjs/builders';
-import { createChannel, getGuildSetting, SettingsKey } from '@functions';
+import { createControlPanelChannel } from '@functions';
 import EventEmitter from '@tbnritzdoge/events';
 import { stripIndents } from 'common-tags';
 import { Collection } from '@discordjs/collection';
@@ -15,6 +15,7 @@ import type { Bot } from '@struct';
 import { toTitleCase } from '@sapphire/utilities';
 import { createPartitionedMessageRow } from '@sapphire/discord.js-utilities';
 import { nanoid } from 'nanoid';
+import { inVetChannel } from '@util';
 
 @injectable()
 export class RaidManager extends EventEmitter {
@@ -41,31 +42,27 @@ export class RaidManager extends EventEmitter {
 	private async raidStart(raid: Omit<Raid, 'messageId' | 'controlPanelId' | 'controlPanelMessageId'>): Promise<void> {
 		const { guildId, channelId, voiceChannelId, leaderName, leaderTag } = raid;
 
-		const vetChannelId = await getGuildSetting(guildId, SettingsKey.VetAfkCheck);
-
-		const guild = await this.client.guilds.fetch(guildId).catch(() => undefined);
+		const guild = this.client.guilds.cache.get(guildId);
 		if (!guild) return;
-
-		const vet = channelId === vetChannelId;
 
 		const voiceChannel = guild.channels.cache.get(voiceChannelId) as VoiceChannel;
 		const channel = guild.channels.cache.get(channelId) as TextChannel;
 
 		const { images, color, name, full_name } = raid.dungeon;
 
-		const components = [new MessageButton().setEmoji(raid.dungeon.portal).setCustomId('join').setStyle('SUCCESS')];
+		const components = [];
 		if (raid.dungeon.buttons) {
-			for (const { emote, id } of raid.dungeon.buttons) {
+			for (const { emoji, customId, style } of raid.dungeon.buttons) {
 				components.push(
 					new MessageButton()
-						.setEmoji(emote)
-						.setCustomId(id)
-						.setStyle(id === 'key' ? 'PRIMARY' : 'SECONDARY')
+						.setEmoji(emoji as string)
+						.setCustomId(customId)
+						.setStyle(style)
 				);
 			}
 		}
 
-		const embed = new Embed()
+		const afkCheckEmbed = new Embed()
 			.setDescription(
 				stripIndents`
 				Click here to join <#${voiceChannelId}> and then click ${raid.dungeon.portal}
@@ -84,14 +81,18 @@ export class RaidManager extends EventEmitter {
 			allowedMentions: {
 				parse: ['everyone'],
 			},
-			embeds: [embed],
+			embeds: [afkCheckEmbed],
 			components: createPartitionedMessageRow(components),
 		});
 
-		const channel_ = await createChannel(guild, leaderTag.replace('#', '-'), vet, 'GUILD_TEXT');
-		await channel_.setTopic('raid');
+		const controlPanelChannel = await createControlPanelChannel(
+			guild,
+			leaderTag.replace('#', '-'),
+			await inVetChannel(guildId, channelId)
+		);
+		await controlPanelChannel.setTopic('raid');
 
-		const embed_ = new Embed()
+		const controlPanelEmbed = new Embed()
 			.setTitle(`${inlineCode(leaderTag)} Control Panel`)
 			.setDescription(
 				stripIndents`
@@ -112,15 +113,15 @@ export class RaidManager extends EventEmitter {
 			components_.push(new MessageButton().setEmoji(emoji).setStyle('PRIMARY').setCustomId(nanoid()));
 		}
 
-		const m_ = await channel_.send({
-			embeds: [embed_],
+		const m_ = await controlPanelChannel.send({
+			embeds: [controlPanelEmbed],
 			components: createPartitionedMessageRow(components_),
 		});
 
 		await this.raids.set(`raid:${guildId}:${m.id}`, {
 			...raid,
 			messageId: m.id,
-			controlPanelId: channel_.id,
+			controlPanelId: controlPanelChannel.id,
 			controlPanelMessageId: m_.id,
 		});
 	}
@@ -152,7 +153,7 @@ export class RaidManager extends EventEmitter {
 
 		const voiceChannel = this.client.channels.cache.get(voiceChannelId) as VoiceChannel;
 		const embed = new Embed()
-			.setColor(0xC32135)
+			.setColor(0xc32135)
 			.setTimestamp()
 			.setDescription(`${inlineCode(dungeon.full_name)} raid was cancelled in ${voiceChannel.name}`)
 			.setFooter({ text: `The afk check was aborted by ${leaderName as string}` });
