@@ -4,6 +4,7 @@ import { Command } from '@struct';
 import { injectable, inject } from 'tsyringe';
 import { kRedis } from '../../tokens';
 import type { Redis } from 'ioredis';
+
 import { Embed } from '@discordjs/builders';
 
 @injectable()
