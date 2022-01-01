@@ -1,82 +1,85 @@
-import type { CommandInteraction, GuildMember } from "discord.js";
-import { Command } from "@struct";
+import type { CommandInteraction } from 'discord.js';
 
-import { inlineCode } from "@discordjs/builders";
+import { Command } from '@struct';
+import { generateCaseEmbed, getGuildSetting, SettingsKey } from '@functions';
+import { isTextChannel } from '@sapphire/discord.js-utilities';
 
 export default class implements Command {
-  public name = "suspend";
-  public description = "suspends a user.";
+	public name = 'suspend';
+	public description = 'suspends a user.';
 
-  public options = [
-    {
-      name: "user",
-      description: "user to suspend.",
-      type: 6,
-      required: true,
-    },
-    {
-      name: "duration",
-      description: "duration of the suspension (ex: 3d)",
-      type: 3,
-      required: true,
-    },
-    {
-      name: "reason",
-      description: "reason for the suspension",
-      type: 3,
-      required: false,
-    },
-  ];
+	public options = [
+		{
+			name: 'user',
+			description: 'user to suspend.',
+			type: 6,
+			required: true,
+		},
+		{
+			name: 'duration',
+			description: 'duration of the suspension (ex: 3d)',
+			type: 3,
+			required: true,
+		},
+		{
+			name: 'reason',
+			description: 'reason for the suspension',
+			type: 3,
+			required: false,
+		},
+	];
 
-  public async execute(interaction: CommandInteraction) {
-    await interaction.deferReply({ ephemeral: true });
+	public async execute(interaction: CommandInteraction) {
+		if (!interaction.inCachedGuild()) return;
 
-    const { guild } = interaction;
+		await interaction.deferReply({ ephemeral: true });
 
-    const user = interaction.options.getUser("user", true);
-    const target = await guild?.members.fetch(user.id).catch(() => {
-      return undefined;
-    });
+		const { guild, options } = interaction;
 
-    if (!target) {
-      await interaction.editReply({
-        content: `${inlineCode(user.tag)} is not in the server.`,
-      });
-      return;
-    }
+		const user = options.getUser('user', true);
+		const target = await guild.members.fetch(user.id).catch(() => undefined);
+		const member = await guild.members.fetch(interaction.user.id).catch(() => undefined);
 
-    if (user.bot) {
-      await interaction.editReply({ content: "Cannot suspend a bot. " });
-      return;
-    }
+		if (user.bot) {
+			await interaction.editReply({ content: 'Cannot suspend a bot.' });
+			return;
+		}
 
-    const member = await guild?.members.fetch(interaction.user.id).catch(() => {
-      return undefined;
-    });
-    if (!member) return;
+		if (guild.ownerId !== member?.user.id && member!.roles.highest.position <= target!.roles.highest.position) {
+			await interaction.editReply({ content: 'You cannot suspend this user.' });
+			return;
+		}
 
-    if (
-      guild?.ownerId !== member.user.id &&
-      member.roles.highest.position <= target.roles.highest.position
-    ) {
-      await interaction.editReply({ content: "Cannot do that." });
-      return;
-    }
+		if (guild.me!.roles.highest.position <= target!.roles.highest.position) {
+			await interaction.editReply({ content: 'I cannot suspend this user.' });
+			return;
+		}
 
-    if (guild?.me.roles.highest.position <= target.roles.highest.position) {
-      await interaction.editReply({ content: "I cannot do that. " });
-      return;
-    }
+		const duration = options.getString('duration', true);
+		const reason = options.getString('reason', false);
 
-    const duration = interaction.options.getString("duration", true);
-    const reason =
-      interaction.options.getString("reason", false) ?? "no reason provided";
+		const roleId: string = await getGuildSetting(interaction.guildId, SettingsKey.SuspendRole);
+		const role = guild.roles.cache.get(roleId);
+		if (!role) {
+			await interaction.editReply({
+				content: 'Could not find the suspended role.',
+			});
+			return;
+		}
 
-    await interaction.editReply({ content: `hello <@${user.id}>` });
+		await target?.roles.add(roleId);
 
-    const logChannelId = "";
-    guild?.channels.cache.get(logChannelId).send({
-      content: `suspending ${user.id} for ${reason} by ${interaction.user.tag}`,
-    });
-  }
+		const logChannelId = await getGuildSetting(interaction.guildId, SettingsKey.LogChannel);
+		const logChannel = guild.channels.cache.get(logChannelId);
+
+		if (isTextChannel(logChannel)) {
+			const embed = await generateCaseEmbed(member!, target!, duration, reason!);
+			await logChannel.send({
+				embeds: [embed],
+			});
+			await interaction.editReply({ content: 'Done.' });
+		}
+
+		// TODO: schedule jobs using Bree
+	}
 }
