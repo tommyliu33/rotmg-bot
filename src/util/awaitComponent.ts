@@ -21,7 +21,6 @@ export async function awaitComponent<
 	return new Promise((resolve, reject) => {
 		const collector = new InteractionCollector(client, {
 			...(options as CollectorFilter<[Interaction<'cached'>]>),
-			// @ts-ignore
 			message,
 			max: 1,
 			interactionType: Constants.InteractionTypes.MESSAGE_COMPONENT,
