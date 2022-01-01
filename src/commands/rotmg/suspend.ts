@@ -69,7 +69,7 @@ export default class implements Command {
 
 		await target?.roles.add(roleId);
 
-		const logChannelId = await getGuildSetting(interaction.guildId, SettingsKey.LogChannel);
+		const logChannelId: string = await getGuildSetting(interaction.guildId, SettingsKey.LogChannel);
 		const logChannel = guild.channels.cache.get(logChannelId);
 
 		if (isTextChannel(logChannel)) {
