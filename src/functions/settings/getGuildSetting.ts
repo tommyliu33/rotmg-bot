@@ -81,57 +81,57 @@ export async function getGuildSetting<Setting extends keyof GuildSettings>(
 ): Promise<GuildSettings[Setting]> {
 	const prisma = container.resolve<PrismaClient>(kPrisma);
 
-	const data =
-		(await prisma.guilds
-			.findFirst({
-				where: {
-					guild_id: guildId,
+	let data = await prisma.guilds
+		.findFirst({
+			where: {
+				guild_id: guildId,
+			},
+		})
+		.catch(() => undefined);
+
+	if (!data) {
+		data = await prisma.guilds.create({
+			data: {
+				guild_id: guildId,
+
+				afk_check_channel_id: '',
+				vet_afk_check_channel_id: '',
+
+				main_section_id: '',
+				veteran_section_id: '',
+
+				verified_role_id: '',
+				veteran_role_id: '',
+
+				raid_leader_role_id: '',
+				vet_raid_leader_role_id: '',
+
+				log_channel_id: '',
+				suspend_role_id: '',
+
+				main_section_voice_channel_ids: [],
+				veteran_section_voice_channel_ids: [],
+
+				main_verification_button_id: '',
+				veteran_verification_button_id: '',
+
+				main_section_requirements: {
+					private_location: false,
+					rank: 0,
 				},
-			}) ?? (await setDefaultGuildSettings(prisma, guildId));
+
+				veteran_section_requirements: {
+					o3: 0,
+					void: 0,
+					shatters: 0,
+					cult: 0,
+					nest: 0,
+					fungal: 0,
+				},
+			},
+		});
+	}
+
 	const rawKey = Reflect.get(SettingsKey, key) as Setting;
 	return Reflect.get(data, rawKey);
-}
-
-async function setDefaultGuildSettings(prisma: PrismaClient, guildId: string) {
-	const defaultSettings = {
-		guild_id: guildId,
-
-		afk_check_channel_id: '',
-		vet_afk_check_channel_id: '',
-
-		main_section_id: '',
-		veteran_section_id: '',
-
-		verified_role_id: '',
-		veteran_role_id: '',
-
-		raid_leader_role_id: '',
-		vet_raid_leader_role_id: '',
-
-		log_channel_id: '',
-		suspend_role_id: '',
-
-		main_section_voice_channel_ids: [],
-		veteran_section_voice_channel_ids: [],
-
-		main_verification_button_id: '',
-		veteran_verification_button_id: '',
-
-		main_section_requirements: {
-			private_location: false,
-			rank: 0,
-		},
-
-		veteran_section_requirements: {
-			o3: 0,
-			void: 0,
-			shatters: 0,
-			cult: 0,
-			nest: 0,
-			fungal: 0,
-		},
-	};
-
-	await prisma.guilds.create({ data: defaultSettings });
-	return defaultSettings;
 }
