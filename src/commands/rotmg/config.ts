@@ -1,7 +1,7 @@
 import { Command } from '@struct';
 import type { CommandInteraction } from 'discord.js';
 
-import { getGuildSetting, setGuildSetting, SettingsKey } from '@functions';
+import { getGuildSetting, GuildSettings, setGuildSetting } from '@functions';
 import { Embed, inlineCode, channelMention, roleMention } from '@discordjs/builders';
 
 import { inject, injectable } from 'tsyringe';
@@ -91,19 +91,19 @@ export default class implements Command {
 
 		const { guildId, options } = interaction;
 		if (options.getSubcommand() === 'view') {
-			const afkCheck = await getGuildSetting(guildId, SettingsKey.AfkCheck);
-			const vetAfkCheck = await getGuildSetting(guildId, SettingsKey.VetAfkCheck);
-			const logChannel = await getGuildSetting(guildId, SettingsKey.LogChannel);
+			const afkCheck = await getGuildSetting(guildId, 'AfkCheck');
+			const vetAfkCheck = await getGuildSetting(guildId, 'VetAfkCheck');
+			const logChannel = await getGuildSetting(guildId, 'LogChannel');
 
-			const mainSection: string = await getGuildSetting(guildId, SettingsKey.MainSection);
-			const veteranSection: string = await getGuildSetting(guildId, SettingsKey.VetSection);
+			const mainSection = await getGuildSetting(guildId, 'MainSection');
+			const veteranSection = await getGuildSetting(guildId, 'VetSection');
 
-			const suspendRole = await getGuildSetting(guildId, SettingsKey.SuspendRole);
-			const verifiedRole = await getGuildSetting(guildId, SettingsKey.MainUserRole);
-			const veteranRole = await getGuildSetting(guildId, SettingsKey.VetUserRole);
+			const suspendRole = await getGuildSetting(guildId, 'SuspendRole');
+			const verifiedRole = await getGuildSetting(guildId, 'VerifiedRole');
+			const veteranRole = await getGuildSetting(guildId, 'VeteranRole');
 
-			const raidLeaderRole = await getGuildSetting(guildId, SettingsKey.RaidLeaderRole);
-			const vetLeaderRole = await getGuildSetting(guildId, SettingsKey.VetRaidLeaderRole);
+			const raidLeaderRole = await getGuildSetting(guildId, 'RaidLeaderRole');
+			const vetLeaderRole = await getGuildSetting(guildId, 'VetRaidLeaderRole');
 
 			const embed = new Embed()
 				.setTitle(`${inlineCode(interaction.guild.name)} Config`)
@@ -126,12 +126,12 @@ export default class implements Command {
 				})
 				.addField({
 					name: inlineCode('Main section'),
-					value: mainSection ? (interaction.guild.channels.cache.get(mainSection)?.name as string) : '❌',
+					value: mainSection ? channelMention(mainSection) : '❌',
 					inline: true,
 				})
 				.addField({
 					name: inlineCode('Veteran section'),
-					value: veteranSection ? (interaction.guild.channels.cache.get(veteranSection)?.name as string) : '❌',
+					value: veteranSection ? channelMention(veteranSection) : '❌',
 					inline: true,
 				})
 				.addField({
@@ -172,41 +172,44 @@ export default class implements Command {
 			return;
 		}
 
-		let key: SettingsKey;
+		let key: keyof GuildSettings;
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < options_.length; ++i) {
 			const { name, value } = options_[i];
 			switch (name) {
 				// #region roles
 				case 'verified_role':
-					key = SettingsKey.MainUserRole;
+					key = 'VerifiedRole';
 					break;
 				case 'veteran_role':
-					key = SettingsKey.VetUserRole;
+					key = 'VeteranRole';
 					break;
 				case 'raid_leader':
-					key = SettingsKey.RaidLeaderRole;
+					key = 'RaidLeaderRole';
 					break;
 				case 'vet_raid_leader':
-					key = SettingsKey.VetRaidLeaderRole;
+					key = 'VetRaidLeaderRole';
 					break;
 				// #endregion
 				// #region sections
 				case 'main_section':
-					key = SettingsKey.MainSection;
+					key = 'MainSection';
 					break;
 				case 'veteran_section':
-					key = SettingsKey.VetSection;
+					key = 'VetSection';
 					break;
 				// #endregion
 				// #region channels
 				case 'afk_check':
-					key = SettingsKey.AfkCheck;
+					key = 'AfkCheck';
 					break;
 				case 'vet_afk_check':
-					key = SettingsKey.VetAfkCheck;
+					key = 'VetAfkCheck';
 					break;
 				// #endregion
+				case 'log_channel':
+					key = 'LogChannel';
+					break;
 			}
 			await setGuildSetting(guildId, key!, value);
 		}
