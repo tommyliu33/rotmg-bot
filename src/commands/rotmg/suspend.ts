@@ -1,7 +1,7 @@
 import type { CommandInteraction } from 'discord.js';
 
 import { Command } from '@struct';
-import { generateCaseEmbed, getGuildSetting, SettingsKey } from '@functions';
+import { generateCaseEmbed, getGuildSetting, getServerSetting, SettingsKey } from '@functions';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 
 export default class implements Command {
@@ -58,7 +58,7 @@ export default class implements Command {
 		const duration = options.getString('duration', true);
 		const reason = options.getString('reason', false);
 
-		const roleId: string = await getGuildSetting(interaction.guildId, SettingsKey.SuspendRole);
+		const roleId = await getGuildSetting(interaction.guildId, 'SuspendRole');
 		const role = guild.roles.cache.get(roleId);
 		if (!role) {
 			await interaction.editReply({
@@ -69,16 +69,16 @@ export default class implements Command {
 
 		await target?.roles.add(roleId);
 
-		const logChannelId: string = await getGuildSetting(interaction.guildId, SettingsKey.LogChannel);
-		const logChannel = guild.channels.cache.get(logChannelId);
+		const logChannelId: string = await getGuildSetting(interaction.guildId, 'LogChannel');
+		const logChannel = await guild.channels.fetch(logChannelId).catch(() => undefined);
 
-		if (isTextChannel(logChannel)) {
-			const embed = await generateCaseEmbed(member!, target!, duration, reason!);
-			await logChannel.send({
-				embeds: [embed],
-			});
-			await interaction.editReply({ content: 'Done.' });
-		}
+		if (!isTextChannel(logChannel)) return;
+
+		const embed = await generateCaseEmbed(member!, target!, duration, reason!);
+		await logChannel.send({
+			embeds: [embed],
+		});
+		await interaction.editReply({ content: 'Done.' });
 
 		// TODO: schedule jobs using Bree
 	}
