@@ -5,6 +5,8 @@ export async function createRaidChannel(guild: Guild, name: string, veteran: boo
 	const leaderId = await getGuildSetting(guild.id, 'RaidLeaderRole');
 	const parentId = await getGuildSetting(guild.id, veteran ? 'VetSection' : 'MainSection');
 
+	const roleId = await getGuildSetting(guild.id, veteran ? 'VeteranRole' : 'VerifiedRole');
+
 	const permissionOverwrites: OverwriteResolvable[] = [
 		{
 			id: guild.id,
@@ -14,6 +16,10 @@ export async function createRaidChannel(guild: Guild, name: string, veteran: boo
 		{
 			id: leaderId,
 			allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK', 'MUTE_MEMBERS', 'STREAM'],
+		},
+		{
+			id: roleId,
+			allow: 'VIEW_CHANNEL',
 		},
 	];
 
