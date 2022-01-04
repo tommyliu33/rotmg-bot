@@ -59,10 +59,6 @@ export default class implements Command {
 
 	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
-	private hasChannel(userId: string) {
-		return this.manager.channels.has(`channel:${userId}`);
-	}
-
 	public async execute(interaction: CommandInteraction) {
 		if (!interaction.inCachedGuild()) return;
 
@@ -70,7 +66,10 @@ export default class implements Command {
 
 		const subcommand = interaction.options.getSubcommand();
 
-		if (['close', 'unlock', 'lock', 'cap'].includes(subcommand) && !this.hasChannel(interaction.user.id)) {
+		if (
+			['close', 'unlock', 'lock', 'cap'].includes(subcommand) &&
+			!this.manager.channels.has(`guild:${interaction.guildId}channel:${interaction.user.id}`)
+		) {
 			await interaction.editReply({
 				content: 'Create a channel first.',
 			});
@@ -95,7 +94,7 @@ export default class implements Command {
 
 			const member = channel.guild.members.cache.get(interaction.user.id);
 
-			const channelInfo: Omit<Channel, 'messageId' | 'location'> = {
+			this.manager.emit('channelStart', {
 				name: channel.name,
 
 				guildId: interaction.guildId,
@@ -109,22 +108,26 @@ export default class implements Command {
 				roleId: roleId,
 
 				state: 'LOCKED',
-			};
-
-			this.manager.emit('channelStart', channelInfo);
+			});
 			await interaction.editReply({ content: 'Created your channel.' });
 		}
 
-		const channel = this.manager.channels.get(`channel:${interaction.user.id}`)!;
+		const channel = this.manager.channels.get(`guild:${interaction.guildId}channel:${interaction.user.id}`)!;
 		if (subcommand === 'close') {
-			this.manager.channels.set(`channel:${interaction.user.id}`, { ...channel, state: 'CLOSED' });
+			this.manager.channels.set(`guild:${interaction.guildId}channel:${interaction.user.id}`, {
+				...channel,
+				state: 'CLOSED',
+			});
 			this.manager.emit('channelClose', { ...channel, state: 'CLOSED' });
 
 			await interaction.editReply({ content: 'Closed your channel.' });
 		}
 
 		if (subcommand === 'unlock') {
-			this.manager.channels.set(`channel:${interaction.user.id}`, { ...channel, state: 'OPENED' });
+			this.manager.channels.set(`guild:${interaction.guildId}channel:${interaction.user.id}`, {
+				...channel,
+				state: 'OPENED',
+			});
 			this.manager.emit('channelOpen', { ...channel, state: 'OPENED' });
 
 			await interaction.editReply({ content: 'Opened your channel.' });
@@ -142,7 +145,7 @@ export default class implements Command {
 				...channel,
 				state: 'LOCKED',
 			});
-			this.manager.channels.set(`channel:${interaction.user.id}`, {
+			this.manager.channels.set(`guild:${interaction.guildId}channel:${interaction.user.id}`, {
 				...channel,
 				state: 'LOCKED',
 			});
@@ -150,14 +153,7 @@ export default class implements Command {
 		}
 
 		if (subcommand === 'cap') {
-			const channel = this.manager.channels.get(`channel:${interaction.user.id}`);
-			if (channel?.state === 'LOCKED') {
-				await interaction.editReply({
-					content: 'Channel is already locked.',
-				});
-				return;
-			}
-
+			const channel = this.manager.channels.get(`guild:${interaction.guildId}channel:${interaction.user.id}`);
 			this.manager.emit('channelCapUpdate', channel!, interaction.options.getInteger('cap', true));
 			await interaction.editReply({ content: 'Updated channel cap.' });
 		}
