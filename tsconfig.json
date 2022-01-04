@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "rootDir": "./src",
     "outDir": "./dist",
     "declaration": false,
@@ -21,14 +23,24 @@
     "noUnusedParameters": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "module": "commonjs",
     "esModuleInterop": true,
     "paths": {
-      "@functions": ["src/functions/index.ts"],
-      "@util": ["src/util/index.ts"],
-      "@struct": ["src/struct/index.ts"]
+      "@functions": [
+        "src/functions/index.ts"
+      ],
+      "@util": [
+        "src/util/index.ts"
+      ],
+      "@struct": [
+        "src/struct/index.ts"
+      ]
     }
   },
-  "exclude": ["./dist", "./node_modules"],
-  "include": ["./src"]
+  "exclude": [
+    "./dist",
+    "./node_modules"
+  ],
+  "include": [
+    "./src"
+  ]
 }
