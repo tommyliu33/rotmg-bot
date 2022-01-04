@@ -5,6 +5,8 @@ import { inject, injectable } from 'tsyringe';
 import { logger } from '../logger';
 import { kClient } from '../tokens';
 
+import { registerJobs, startJobs } from '../jobs/index';
+
 @injectable()
 export default class implements Event {
 	public name = 'ready';
@@ -23,5 +25,8 @@ export default class implements Event {
 				logger.info(`Updated (/) commands for ${guild.name} (${guild.id})`);
 			}
 		}
+
+		registerJobs();
+		startJobs();
 	}
 }

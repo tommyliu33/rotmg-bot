@@ -9,9 +9,10 @@ import { logger } from './logger';
 import type { Event, Command } from '@struct'; // eslint-disable-line no-duplicate-imports
 
 import readdirp from 'readdirp';
+import Bree from 'bree';
 
 import { container } from 'tsyringe';
-import { kClient, kCommands, kPrisma, kRedis, kRaids } from './tokens';
+import { kClient, kCommands, kPrisma, kRedis, kRaids, kBree } from './tokens';
 
 import Redis from 'ioredis';
 
@@ -20,7 +21,10 @@ const client = new Bot();
 const prisma = new PrismaClient();
 const commands = new Map<string, Command>();
 
+const bree = new Bree({ root: false, logger });
+
 container.register(kRedis, { useValue: redis });
+container.register(kBree, { useValue: bree });
 container.register(kClient, { useValue: client });
 container.register(kCommands, { useValue: commands });
 
