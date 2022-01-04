@@ -1,5 +1,5 @@
 import type { CommandInteraction } from 'discord.js';
-import { Command, Channel, RaidManager } from '../../struct';
+import { Command, RaidManager } from '../../struct';
 
 import { inAfkChannel, inVetChannel } from '../../util';
 import { createRaidChannel, getGuildSetting } from '../../functions';
@@ -154,7 +154,7 @@ export default class implements Command {
 
 		if (subcommand === 'cap') {
 			const channel = this.manager.channels.get(`guild:${interaction.guildId}channel:${interaction.user.id}`);
-			this.manager.emit('channelCapUpdate', channel!, interaction.options.getInteger('cap', true));
+			this.manager.emit('channelCapUpdate', channel!, interaction.options.getInteger('limit', true));
 			await interaction.editReply({ content: 'Updated channel cap.' });
 		}
 	}

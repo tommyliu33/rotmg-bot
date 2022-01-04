@@ -1,15 +1,16 @@
-import type { Event } from '../struct';
+import type { Event } from '../../struct';
 import type { VoiceState } from 'discord.js';
 
 import { inject, injectable } from 'tsyringe';
 import type { Redis } from 'ioredis';
-import { kRedis } from '../tokens';
+import { kRedis } from '../../tokens';
 
 import { time } from '@discordjs/builders';
 
 @injectable()
 export default class implements Event {
 	public name = 'voiceStateUpdate';
+	public emitter = 'client';
 
 	public constructor(@inject(kRedis) public readonly redis: Redis) {}
 
