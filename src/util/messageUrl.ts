@@ -1,4 +1,2 @@
-import type { Snowflake } from 'discord.js';
-
-export const messageUrl = (guildId: Snowflake, channelId: Snowflake, messageId: Snowflake) =>
+export const messageUrl = (guildId: string, channelId: string, messageId: string) =>
 	`https://discord.com/channels/${guildId}/${channelId}/${messageId}`;

@@ -1,14 +1,14 @@
 import { CommandInteraction, MessageActionRow, MessageSelectMenu } from 'discord.js';
-import { Command, RaidManager } from '@struct';
+import { Command, RaidManager } from '../../struct';
 
-import { awaitComponent, inAfkChannel, inVetChannel } from '@util';
+import { awaitComponent, inAfkChannel, inVetChannel } from '../../util';
 import { dungeons } from '../../dungeons';
 
 import { kRaids } from '../../tokens';
 import { inject, injectable } from 'tsyringe';
 
 import { nanoid } from 'nanoid';
-import { getGuildSetting, SettingsKey } from '@functions';
+import { getGuildSetting } from '../../functions';
 
 @injectable()
 export default class implements Command {
@@ -36,14 +36,14 @@ export default class implements Command {
 	public async execute(interaction: CommandInteraction) {
 		if (!interaction.inCachedGuild()) return;
 
-		await inAfkChannel(interaction);
+		await inAfkChannel(interaction.guildId, interaction.channelId);
 
 		const m = await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
 		const vet = await inVetChannel(interaction.guildId, interaction.channelId);
-		let channelIds: string[] = await getGuildSetting(interaction.guildId, SettingsKey.MainSectionVoiceChannels);
+		let channelIds = await getGuildSetting(interaction.guildId, 'MainSectionVoiceChannels');
 		if (vet) {
-			channelIds = (await getGuildSetting(interaction.guildId, SettingsKey.VetSectionVoiceChannels)) as string[];
+			channelIds = await getGuildSetting(interaction.guildId, 'VetSectionVoiceChannels');
 		}
 
 		// @ts-ignore

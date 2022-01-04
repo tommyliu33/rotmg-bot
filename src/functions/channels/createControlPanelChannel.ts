@@ -1,21 +1,21 @@
 import type { Guild, OverwriteResolvable, TextChannel } from 'discord.js';
-import { getGuildSetting, SettingsKey } from '../settings/getGuildSetting';
+import { getGuildSetting } from '../';
 
 export async function createControlPanelChannel(guild: Guild, name: string, veteran: boolean): Promise<TextChannel> {
 	const guildId = guild.id;
 
-	const parentId = await getGuildSetting(guildId, veteran ? SettingsKey.VetSection : SettingsKey.MainSection);
+	const parentId = await getGuildSetting(guildId, veteran ? 'VetSection' : 'MainSection');
 
 	const permissionOverwrites: OverwriteResolvable[] = [];
 
-	const leaderRoleId = await getGuildSetting(guildId, SettingsKey.RaidLeaderRole);
+	const leaderRoleId = await getGuildSetting(guildId, 'RaidLeaderRole');
 	permissionOverwrites.push({
 		id: leaderRoleId,
 		allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES'],
 	});
 
 	if (veteran) {
-		const vetLeaderRoleId = await getGuildSetting(guildId, SettingsKey.VetRaidLeaderRole);
+		const vetLeaderRoleId = await getGuildSetting(guildId, 'VetRaidLeaderRole');
 		permissionOverwrites.push({
 			id: vetLeaderRoleId,
 			allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES'],

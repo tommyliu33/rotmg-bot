@@ -1,23 +1,23 @@
-import { getGuildSetting, SettingsKey } from "@functions";
-import type { Bot } from "../struct/Bot";
-import type { TextChannel } from "discord.js";
-import { container } from "tsyringe";
-import { kClient } from "../tokens";
+import { container } from 'tsyringe';
+import { kClient } from '../tokens';
+
+import { getGuildSetting } from '../functions';
+import { isTextChannel } from '@sapphire/discord.js-utilities';
+
+import type { Bot } from '../struct/Bot';
 
 export async function getLogChannel(guildId: string) {
-  const client = container.resolve<Bot>(kClient);
+	const client = container.resolve<Bot>(kClient);
 
-  const guild = await client.guilds.fetch(guildId);
-  const channelId = await getGuildSetting(guildId, SettingsKey.LogChannel);
+	const guild = await client.guilds.fetch(guildId).catch(() => undefined);
+	if (!guild) return;
 
-  try {
-    const return_ = await guild.channels.fetch(channelId);
-    if (return_ instanceof Map) {
-      return null;
-    }
+	const logChannelId = await getGuildSetting(guildId, 'LogChannel');
 
-    return return_ as TextChannel;
-  } catch {
-    return null;
-  }
+	const logChannel = await guild.channels.fetch(logChannelId).catch(() => undefined);
+	if (isTextChannel(logChannel)) {
+		return logChannel;
+	}
+
+	return null;
 }

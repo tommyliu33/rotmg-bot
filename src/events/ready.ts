@@ -1,8 +1,9 @@
-import { Bot, Event } from '@struct';
+import { Bot, Event } from '../struct';
 
-import { getInteractions } from '@util';
-import { inject, injectable } from 'tsyringe';
+import { getInteractions } from '../util';
 import { logger } from '../logger';
+
+import { inject, injectable } from 'tsyringe';
 import { kClient } from '../tokens';
 
 import { registerJobs, startJobs } from '../jobs/index';

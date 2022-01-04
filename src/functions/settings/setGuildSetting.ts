@@ -1,31 +1,33 @@
-import { PrismaClient } from ".prisma/client";
-import { set } from "dot-prop";
-import { container } from "tsyringe";
-import { kPrisma } from "../../tokens";
-import { SettingsKey } from "./getGuildSetting";
+import { container } from 'tsyringe';
+import { kPrisma } from '../../tokens';
 
-import type { Snowflake } from "discord.js";
+import { GuildSettings, SettingsKey } from './getGuildSetting';
 
-export async function setGuildSetting(
-  guildId: Snowflake,
-  key: SettingsKey,
-  value: any
-) {
-  const prisma = container.resolve<PrismaClient>(kPrisma);
-  const data = await prisma.guilds.findFirst({
-    where: {
-      id_: guildId,
-    },
-  });
+import type { PrismaClient } from '@prisma/client';
 
-  const { id, ...data_ } = data!;
+export async function setGuildSetting<Setting extends keyof GuildSettings>(guildId: string, key: Setting, value: any) {
+	const prisma = container.resolve<PrismaClient>(kPrisma);
+	const data = await prisma.guilds.findFirst({
+		where: {
+			guild_id: guildId,
+		},
+	});
 
-  await prisma.guilds.update({
-    where: {
-      id,
-    },
-    data: {
-      ...set(data_, key, value),
-    },
-  });
+	if (!data) return;
+
+	const rawKey = Reflect.get(SettingsKey, key) as Setting;
+
+	const selectOptions = {};
+	Reflect.set(selectOptions, rawKey, true);
+
+	const dataOption = {};
+	Reflect.set(dataOption, rawKey, value);
+
+	await prisma.guilds.update({
+		where: {
+			id: data.id,
+		},
+		select: selectOptions,
+		data: dataOption,
+	});
 }

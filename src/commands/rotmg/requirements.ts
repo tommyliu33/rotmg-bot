@@ -1,7 +1,7 @@
 import type { CommandInteraction } from 'discord.js';
-import { Command } from '@struct';
+import { Command } from '../../struct';
 
-import { updateGuildSetting, SettingsKey } from '@functions';
+import { setGuildSetting, SettingsKey } from '../../functions';
 
 export default class implements Command {
 	public name = 'requirements';
@@ -87,8 +87,11 @@ export default class implements Command {
 			const options = interaction.options.data.filter((o) => ['private_location', 'rank'].includes(o.name));
 			const keys = [SettingsKey.PrivateLocation, SettingsKey.Rank];
 
+			// TODO: this doesnt work yet but will fix later
+
 			// eslint-disable-next-line @typescript-eslint/prefer-for-of
-			for (let i = 0; i < options.length; ++i) await updateGuildSetting(interaction.guildId, keys[i], options[i].value);
+			// @ts-expect-error
+			for (let i = 0; i < options.length; ++i) await setGuildSetting(interaction.guildId, keys[i], options[i].value);
 		}
 
 		await interaction.reply('hello world');

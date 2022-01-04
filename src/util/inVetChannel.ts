@@ -1,15 +1,15 @@
-import type { Snowflake } from 'discord-api-types/v9';
-import type { PrismaClient } from '@prisma/client';
-
 import { container } from 'tsyringe';
 import { kPrisma } from '../tokens';
 
-export async function inVetChannel(guildId: Snowflake, channelId: Snowflake): Promise<boolean> {
+import type { PrismaClient } from '@prisma/client';
+
+// TODO: this does nothing lol
+export async function inVetChannel(guildId: string, channelId: string): Promise<boolean> {
 	const prisma = container.resolve<PrismaClient>(kPrisma);
 
 	const data = await prisma.guilds.findFirst({
 		where: {
-			id_: guildId,
+			guild_id: guildId,
 		},
 		select: {
 			veteran_section_voice_channel_ids: true,

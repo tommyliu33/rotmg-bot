@@ -1,9 +1,9 @@
 import { container } from 'tsyringe';
 import { kPrisma } from '../../tokens';
 
-import type { PrismaClient } from '@prisma/client';
+import type { guilds, PrismaClient } from '@prisma/client';
 
-enum SettingsKey {
+export enum SettingsKey {
 	GuildId = 'guild_id',
 
 	AfkCheck = 'afk_check_channel_id',
@@ -36,9 +36,12 @@ enum SettingsKey {
 	CultistHideout = 'cult',
 	TheNest = 'nest',
 	FungalCavern = 'fungal',
+
+	All = 'all',
+	Cases = 'cases',
 }
 
-interface GuildSettings {
+export interface GuildSettings {
 	GuildId: string;
 
 	AfkCheck: string;
@@ -73,6 +76,20 @@ interface GuildSettings {
 
 	MainVerificationButton: string;
 	VeteranVerificationButton: string;
+
+	Cases: {
+		guild_id: string; // id of the guild where case occured
+		channel_id: string; // id of the channel where command was ran
+		user_id: string; // id of the user to suspend
+		mod_id: string; // id of the staff member
+		log_channel_id: string; // id of the channel to send logs in
+		reason: string; // reason for the case
+		case_id: string; // case #5255
+		date: Date; // date when the case was created
+		duration: number; // duration in ms of the case
+	}[];
+
+	All: guilds;
 }
 
 export async function getGuildSetting<Setting extends keyof GuildSettings>(
@@ -128,10 +145,16 @@ export async function getGuildSetting<Setting extends keyof GuildSettings>(
 					nest: 0,
 					fungal: 0,
 				},
+
+				cases: [],
 			},
 		});
 	}
 
 	const rawKey = Reflect.get(SettingsKey, key) as Setting;
+	if (key === 'All') {
+		return data as unknown as Promise<GuildSettings[Setting]>;
+	}
+
 	return Reflect.get(data, rawKey);
 }

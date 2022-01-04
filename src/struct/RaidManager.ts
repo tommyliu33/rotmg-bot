@@ -1,5 +1,5 @@
 import { channelMention, Embed, inlineCode, time } from '@discordjs/builders';
-import { createControlPanelChannel } from '@functions';
+import { createControlPanelChannel } from '../functions';
 import EventEmitter from '@tbnritzdoge/events';
 import { stripIndents } from 'common-tags';
 import { Collection } from '@discordjs/collection';
@@ -10,12 +10,12 @@ import type { Dungeon } from '../dungeons';
 import { inject, injectable } from 'tsyringe';
 import { kClient, kRedis } from '../tokens';
 import type { Redis } from 'ioredis';
-import type { Bot } from '@struct';
+import type { Bot } from './Bot';
 
 import { toTitleCase } from '@sapphire/utilities';
 import { createPartitionedMessageRow } from '@sapphire/discord.js-utilities';
 import { nanoid } from 'nanoid';
-import { inVetChannel } from '@util';
+import { inVetChannel } from '../util/';
 
 @injectable()
 export class RaidManager extends EventEmitter {

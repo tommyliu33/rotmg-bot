@@ -1,10 +1,10 @@
 import type { CommandInteraction } from 'discord.js';
-import { Command } from '@struct';
+import { Command } from '../../struct';
 
 import { MessageActionRow, MessageButton } from 'discord.js'; // eslint-disable-line no-duplicate-imports
 import { nanoid } from 'nanoid';
 
-import { getGuildSetting, updateGuildSetting, SettingsKey } from '@functions';
+import { getGuildSetting, setGuildSetting } from '../../functions';
 import { Embed, inlineCode, codeBlock } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 
@@ -41,22 +41,15 @@ export default class implements Command {
 		const requirements: string[] = [];
 
 		if (section === 'main') {
-			const privateLocation = await getGuildSetting(interaction.guildId, SettingsKey.PrivateLocation);
-			const rank: number = await getGuildSetting(interaction.guildId, SettingsKey.Rank);
+			const req = await getGuildSetting(interaction.guildId, 'MainSectionRequirements');
 
-			if (privateLocation) requirements.push('- Private location');
-			if (rank !== 0) requirements.push(`- ${rank} stars`);
+			if (req.private_location) requirements.push('- Private location');
+			if (req.rank !== 0) requirements.push(`- ${req.rank} stars`);
 		}
 
 		if (section === 'veteran') {
-			const required: number[] = [
-				await getGuildSetting(interaction.guildId, SettingsKey.OryxSanctuary),
-				await getGuildSetting(interaction.guildId, SettingsKey.TheVoid),
-				await getGuildSetting(interaction.guildId, SettingsKey.TheShatters),
-				await getGuildSetting(interaction.guildId, SettingsKey.CultistHideout),
-				await getGuildSetting(interaction.guildId, SettingsKey.TheNest),
-				await getGuildSetting(interaction.guildId, SettingsKey.FungalCavern),
-			];
+			const req = await getGuildSetting(interaction.guildId, 'VeteranSectionRequirements');
+			const required = Object.values(req);
 
 			const dungeons = ['Oryx Sanctuary', 'The Void', 'The Shatters', 'Cultist Hideout', 'The Nest', 'Fungal Cavern'];
 
@@ -74,9 +67,9 @@ export default class implements Command {
 		`);
 
 		const buttonId = nanoid();
-		await updateGuildSetting(
+		await setGuildSetting(
 			interaction.guildId,
-			section === 'veteran' ? SettingsKey.VeteranVerificationButton : SettingsKey.MainVerificationButton,
+			section === 'veteran' ? 'VeteranVerificationButton' : 'MainVerificationButton',
 			buttonId
 		);
 

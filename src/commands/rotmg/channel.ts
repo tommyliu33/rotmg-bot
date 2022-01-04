@@ -1,8 +1,8 @@
 import type { CommandInteraction } from 'discord.js';
-import { Command, Channel, RaidManager } from '@struct';
+import { Command, Channel, RaidManager } from '../../struct';
 
-import { inAfkChannel, inVetChannel } from '@util';
-import { createRaidChannel, getGuildSetting, SettingsKey } from '@functions';
+import { inAfkChannel, inVetChannel } from '../../util';
+import { createRaidChannel, getGuildSetting } from '../../functions';
 
 import { inject, injectable } from 'tsyringe';
 import { kRaids } from '../../tokens';
@@ -78,7 +78,7 @@ export default class implements Command {
 		}
 
 		if (subcommand === 'create') {
-			await inAfkChannel(interaction);
+			await inAfkChannel(interaction.guildId, interaction.channelId);
 
 			if (this.manager.channels.has(`channel:${interaction.user.id}`)) {
 				await interaction.editReply({
@@ -88,10 +88,7 @@ export default class implements Command {
 			}
 
 			const veteran = await inVetChannel(interaction.guildId, interaction.channelId);
-			const roleId = await getGuildSetting(
-				interaction.guildId,
-				veteran ? SettingsKey.VetUserRole : SettingsKey.MainUserRole
-			);
+			const roleId = await getGuildSetting(interaction.guildId, veteran ? 'VeteranRole' : 'VerifiedRole');
 
 			const channelName = interaction.options.getString('name', true).substring(0, 100);
 			const channel = await createRaidChannel(interaction.guild, channelName, veteran)!;

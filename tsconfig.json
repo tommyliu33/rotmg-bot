@@ -24,17 +24,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
-    "paths": {
-      "@functions": [
-        "src/functions/index.ts"
-      ],
-      "@util": [
-        "src/util/index.ts"
-      ],
-      "@struct": [
-        "src/struct/index.ts"
-      ]
-    }
   },
   "exclude": [
     "./dist",

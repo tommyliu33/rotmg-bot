@@ -1,12 +1,10 @@
 import 'reflect-metadata';
-
 import 'dotenv/config';
-import 'module-alias/register';
 
 import { Bot, RaidManager } from './struct';
-import { PrismaClient } from '@prisma/client';
+import Prisma from '@prisma/client';
 import { logger } from './logger';
-import type { Event, Command } from '@struct'; // eslint-disable-line no-duplicate-imports
+import type { Event, Command } from './struct'; // eslint-disable-line no-duplicate-imports
 
 import readdirp from 'readdirp';
 import Bree from 'bree';
@@ -16,9 +14,15 @@ import { kClient, kCommands, kPrisma, kRedis, kRaids, kBree } from './tokens';
 
 import Redis from 'ioredis';
 
+const prisma = new Prisma.PrismaClient();
+void prisma.$connect().then(() => {
+	container.register(kPrisma, { useValue: prisma });
+	logger.info('Connected to database');
+});
+
 const redis = new Redis(process.env.REDIS_HOST);
 const client = new Bot();
-const prisma = new PrismaClient();
+
 const commands = new Map<string, Command>();
 
 const bree = new Bree({ root: false, logger });
@@ -29,9 +33,6 @@ container.register(kClient, { useValue: client });
 container.register(kCommands, { useValue: commands });
 
 async function init() {
-	await prisma.$connect();
-	container.register(kPrisma, { useValue: prisma });
-
 	container.register(kRaids, {
 		useValue: container.resolve<RaidManager>(RaidManager),
 	});

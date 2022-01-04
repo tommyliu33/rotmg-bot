@@ -1,8 +1,6 @@
 // settings
-export * from './settings/getGuild';
 export * from './settings/getGuildSetting';
 export * from './settings/setGuildSetting';
-export * from './settings/updateGuildSetting';
 
 export * from './settings/getUserSettings';
 
@@ -16,7 +14,6 @@ export * from './channels/createRaidChannel';
 export * from './channels/createControlPanelChannel';
 
 // tbd
-export * from './createChannel';
 export * from './prompt';
 export * from './getLogChannel';
 

@@ -1,5 +1,5 @@
 import type { Interaction, TextChannel } from 'discord.js';
-import type { Command, Event, RaidManager } from '@struct';
+import type { Command, Event, RaidManager } from '../struct';
 
 import { Collection, Message, MessageActionRow, MessageButton } from 'discord.js'; // eslint-disable-line no-duplicate-imports
 
@@ -8,12 +8,12 @@ import { logger } from '../logger';
 import { kCommands, kRaids, kRedis } from '../tokens';
 import type { Redis } from 'ioredis';
 
-import { getGuildSetting, SettingsKey, lookup, getUserSettings } from '@functions';
+import { getGuildSetting, lookup, getUserSettings } from '../functions';
 import { MessagePrompter, isDMChannel } from '@sapphire/discord.js-utilities';
 
 import { stripIndents } from 'common-tags';
 import { Embed, inlineCode, hyperlink, codeBlock } from '@discordjs/builders';
-import { profileUrl } from '@util';
+import { profileUrl } from '../util';
 import { nanoid } from 'nanoid';
 
 interface VerificationSession {
@@ -75,13 +75,13 @@ export default class implements Event {
 				let vetButtonId = await this.redis.get(`${interaction.guildId}:vet_button_id`);
 
 				if (!mainButtonId) {
-					mainButtonId = await getGuildSetting(interaction.guildId, SettingsKey.MainVerificationButton);
-					await this.redis.setex(`${interaction.guildId}:main_button_id`, 3.6e6, mainButtonId!);
+					mainButtonId = await getGuildSetting(interaction.guildId, 'MainVerificationButton');
+					await this.redis.setex(`${interaction.guildId}:main_button_id`, 3.6e6, mainButtonId);
 				}
 
 				if (!vetButtonId) {
-					vetButtonId = await getGuildSetting(interaction.guildId, SettingsKey.VeteranVerificationButton);
-					await this.redis.setex(`${interaction.guildId}:vet_button_id`, 3.6e6, vetButtonId!);
+					vetButtonId = await getGuildSetting(interaction.guildId, 'VeteranVerificationButton');
+					await this.redis.setex(`${interaction.guildId}:vet_button_id`, 3.6e6, vetButtonId);
 				}
 
 				if (interaction.customId === mainButtonId) {
@@ -164,14 +164,8 @@ export default class implements Event {
 				}
 
 				if (interaction.customId === vetButtonId) {
-					const requiredCompletes: number[] = [
-						await getGuildSetting(interaction.guildId, SettingsKey.OryxSanctuary),
-						await getGuildSetting(interaction.guildId, SettingsKey.TheVoid),
-						await getGuildSetting(interaction.guildId, SettingsKey.TheShatters),
-						await getGuildSetting(interaction.guildId, SettingsKey.CultistHideout),
-						await getGuildSetting(interaction.guildId, SettingsKey.TheNest),
-						await getGuildSetting(interaction.guildId, SettingsKey.FungalCavern),
-					];
+					const req = await getGuildSetting(interaction.guildId, 'VeteranSectionRequirements');
+					const requiredCompletes = Object.values(req);
 
 					const data = await getUserSettings(interaction.user.id);
 					const loggedCompletes: number[] = Reflect.get(data.stats, interaction.guildId);
@@ -322,7 +316,7 @@ export default class implements Event {
 					return;
 				}
 
-				const roleId: string = await getGuildSetting(session.guildId, SettingsKey.MainUserRole);
+				const roleId: string = await getGuildSetting(session.guildId, 'VerifiedRole');
 
 				if (!(res.desc1 + res.desc2 + res.desc3).includes(session.code)) {
 					const yesButton = new MessageButton().setCustomId(session.yesKey).setLabel('Done').setStyle('PRIMARY');
@@ -350,15 +344,16 @@ export default class implements Event {
 					return;
 				}
 
-				const privateLocation = await getGuildSetting(session.guildId, SettingsKey.PrivateLocation);
-				if (privateLocation && res.player_last_seen !== 'hidden') {
+				const requirements = await getGuildSetting(session.guildId, 'MainSectionRequirements');
+				if (requirements.private_location && res.player_last_seen !== 'hidden') {
 					await interaction.editReply({ content: 'You must private your last seen location before continuing.' });
 					return;
 				}
 
-				const rank: number = await getGuildSetting(session.guildId, SettingsKey.Rank);
-				if (rank !== -1 && res.rank < rank) {
-					await interaction.editReply({ content: `The server requires you to have minimum ${rank} stars.` });
+				if (requirements.rank !== -1 && res.rank < requirements.rank) {
+					await interaction.editReply({
+						content: `The server requires you to have minimum ${requirements.rank} stars.`,
+					});
 					return;
 				}
 

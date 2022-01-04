@@ -1,7 +1,7 @@
 import type { CommandInteraction } from 'discord.js';
 
-import { Command } from '@struct';
-import { generateCaseEmbed, getGuildSetting, getServerSetting, SettingsKey } from '@functions';
+import { Command } from '../../struct';
+import { generateCaseEmbed, getGuildSetting } from '../../functions';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 
 export default class implements Command {
@@ -67,9 +67,11 @@ export default class implements Command {
 			return;
 		}
 
-		await target?.roles.add(roleId);
+		await target?.roles.add(roleId).catch(async () => {
+			await interaction.editReply({ content: 'I was unable to add the role for this user.' });
+		});
 
-		const logChannelId: string = await getGuildSetting(interaction.guildId, 'LogChannel');
+		const logChannelId = await getGuildSetting(interaction.guildId, 'LogChannel');
 		const logChannel = await guild.channels.fetch(logChannelId).catch(() => undefined);
 
 		if (!isTextChannel(logChannel)) return;
@@ -79,7 +81,5 @@ export default class implements Command {
 			embeds: [embed],
 		});
 		await interaction.editReply({ content: 'Done.' });
-
-		// TODO: schedule jobs using Bree
 	}
 }

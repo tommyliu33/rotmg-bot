@@ -1,9 +1,9 @@
 import type { Guild, OverwriteResolvable, VoiceChannel } from 'discord.js';
-import { getGuildSetting, SettingsKey } from '../settings/getGuildSetting';
+import { getGuildSetting } from '../settings/getGuildSetting';
 
 export async function createRaidChannel(guild: Guild, name: string, veteran: boolean): Promise<VoiceChannel> {
-	const leaderId = await getGuildSetting(guild.id, SettingsKey.RaidLeaderRole);
-	const parentId = await getGuildSetting(guild.id, veteran ? SettingsKey.VetSection : SettingsKey.MainSection);
+	const leaderId = await getGuildSetting(guild.id, 'RaidLeaderRole');
+	const parentId = await getGuildSetting(guild.id, veteran ? 'VetSection' : 'MainSection');
 
 	const permissionOverwrites: OverwriteResolvable[] = [
 		{

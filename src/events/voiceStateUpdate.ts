@@ -1,4 +1,4 @@
-import type { Event } from '@struct';
+import type { Event } from '../struct';
 import type { VoiceState } from 'discord.js';
 
 import { inject, injectable } from 'tsyringe';

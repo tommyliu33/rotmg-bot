@@ -1,7 +1,7 @@
-import { Command } from '@struct';
+import { Command } from '../../struct';
 import type { CommandInteraction } from 'discord.js';
 
-import { getGuildSetting, GuildSettings, setGuildSetting } from '@functions';
+import { getGuildSetting, GuildSettings, setGuildSetting } from '../../functions';
 import { Embed, inlineCode, channelMention, roleMention } from '@discordjs/builders';
 
 import { inject, injectable } from 'tsyringe';
@@ -91,6 +91,9 @@ export default class implements Command {
 
 		const { guildId, options } = interaction;
 		if (options.getSubcommand() === 'view') {
+			const all = await getGuildSetting(guildId, 'All');
+			console.log(all);
+
 			const afkCheck = await getGuildSetting(guildId, 'AfkCheck');
 			const vetAfkCheck = await getGuildSetting(guildId, 'VetAfkCheck');
 			const logChannel = await getGuildSetting(guildId, 'LogChannel');
@@ -173,9 +176,12 @@ export default class implements Command {
 		}
 
 		let key: keyof GuildSettings;
+
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < options_.length; ++i) {
 			const { name, value } = options_[i];
+			console.log('name', name);
+
 			switch (name) {
 				// #region roles
 				case 'verified_role':
@@ -189,6 +195,9 @@ export default class implements Command {
 					break;
 				case 'vet_raid_leader':
 					key = 'VetRaidLeaderRole';
+					break;
+				case 'suspend_role':
+					key = 'SuspendRole';
 					break;
 				// #endregion
 				// #region sections

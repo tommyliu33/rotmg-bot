@@ -1,6 +1,7 @@
 import type { CategoryChannel, CommandInteraction } from 'discord.js';
-import { Command } from '@struct';
-import { getGuildSetting, SettingsKey } from '@functions';
+
+import { Command } from '../../struct';
+import { getGuildSetting } from '../../functions';
 
 import { setTimeout } from 'timers/promises';
 
@@ -43,10 +44,11 @@ export default class implements Command {
 		if (subcommand === 'voice') {
 			const section = interaction.options.getString('section', true);
 
-			let key = SettingsKey.MainSection;
-			if (section === 'veteran') key = SettingsKey.VetSection;
+			const sectionId = await getGuildSetting(
+				interaction.guildId,
+				section === 'veteran' ? 'VetSection' : 'MainSection'
+			);
 
-			const sectionId = await getGuildSetting(interaction.guildId, key);
 			if (!sectionId) {
 				await interaction.editReply({
 					content: `Set the ${section} section before running this command.`,

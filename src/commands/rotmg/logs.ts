@@ -1,5 +1,5 @@
 import type { CommandInteraction } from 'discord.js';
-import { Command } from '@struct';
+import { Command } from '../../struct';
 
 import { injectable, inject } from 'tsyringe';
 import { kRedis } from '../../tokens';
