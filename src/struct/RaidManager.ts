@@ -1,16 +1,15 @@
-import { channelMention, Embed, inlineCode, time } from '@discordjs/builders';
+import { channelMention, Embed, inlineCode } from '@discordjs/builders';
 import { createControlPanelChannel } from '../functions';
 import EventEmitter from '@tbnritzdoge/events';
 import { stripIndents } from 'common-tags';
 import { Collection } from '@discordjs/collection';
 
-import { EmojiResolvable, MessageButton, Snowflake, TextChannel, VoiceChannel } from 'discord.js';
+import { Client, EmojiResolvable, MessageButton, Snowflake, TextChannel, VoiceChannel } from 'discord.js';
 import type { Dungeon } from '../dungeons';
 
 import { inject, injectable } from 'tsyringe';
 import { kClient, kRedis } from '../tokens';
 import type { Redis } from 'ioredis';
-import type { Bot } from './Bot';
 
 import { toTitleCase } from '@sapphire/utilities';
 import { createPartitionedMessageRow } from '@sapphire/discord.js-utilities';
@@ -19,23 +18,18 @@ import { inVetChannel } from '../util/';
 
 @injectable()
 export class RaidManager extends EventEmitter {
+	public readonly headcounts: Collection<string, Headcount>;
 	public readonly raids: Collection<string, Raid>;
 	public readonly channels: Collection<string, Channel>;
-	public constructor(@inject(kRedis) public readonly redis: Redis, @inject(kClient) public readonly client: Bot) {
+	public constructor(
+		@inject(kRedis) public readonly redis: Redis,
+		@inject(kClient) public readonly client: Client<true>
+	) {
 		super();
 
+		this.headcounts = new Collection();
 		this.raids = new Collection();
 		this.channels = new Collection();
-
-		this.on('raidStart', this.raidStart.bind(this));
-		this.on('raidEnd', this.raidEnd.bind(this));
-		this.on('raidAbort', this.raidAbort.bind(this));
-
-		this.on('channelStart', this.channelStart.bind(this));
-		this.on('channelOpen', this.channelOpen.bind(this));
-		this.on('channelClose', this.channelClose.bind(this));
-		this.on('channelLocked', this.channelLocked.bind(this));
-		this.on('channelCapUpdate', this.channelCapUpdate.bind(this));
 	}
 
 	// #region Afk check
@@ -94,6 +88,7 @@ export class RaidManager extends EventEmitter {
 
 		const controlPanelEmbed = new Embed()
 			.setTitle(`${inlineCode(leaderTag)} Control Panel`)
+			.setFooter({ text: 'Headcount' })
 			.setDescription(
 				stripIndents`
 			${inlineCode('Dungeon')} ${raid.dungeon.full_name}
@@ -118,7 +113,7 @@ export class RaidManager extends EventEmitter {
 			components: createPartitionedMessageRow(components_),
 		});
 
-		await this.raids.set(`raid:${guildId}:${m.id}`, {
+		this.raids.set(`raid:${guildId}:${m.id}`, {
 			...raid,
 			messageId: m.id,
 			controlPanelId: controlPanelChannel.id,
@@ -164,122 +159,6 @@ export class RaidManager extends EventEmitter {
 		});
 	}
 	// #endregion
-
-	// #region Channels
-	private async channelStart(channel: Omit<Channel, 'messageId'>) {
-		const { name, channelId, leaderId } = channel;
-
-		const channel_ = this.client.channels.cache.get(channelId) as TextChannel;
-
-		const m = await channel_.send({
-			content: stripIndents`
-        @here ${inlineCode(name)} is now starting.`,
-			allowedMentions: {
-				parse: ['everyone'],
-			},
-			embeds: [
-				new Embed()
-					.setColor(0xfee75c)
-					.setTitle(inlineCode(name))
-					.setDescription('Please wait for the channel to unlock.'),
-			],
-		});
-
-		await this.channels.set(`channel:${leaderId}`, {
-			...channel,
-			messageId: m.id,
-		});
-	}
-
-	private async channelClose(channel: Channel) {
-		const { guildId, leaderId, channelId, voiceChannelId, messageId, name } = channel;
-		await this.channels.delete(`channel:${leaderId}`);
-
-		const guild = this.client.guilds.cache.get(guildId);
-
-		const voiceChannel = guild?.channels.cache.get(voiceChannelId);
-		if (voiceChannel) {
-			await voiceChannel.delete();
-		}
-
-		const textChannel = guild?.channels.cache.get(channelId) as TextChannel;
-		const message = textChannel.messages.cache.get(messageId);
-
-		await message?.edit({
-			content: ' ',
-			embeds: [
-				new Embed()
-					.setColor(0x992d22)
-					.setTitle(inlineCode(name))
-					.setDescription(`Channel closed ${time(new Date(), 'R')}`),
-			],
-		});
-	}
-
-	private async channelOpen(channel: Channel) {
-		const { name, channelId, voiceChannelId, messageId, roleId } = channel;
-
-		const voiceChannel = this.client.channels.cache.get(voiceChannelId) as VoiceChannel;
-
-		await voiceChannel.permissionOverwrites.edit(roleId, {
-			CONNECT: true,
-		});
-
-		const textChannel = this.client.channels.cache.get(channelId) as TextChannel;
-
-		const m = await textChannel.send({
-			content: `@here ${inlineCode(name)} has opened (re-ping)`,
-			allowedMentions: {
-				parse: ['everyone'],
-			},
-		});
-
-		await m.delete().catch(() => undefined);
-
-		const msg = textChannel.messages.cache.get(messageId);
-		await msg?.edit({
-			content: ' ',
-			embeds: [
-				new Embed()
-					.setColor(0x57f287)
-					.setTitle(inlineCode(name))
-					.setDescription(`Channel opened ${time(new Date(), 'R')}`),
-			],
-		});
-	}
-
-	private async channelLocked(channel: Channel) {
-		const { name, channelId, voiceChannelId, messageId, roleId } = channel;
-
-		const voiceChannel = this.client.channels.cache.get(voiceChannelId) as VoiceChannel;
-
-		const textChannel = this.client.channels.cache.get(channelId) as TextChannel;
-
-		await voiceChannel.permissionOverwrites.edit(roleId, {
-			CONNECT: false,
-		});
-
-		const msg = textChannel.messages.cache.get(messageId);
-
-		await msg?.edit({
-			content: ' ',
-			embeds: [
-				new Embed()
-					.setColor(0xed4245)
-					.setTitle(inlineCode(name))
-					.setDescription(`Channel locked ${time(new Date(), 'R')}`),
-			],
-		});
-	}
-
-	private async channelCapUpdate(channel: Channel, cap: number) {
-		const { voiceChannelId } = channel;
-
-		const voiceChannel = this.client.channels.cache.get(voiceChannelId) as VoiceChannel;
-
-		await voiceChannel.setUserLimit(cap);
-	}
-	// #endregion
 }
 
 export interface Raid {
@@ -308,7 +187,7 @@ export interface Raid {
 	messageId: Snowflake; // the afk check msg id
 
 	leaderId: Snowflake;
-	leaderName?: string;
+	leaderName: string;
 	leaderTag: string;
 }
 
@@ -324,12 +203,28 @@ export interface Channel
 	state: 'LOCKED' | 'CLOSED' | 'OPENED';
 }
 
+// TODO: refactor: use partials from above
+export interface Headcount {
+	dungeon: Dungeon;
+	channelId: string;
+	guildId: string;
+	leaderId: string;
+	leaderName: string;
+	leaderTag: string;
+	messageId: string;
+	controlPanelId: string;
+	controlPanelMessageId: string;
+}
+
 export interface RaidEvents {
+	headcount: [raid: Pick<Raid, 'dungeon' | 'channelId' | 'guildId' | 'leaderId' | 'leaderTag' | 'leaderName'>];
+
 	raidStart: [raid: Omit<Raid, 'messageId' | 'controlPanelId' | 'controlPanelMessageId'>];
 	raidEnd: [raid: Raid];
 	raidAbort: [raid: Raid];
 
 	channelStart: [channel: Omit<Channel, 'messageId' | 'location'>];
+	channelDelete: [channel: Channel];
 	channelClose: [channel: Channel];
 	channelLocked: [channel: Channel];
 	channelOpen: [channel: Channel];
