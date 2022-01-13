@@ -13,7 +13,7 @@ import { getGuildSetting } from '../../functions';
 @injectable()
 export default class implements Command {
 	public name = 'afkcheck';
-	public description = 'Starts an afk check';
+	public description = 'Start an afk check';
 	public options = [
 		{
 			name: 'dungeon',
@@ -49,6 +49,7 @@ export default class implements Command {
 		// @ts-ignore
 		const selectMenuOptions: [{ label: string; value: string }] = [];
 
+		// TODO: refactor voice channel selection
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < channelIds.length; ++i) {
 			const channel = await interaction.guild.channels.fetch(channelIds[i]);
@@ -80,23 +81,18 @@ export default class implements Command {
 
 		if (collectedInteraction) {
 			const dungeon = dungeons[dungeons.findIndex((d) => d.name === interaction.options.getString('dungeon'))];
-			const member = interaction.guild.members.cache.get(interaction.user.id);
 
+			// empty values will be filled by the event
 			this.manager.emit('raidStart', {
 				dungeon,
-				reacts: [dungeon.portal, ...dungeon.keys.map((k) => k.emote), '❌'],
-				reacts_: [],
-
-				location: 'TBD',
-
 				guildId: interaction.guildId,
 				channelId: interaction.channelId,
-
-				voiceChannelId: collectedInteraction.values[0],
-
 				leaderId: interaction.user.id,
-				leaderName: member?.displayName,
-				leaderTag: interaction.user.tag,
+				voiceChannelId: collectedInteraction.values[0],
+				location: '',
+				messageId: '',
+				controlPanelId: '',
+				controlPanelMessageId: '',
 			});
 		}
 	}

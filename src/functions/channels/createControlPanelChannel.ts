@@ -22,6 +22,8 @@ export async function createControlPanelChannel(guild: Guild, name: string, vete
 		});
 	}
 
+	if (name.includes('#')) name = name.replace('#', '-');
+
 	const channel = await guild.channels
 		.create(name, {
 			type: 'GUILD_TEXT',

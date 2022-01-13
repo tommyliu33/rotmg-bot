@@ -1,5 +1,6 @@
 import { Client, Options } from 'discord.js';
 
+// TODO: refactor to main
 export class Bot extends Client {
 	public constructor() {
 		super({

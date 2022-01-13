@@ -1,7 +1,10 @@
+import type { InteractionButtonOptions } from 'discord.js';
+
+// TODO: refactor
 enum Reacts {
-	WARRIOR = '<:Warrior:886328165088231494>',
-	PALADIN = '<:Paladin:886328165172129852>',
-	KNIGHT = '<:Knight:886328165142790204>',
+	WARRIOR = '<:Warrior:930900284413194240>',
+	PALADIN = '<:Paladin:930900392110358579>',
+	KNIGHT = '<:Knight:930900421084606565>',
 	WIZARD = '<:Wizard:886328165126008852>',
 	MYSTIC = '<:Mystic:886331698147635240>',
 	TRICKSTER = '<:Trickster:886331697858228226>',
@@ -9,10 +12,12 @@ enum Reacts {
 	FUNGAL_TOME = '<:TomeOfTheMushroomTribes:886328344126300221>',
 	MARBLE_SEAL = '<:MarbleSeal:886328165054697562>',
 
-	SLOW = '<:Slow:886331698101510206>',
+	SLOW = '<:Slow:930900333859840002>',
 	ARMOR_BREAK = '<:ArmorBreak:886328650562162740>',
 	DAZE = '<:QuiverOfThunder:887925455783600148>',
 }
+
+type Button = InteractionButtonOptions & { confirm?: boolean };
 
 export interface Dungeon {
 	name: string;
@@ -32,12 +37,7 @@ export interface Dungeon {
 	color: number;
 	images: string[];
 
-	buttons?: {
-		id: string;
-		emote: string;
-		text?: string;
-		confirm?: boolean;
-	}[];
+	buttons?: Button[][];
 }
 
 interface DungeonReacts {
@@ -90,24 +90,56 @@ const dungeons: Dungeon[] = [
 		],
 
 		buttons: [
-			{
-				id: 'key',
-				emote: '887532668181422122',
-				confirm: true,
-			},
-			{
-				id: 'rusher',
-				emote: '895458059894284319',
-			},
-			{
-				id: 'puzzle',
-				emote: '908439164087840819',
-			},
-			{
-				id: 'fungal_tome',
-				emote: '886328344126300221',
-				confirm: true,
-			},
+			[
+				{
+					customId: 'portal',
+					emoji: '<:ShattersPortal:887532566977069138>',
+					style: 'PRIMARY',
+				},
+				{
+					customId: 'key',
+					emoji: '<:ShattersKey:887532668181422122>',
+					style: 'PRIMARY',
+					confirm: true,
+				},
+				{
+					customId: 'rusher',
+					style: 'SECONDARY',
+					emoji: '<:ShattersRusher:895458059894284319>',
+				},
+				{
+					customId: 'puzzle',
+					style: 'SECONDARY',
+					emoji: '<:LightsOutPuzzle:908439164087840819>',
+				},
+			],
+			[
+				{
+					customId: 'warrior',
+					style: 'SECONDARY',
+					emoji: Reacts.WARRIOR,
+				},
+				{
+					customId: 'knight',
+					style: 'SECONDARY',
+					emoji: Reacts.KNIGHT,
+				},
+				{
+					customId: 'paladin',
+					style: 'SECONDARY',
+					emoji: Reacts.PALADIN,
+				},
+				{
+					customId: 'fungal_tome',
+					emoji: Reacts.FUNGAL_TOME,
+					style: 'SECONDARY',
+				},
+				{
+					customId: 'slow',
+					emoji: Reacts.SLOW,
+					style: 'SECONDARY',
+				},
+			],
 		],
 
 		rusher: {
