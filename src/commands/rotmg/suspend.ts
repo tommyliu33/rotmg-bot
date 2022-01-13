@@ -1,8 +1,9 @@
 import type { CommandInteraction } from 'discord.js';
 
-import { Command } from '../../struct';
-import { generateCaseEmbed, getGuildSetting } from '../../functions';
+import type { Command } from '../../struct';
+import { CaseType, createCase, generateCaseEmbed, getGuildSetting } from '../../functions';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
+import { Duration } from '@sapphire/time-utilities';
 
 export default class implements Command {
 	public name = 'suspend';
@@ -11,19 +12,19 @@ export default class implements Command {
 	public options = [
 		{
 			name: 'user',
-			description: 'user to suspend.',
+			description: 'User to suspend',
 			type: 6,
 			required: true,
 		},
 		{
 			name: 'duration',
-			description: 'duration of the suspension (ex: 3d)',
+			description: 'Duration of the suspension (ex: 3d)',
 			type: 3,
 			required: true,
 		},
 		{
 			name: 'reason',
-			description: 'reason for the suspension',
+			description: 'Reason for the suspension',
 			type: 3,
 			required: false,
 		},
@@ -56,6 +57,10 @@ export default class implements Command {
 		}
 
 		const duration = options.getString('duration', true);
+		if (isNaN(new Duration(duration).fromNow.getTime())) {
+			await interaction.editReply({ content: 'Invalid suspension duration.' });
+			return;
+		}
 		const reason = options.getString('reason', false);
 
 		const roleId = await getGuildSetting(interaction.guildId, 'SuspendRole');
@@ -74,12 +79,29 @@ export default class implements Command {
 		const logChannelId = await getGuildSetting(interaction.guildId, 'LogChannel');
 		const logChannel = await guild.channels.fetch(logChannelId).catch(() => undefined);
 
-		if (!isTextChannel(logChannel)) return;
+		if (isTextChannel(logChannel)) {
+			// TODO: function to create cases and save them in mongo
+			const embed = await generateCaseEmbed(member!, target!, duration, reason!);
+			await logChannel.send({
+				embeds: [embed],
+			});
+		}
 
-		const embed = await generateCaseEmbed(member!, target!, duration, reason!);
-		await logChannel.send({
-			embeds: [embed],
+		await createCase(interaction.guildId, {
+			action: CaseType.Suspension,
+			actionProcessed: false,
+
+			date: Date.now(),
+			duration,
+
+			guildId: interaction.guildId,
+			userId: target!.user.id,
+			moderatorId: interaction.user.id,
+
+			logChannelId,
+			reason: reason ?? 'No reason provided',
 		});
+
 		await interaction.editReply({ content: 'Done.' });
 	}
 }

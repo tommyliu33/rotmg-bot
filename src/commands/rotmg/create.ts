@@ -1,6 +1,6 @@
 import type { CategoryChannel, CommandInteraction } from 'discord.js';
 
-import { Command } from '../../struct';
+import type { Command } from '../../struct';
 import { getGuildSetting } from '../../functions';
 
 import { setTimeout } from 'timers/promises';

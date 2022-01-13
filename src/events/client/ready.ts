@@ -1,4 +1,5 @@
-import { Bot, Event } from '../../struct';
+import type { Event } from '../../struct';
+import type { Client } from 'discord.js';
 
 import { getInteractions } from '../../util';
 import { logger } from '../../logger';
@@ -14,15 +15,15 @@ export default class implements Event {
 
 	public emitter = 'client';
 
-	public constructor(@inject(kClient) public readonly client: Bot) {}
+	public constructor(@inject(kClient) public readonly client: Client<true>) {}
 
 	public async execute() {
 		if (process.argv.includes('--update')) {
-			const app = await this.client.application?.fetch();
+			const app = await this.client.application.fetch();
 			const guilds = await this.client.guilds.fetch();
 
 			for (const guild of guilds.values()) {
-				await app?.commands.set(getInteractions(), guild.id);
+				await app.commands.set(getInteractions(), guild.id);
 
 				logger.info(`Updated (/) commands for ${guild.name} (${guild.id})`);
 			}

@@ -1,4 +1,4 @@
-import { Command } from '../../struct';
+import type { Command } from '../../struct';
 import type { CommandInteraction } from 'discord.js';
 
 import { getGuildSetting, GuildSettings, setGuildSetting } from '../../functions';
@@ -91,9 +91,6 @@ export default class implements Command {
 
 		const { guildId, options } = interaction;
 		if (options.getSubcommand() === 'view') {
-			const all = await getGuildSetting(guildId, 'All');
-			console.log(all);
-
 			const afkCheck = await getGuildSetting(guildId, 'AfkCheck');
 			const vetAfkCheck = await getGuildSetting(guildId, 'VetAfkCheck');
 			const logChannel = await getGuildSetting(guildId, 'LogChannel');

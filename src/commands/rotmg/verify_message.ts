@@ -1,5 +1,5 @@
 import type { CommandInteraction } from 'discord.js';
-import { Command } from '../../struct';
+import type { Command } from '../../struct';
 
 import { MessageActionRow, MessageButton } from 'discord.js'; // eslint-disable-line no-duplicate-imports
 import { nanoid } from 'nanoid';

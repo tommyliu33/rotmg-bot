@@ -1,5 +1,5 @@
 import type { CommandInteraction } from 'discord.js';
-import { Command } from '../../struct';
+import type { Command } from '../../struct';
 
 import { setGuildSetting, SettingsKey } from '../../functions';
 

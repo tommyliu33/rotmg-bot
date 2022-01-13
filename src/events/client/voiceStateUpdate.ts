@@ -41,7 +41,7 @@ export default class implements Event {
 		}
 
 		if (!oldState.channel && newState.channel) {
-			logs.push(`${time_} ${member?.user.tag as string} joined  ${newState.channel.name}`);
+			logs.push(`${time_} ${member?.user.tag as string} joined ${newState.channel.name}`);
 			await this.redis.setex(key, 300000, logs.join('\n'));
 		}
 
