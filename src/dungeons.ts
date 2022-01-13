@@ -17,7 +17,7 @@ enum Reacts {
 	DAZE = '<:QuiverOfThunder:887925455783600148>',
 }
 
-type Button = InteractionButtonOptions & { confirm?: boolean };
+export type Button = InteractionButtonOptions & { confirm?: boolean };
 
 export interface Dungeon {
 	name: string;
@@ -34,10 +34,9 @@ export interface Dungeon {
 		what: string;
 	};
 
-	color: number;
 	images: string[];
 
-	buttons?: Button[][];
+	buttons: Button[][];
 }
 
 interface DungeonReacts {
@@ -147,7 +146,6 @@ const dungeons: Dungeon[] = [
 			what: 'monuments',
 		},
 
-		color: 0x4e4e4e,
 		images: [
 			'https://i.imgur.com/vatlKfa.png',
 			'https://i.imgur.com/bnKFZjt.png',
@@ -192,8 +190,9 @@ const dungeons: Dungeon[] = [
 			what: 'pot rooms',
 		},
 
-		color: 0xe74c3c,
 		images: ['https://i.imgur.com/nPkovWR.png'],
+
+		buttons: [],
 	},
 
 	{
@@ -237,8 +236,9 @@ const dungeons: Dungeon[] = [
 			},
 		],
 
-		color: 0xe27425,
 		images: ['https://i.imgur.com/hUWc3IV.png'],
+
+		buttons: [],
 	},
 
 	{
@@ -307,8 +307,9 @@ const dungeons: Dungeon[] = [
 			},
 		],
 
-		color: 0x8ac26e,
 		images: ['https://i.imgur.com/K6rOQzR.png'],
+
+		buttons: [],
 	},
 
 	{
@@ -362,8 +363,9 @@ const dungeons: Dungeon[] = [
 			},
 		],
 
-		color: 0x13044f,
 		images: ['https://i.imgur.com/7JGSvMq.png'],
+
+		buttons: [],
 	},
 
 	{
@@ -442,8 +444,9 @@ const dungeons: Dungeon[] = [
 			},
 		],
 
-		color: 0xf1c40f,
 		images: ['https://i.imgur.com/3Biywi7.png', 'https://i.imgur.com/DSVqdZo.png'],
+
+		buttons: [],
 	},
 ];
 

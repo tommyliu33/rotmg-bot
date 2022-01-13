@@ -33,6 +33,7 @@ export default class implements Command {
 	public async execute(interaction: CommandInteraction) {
 		if (!interaction.inCachedGuild()) return;
 
+		// TODO: in afk check channel only
 		await interaction.deferReply();
 
 		const dungeon = dungeons[dungeons.findIndex((d) => d.name === interaction.options.getString('dungeon'))];

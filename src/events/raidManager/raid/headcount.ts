@@ -13,14 +13,16 @@ import { injectable, inject } from 'tsyringe';
 import { kClient, kRaids } from '../../../tokens';
 
 import { createControlPanelChannel } from '../../../functions';
-import { arrayRandom, awaitComponent, getVoiceChannels, inVetChannel } from '../../../util';
+import { awaitComponent, getVoiceChannels, inVetChannel, chunkButtons } from '../../../util';
 
-import { Embed, inlineCode, formatEmoji } from '@discordjs/builders';
+import { Embed, inlineCode } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 import { nanoid } from 'nanoid';
-import { zws } from '../../../constants';
+import { Buttons, Embeds, zws } from '../../../constants';
 
 import { setTimeout } from 'node:timers';
+
+// TODO: headcounts should have reactions logged in the control panel
 
 @injectable()
 export default class implements Event {
@@ -59,56 +61,28 @@ export default class implements Event {
 				.setThumbnail(member?.displayAvatarURL({ dynamic: true }) as string)
 				.setFooter({ text: 'Headcount' });
 
-			if (dungeon.buttons) {
-				for (const row of dungeon.buttons) {
-					controlPanelEmbed.addField({
-						name: zws,
-						value: row.reduce((string, button) => `${string}${button.emoji as string}|0\n`, ''),
-						inline: true,
-					});
-				}
-			}
+			dungeon.buttons.reduce<{ name: string; value: string; inline: boolean }[]>((fields, row) => {
+				fields.push({
+					name: zws,
+					value: row.reduce((string, button) => `${string}${button.emoji as string}|0\n`, ''),
+					inline: true,
+				});
+				return fields;
+			}, []);
 
-			const row = new MessageActionRow().addComponents(
-				new MessageButton().setStyle('PRIMARY').setEmoji('✅').setCustomId(nanoid()),
-				new MessageButton().setStyle('PRIMARY').setEmoji('🛑').setCustomId(nanoid())
-			);
+			const cpMsg = await controlPanel.send({
+				embeds: [controlPanelEmbed],
+				components: [Buttons.headCountButtons],
+			});
 
-			const cpMsg = await controlPanel.send({ embeds: [controlPanelEmbed], components: [row] });
-
-			const headCountEmbed = new Embed()
-				.setTimestamp()
-				.setColor(dungeon.color)
-				.setThumbnail(arrayRandom(dungeon.images))
-				.setTitle(inlineCode(dungeon.full_name))
-				.setDescription(
-					stripIndents`
-				Click ${formatEmoji(dungeon.buttons?.[0][0].emoji as string)} if you want to participate in this run 
-				Click ${formatEmoji(dungeon.buttons?.[0][1].emoji as string)} if you are willing to pop a key for this run
-
-				Otherwise, click on the corresponding button for 
-				class/gear choices that you are bringing
-				`
-				);
-
-			const afkCheckComponents: MessageActionRow[] = [];
-			if (dungeon.buttons) {
-				for (let i = 0; i < dungeon.buttons.length; ++i) {
-					if (!afkCheckComponents[i]) afkCheckComponents.push(new MessageActionRow());
-					// eslint-disable-next-line @typescript-eslint/prefer-for-of
-					for (let j = 0; j < dungeon.buttons[i].length; ++j) {
-						if (afkCheckComponents[i].components.length >= 5) afkCheckComponents.push(new MessageActionRow());
-						const lastRow = afkCheckComponents[afkCheckComponents.length - 1];
-						lastRow.addComponents(new MessageButton(dungeon.buttons[i][j]));
-					}
-				}
-			}
+			// TODO: add for other dungeons
+			const embed = Embeds['Headcount'].Shatters;
 
 			const afkCheckChannel = guild.channels.cache.get(channelId) as TextChannel;
 			const afkCheckMsg = await afkCheckChannel.send({
 				content: `@here Headcount for ${inlineCode(dungeon.full_name)} started by ${member?.displayName as string}`,
-				embeds: [headCountEmbed],
-				components: afkCheckComponents,
+				components: chunkButtons(dungeon.buttons),
+				embeds: [embed],
 				allowedMentions: {
 					parse: ['everyone'],
 				},
@@ -223,7 +197,7 @@ export default class implements Event {
 				const message = controlPanelChannel.messages.cache.get(controlPanelMessageId);
 
 				const embed = new MessageEmbed(message?.embeds[0]);
-				const clickedButton = dungeon.buttons?.flat().find((button) => button.customId === interaction.customId);
+				const clickedButton = dungeon.buttons.flat().find((button) => button.customId === interaction.customId);
 				if (clickedButton) {
 					let targettedFieldIndex = -1;
 
