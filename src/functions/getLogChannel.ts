@@ -4,10 +4,10 @@ import { kClient } from '../tokens';
 import { getGuildSetting } from '../functions';
 import { isTextChannel } from '@sapphire/discord.js-utilities';
 
-import type { Bot } from '../struct/Bot';
+import type { Client } from 'discord.js';
 
 export async function getLogChannel(guildId: string) {
-	const client = container.resolve<Bot>(kClient);
+	const client = container.resolve<Client<true>>(kClient);
 
 	const guild = await client.guilds.fetch(guildId).catch(() => undefined);
 	if (!guild) return;

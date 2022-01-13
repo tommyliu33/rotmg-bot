@@ -1,6 +1,6 @@
 import type { PrismaClient } from '.prisma/client';
 import type { Snowflake } from 'discord-api-types';
-import type { Bot } from '../../struct/Bot';
+import type { Client } from 'discord.js';
 
 import { container } from 'tsyringe';
 import { kClient, kPrisma } from '../../tokens';
@@ -8,7 +8,7 @@ import { getGuildSetting } from '../';
 
 // TODO: Cleanup
 export async function verify(guildId: Snowflake, userId: Snowflake, name: string) {
-	const client = container.resolve<Bot>(kClient);
+	const client = container.resolve<Client<true>>(kClient);
 	const prisma = container.resolve<PrismaClient>(kPrisma);
 
 	const guild = await client.guilds.fetch(guildId)!;
