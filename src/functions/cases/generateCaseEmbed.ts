@@ -4,11 +4,27 @@ import { stripIndents } from 'common-tags';
 
 import type { GuildMember } from 'discord.js';
 
+export enum CaseType {
+	Suspension,
+	SuspensionEnd,
+
+	Timeout,
+	TimeoutEnd,
+
+	Warn,
+
+	Kick,
+
+	Ban,
+	Unban,
+}
+
+// TODO: adapt for other^ case types
 export function generateCaseEmbed(staff: GuildMember, target: GuildMember, length: string, reason?: string) {
 	return new Embed()
 		.setColor(0x992d22)
 		.setAuthor({
-			name: staff.user.tag,
+			name: `${staff.user.tag} (${staff.user.id})`,
 			iconURL: staff.user.displayAvatarURL({ dynamic: true }),
 		})
 		.setDescription(

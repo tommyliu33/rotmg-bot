@@ -17,5 +17,7 @@ export * from './channels/createControlPanelChannel';
 export * from './prompt';
 export * from './getLogChannel';
 
-// moderation
+// cases
+export * from './cases/createCase';
 export * from './cases/generateCaseEmbed';
+export * from './cases/transformCase';

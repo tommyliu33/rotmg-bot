@@ -11,20 +11,14 @@ datasource db {
 model guilds {
   id                                String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
   afk_check_channel_id              String
-  cult                              Int
-  fungal                            Int
-  id_                               String   @map("id")
+  cases                             Json[]
+  guild_id                          String
   log_channel_id                    String
   main_section_id                   String
   main_section_requirements         Json
   main_section_voice_channel_ids    String[]
   main_verification_button_id       String
-  nest                              Int
-  o3                                Int
-  private_location                  Boolean
   raid_leader_role_id               String
-  rank                              BigInt
-  shatters                          Int
   suspend_role_id                   String
   verified_role_id                  String
   vet_afk_check_channel_id          String
@@ -34,13 +28,12 @@ model guilds {
   veteran_section_requirements      Json
   veteran_section_voice_channel_ids String[]
   veteran_verification_button_id    String
-  void                              Int
 }
 
 model users {
   id              String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
   id_             String   @map("id")
   names           String[]
-  stats           Json?
+  stats           Json
   verified_guilds String[]
 }
