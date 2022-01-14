@@ -1,18 +1,20 @@
-import type { Event, Headcount, Raid, RaidManager } from '../../../struct';
+import type { Event, Headcount, Raid, RaidManager } from '../../struct';
 import { Client, MessageActionRow, MessageButton, TextChannel } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';
-import { kClient, kRaids } from '../../../tokens';
+import { kClient, kRaids } from '../../tokens';
 
-import { createControlPanelChannel } from '../../../functions';
-import { arrayRandom, inVetChannel } from '../../../util';
+import { createControlPanelChannel } from '../../functions';
+import { inVetChannel } from '../../util';
 
 import { Embed, inlineCode, channelMention } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 
 import { toTitleCase } from '@sapphire/utilities';
 
-import { Buttons } from '../../../constants';
+import { Buttons, Embeds } from '../../constants';
+
+const dungeonNameIndex = ['oryx', 'shatters', 'void', 'fungal', 'nest', 'cult'];
 
 @injectable()
 export default class implements Event {
@@ -26,44 +28,33 @@ export default class implements Event {
 
 	public execute() {
 		this.manager.on('raidStart', async (raid: Raid | Headcount) => {
-			const isRaid = raid.location.length === 0 ? true : false;
+			const isRaid = 'location' in raid;
+
+			const guild = this.client.guilds.cache.get(raid.guildId);
+			const member = guild?.members.cache.get(raid.leaderId);
 
 			if (isRaid) {
 				raid = raid as Raid;
 
 				const { dungeon, channelId } = raid;
 
-				const afkCheckEmbed = new Embed()
-					.setTimestamp()
-					.setColor(dungeon.color)
-					.setThumbnail(arrayRandom(dungeon.images))
-					.setTitle(inlineCode(dungeon.full_name))
-					.setDescription(
-						stripIndents`
-			Click ${dungeon.buttons?.[0][0].emoji as string} if you want to participate in this run 
-			Click ${dungeon.buttons?.[0][1].emoji as string} if you are willing to pop a key for this run
-
-			Otherwise, click on the corresponding button for 
-			class/gear choices that you are bringing
-			`
-					);
+				const afkCheckEmbed = Embeds.AfkCheck[dungeonNameIndex.indexOf(dungeon.name)].setTitle(
+					`AFK Check started by ${member?.displayName as string}`
+				);
 
 				const afkCheckComponents: MessageActionRow[] = [];
-				if (dungeon.buttons) {
-					for (let i = 0; i < dungeon.buttons.length; ++i) {
-						if (!afkCheckComponents[i]) afkCheckComponents.push(new MessageActionRow());
-						// eslint-disable-next-line @typescript-eslint/prefer-for-of
-						for (let j = 0; j < dungeon.buttons[i].length; ++j) {
-							if (afkCheckComponents[i].components.length >= 5) afkCheckComponents.push(new MessageActionRow());
-							const lastRow = afkCheckComponents[afkCheckComponents.length - 1];
-							lastRow.addComponents(new MessageButton(dungeon.buttons[i][j]));
-						}
+
+				for (let i = 0; i < dungeon.buttons.length; ++i) {
+					if (!afkCheckComponents[i]) afkCheckComponents.push(new MessageActionRow());
+					// eslint-disable-next-line @typescript-eslint/prefer-for-of
+					for (let j = 0; j < dungeon.buttons[i].length; ++j) {
+						if (afkCheckComponents[i].components.length >= 5) afkCheckComponents.push(new MessageActionRow());
+						const lastRow = afkCheckComponents[afkCheckComponents.length - 1];
+						lastRow.addComponents(new MessageButton(dungeon.buttons[i][j]));
 					}
 				}
 
-				const guild = this.client.guilds.cache.get(raid.guildId);
 				const afkCheckChannel = guild?.channels.cache.get(raid.channelId) as TextChannel;
-				const member = guild?.members.cache.get(raid.leaderId);
 
 				const afkCheckMsg = await afkCheckChannel.send({
 					content: `@here ${member?.displayName as string} has started a ${toTitleCase(
@@ -81,17 +72,16 @@ export default class implements Event {
 					member?.user.tag as string,
 					await inVetChannel(raid.guildId, channelId)
 				);
-				await controlPanelChannel.setTopic('raid');
 
 				const controlPanelEmbed = new Embed()
 					.setTitle(`${inlineCode(member?.user.tag as string)} Control Panel`)
 					.setFooter({ text: 'Afkcheck' })
 					.setDescription(
 						stripIndents`
-					${inlineCode('Dungeon')} ${raid.dungeon.full_name}
+					${inlineCode('Dungeon')} ${raid.dungeon.fullName}
 					${inlineCode('Voice channel')} ${channelMention(raid.voiceChannelId)}
-		
-					${inlineCode('Edit location')} 📝 
+
+					${inlineCode('Edit location')} 📝
 					${inlineCode('Reveal location')} 🗺️
 
 					${inlineCode('Abort afk')} 🛑
@@ -132,8 +122,14 @@ export default class implements Event {
 				const pingMessage = `@here ${member?.displayName as string} has started a ${toTitleCase(
 					dungeon.name
 				)} raid in ${channelMention(voiceChannelId)}.`;
+
+				const embed = Embeds.AfkCheck[dungeonNameIndex.indexOf(dungeon.name)].setTitle(
+					`Afk Check started by ${member?.displayName as string}`
+				);
+
 				await message?.edit({
 					content: pingMessage,
+					embeds: [embed],
 					allowedMentions: {
 						parse: ['everyone'],
 					},
@@ -158,7 +154,7 @@ export default class implements Event {
 						controlPanelEmbed
 							.setDescription(
 								stripIndents`
-					${inlineCode('Dungeon')} ${dungeon.full_name}
+					${inlineCode('Dungeon')} ${dungeon.fullName}
 					${inlineCode('Voice channel')} ${channelMention(voiceChannelId)}
 		
 					${inlineCode('Edit location')} 📝 

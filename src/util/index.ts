@@ -6,3 +6,4 @@ export * from './messageUrl';
 export * from './profileUrl';
 export * from './arrayRandom';
 export * from './getVoiceChannels';
+export * from './chunkButtons';

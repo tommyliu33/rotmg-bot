@@ -1,22 +1,20 @@
-import { Interaction, MessageSelectMenu, TextChannel } from 'discord.js';
-import type { Command, Event, RaidManager } from '../../struct';
+import type { Interaction, TextChannel } from 'discord.js';
+import type { Command, Event, RaidManager } from '../struct';
 
 import { Collection, Message, MessageActionRow, MessageButton } from 'discord.js'; // eslint-disable-line no-duplicate-imports
 
 import { inject, injectable } from 'tsyringe';
-import { logger } from '../../logger';
-import { kCommands, kRaids, kRedis } from '../../tokens';
+import { logger } from '../logger';
+import { kCommands, kRaids, kRedis } from '../tokens';
 import type { Redis } from 'ioredis';
 
-import { getGuildSetting, lookup, getUserSettings } from '../../functions';
-import { MessagePrompter, isDMChannel, isTextChannel } from '@sapphire/discord.js-utilities';
+import { getGuildSetting, lookup, getUserSettings } from '../functions';
+import { MessagePrompter, isDMChannel } from '@sapphire/discord.js-utilities';
 
 import { stripIndents } from 'common-tags';
 import { Embed, inlineCode, hyperlink, codeBlock } from '@discordjs/builders';
-import { awaitComponent, getVoiceChannels, inVetChannel, profileUrl } from '../../util';
+import { profileUrl } from '../util';
 import { nanoid } from 'nanoid';
-
-import { setTimeout } from 'node:timers';
 
 interface VerificationSession {
 	userId: string;
@@ -54,14 +52,13 @@ export default class implements Event {
 	public async execute(interaction: Interaction) {
 		// #region / commands
 		if (interaction.isCommand()) {
-			const { commandName } = interaction;
-			const command = this.commands.get(commandName);
+			const command = this.commands.get(interaction.commandName);
 
 			if (command) {
 				try {
 					await command.execute(interaction);
 
-					logger.info(`${interaction.user.tag} (${interaction.user.id}) ran a command: ${commandName}`);
+					logger.info(`${interaction.user.tag} (${interaction.user.id}) ran a command: ${interaction.toString()}`);
 				} catch (e) {
 					const err = e as Error;
 					logger.error(err.stack ?? err.message);
@@ -205,11 +202,11 @@ export default class implements Event {
 			}
 			// #endregion
 
-			//TODO: Refactor
+			// TODO: Refactor
 			// #region raiding
-			const raid = this.manager.raids.find((c) => c.controlPanelId === interaction.channelId);
+			const raid = this.manager.raids.find((c) => c.controlPanelChannelId === interaction.channelId);
 			if (raid) {
-				if (interaction.channelId === raid.controlPanelId) {
+				if (interaction.channelId === raid.controlPanelChannelId) {
 					const emoji = interaction.component.emoji?.name as string;
 					if (emoji === '📝') {
 						const prompter = new MessagePrompter(
@@ -267,8 +264,7 @@ export default class implements Event {
 									The location for this run was revealed ${inlineCode(raid.location)}
 								`
 							)
-							.setFooter({ text: raid.leaderName })
-							.setTitle(inlineCode(raid.dungeon.full_name))
+							.setTitle(inlineCode(raid.dungeon.fullName))
 							.setTimestamp();
 
 						await message?.edit({

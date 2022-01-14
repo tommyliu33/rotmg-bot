@@ -20,7 +20,7 @@ export default class implements Command {
 			description: 'The dungeon to run for the raid',
 			type: 3,
 			choices: [
-				{ name: 'Oryx Sanctuary', value: 'o3' },
+				{ name: 'Oryx Sanctuary', value: 'oryx' },
 				{ name: 'The Void', value: 'void' },
 				{ name: 'The Shatters', value: 'shatters' },
 				{ name: 'Cultist Hideout', value: 'cult' },
@@ -80,7 +80,7 @@ export default class implements Command {
 		});
 
 		if (collectedInteraction) {
-			const dungeon = dungeons[dungeons.findIndex((d) => d.name === interaction.options.getString('dungeon'))];
+			const dungeon = Reflect.get(dungeons, interaction.options.getString('dungeon', true));
 
 			// empty values will be filled by the event
 			this.manager.emit('raidStart', {

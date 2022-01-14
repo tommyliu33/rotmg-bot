@@ -1,9 +1,9 @@
-import type { Event } from '../../struct';
+import type { Event } from '../struct';
 import type { VoiceState } from 'discord.js';
 
 import { inject, injectable } from 'tsyringe';
 import type { Redis } from 'ioredis';
-import { kRedis } from '../../tokens';
+import { kRedis } from '../tokens';
 
 import { time } from '@discordjs/builders';
 

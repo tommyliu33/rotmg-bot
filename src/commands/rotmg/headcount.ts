@@ -17,7 +17,7 @@ export default class implements Command {
 			description: 'Start a headcount for the selected dungeon',
 			type: 3,
 			choices: [
-				{ name: 'Oryx Sanctuary', value: 'o3' },
+				{ name: 'Oryx Sanctuary', value: 'oryx' },
 				{ name: 'The Void', value: 'void' },
 				{ name: 'The Shatters', value: 'shatters' },
 				{ name: 'Cultist Hideout', value: 'cult' },
@@ -36,7 +36,7 @@ export default class implements Command {
 		// TODO: in afk check channel only
 		await interaction.deferReply();
 
-		const dungeon = dungeons[dungeons.findIndex((d) => d.name === interaction.options.getString('dungeon'))];
+		const dungeon = Reflect.get(dungeons, interaction.options.getString('dungeon', true));
 		this.manager.emit('headcount', {
 			dungeon,
 

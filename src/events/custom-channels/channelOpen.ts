@@ -1,7 +1,7 @@
-import { Event, RaidManager } from '../../../struct';
+import { Event, RaidManager } from '../../struct';
 
 import { inject, injectable } from 'tsyringe';
-import { kClient, kRaids } from '../../../tokens';
+import { kClient, kRaids } from '../../tokens';
 import type { Client } from 'discord.js';
 
 import { Embed, inlineCode, time } from '@discordjs/builders';

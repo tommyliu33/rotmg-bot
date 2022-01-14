@@ -1,13 +1,13 @@
-import type { Event } from '../../struct';
+import type { Event } from '../struct';
 import type { Client } from 'discord.js';
 
-import { getInteractions } from '../../util';
-import { logger } from '../../logger';
+import { getInteractions } from '../util';
+import { logger } from '../logger';
 
 import { inject, injectable } from 'tsyringe';
-import { kClient } from '../../tokens';
+import { kClient } from '../tokens';
 
-import { registerJobs, startJobs } from '../../jobs/';
+import { registerJobs, startJobs } from '../jobs/';
 
 @injectable()
 export default class implements Event {

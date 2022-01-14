@@ -2,7 +2,7 @@ import EventEmitter from '@tbnritzdoge/events';
 import { Collection } from '@discordjs/collection';
 
 import type { Client } from 'discord.js';
-import type { Dungeon } from '../dungeons';
+import type { DungeonMap } from '../dungeons';
 
 import { inject, injectable } from 'tsyringe';
 import { kClient, kRedis } from '../tokens';
@@ -26,7 +26,7 @@ export class RaidManager extends EventEmitter {
 }
 
 export interface RaidBase {
-	dungeon: Dungeon;
+	dungeon: DungeonMap[keyof DungeonMap];
 	guildId: string;
 	channelId: string;
 	leaderId: string;

@@ -1,7 +1,7 @@
-import { Event, RaidManager } from '../../../struct';
+import { Event, RaidManager } from '../../struct';
 
 import { inject, injectable } from 'tsyringe';
-import { kClient, kRaids } from '../../../tokens';
+import { kClient, kRaids } from '../../tokens';
 import type { Client } from 'discord.js';
 
 import { isVoiceChannel, isTextChannel } from '@sapphire/discord.js-utilities';
@@ -18,6 +18,7 @@ export default class implements Event {
 		@inject(kRaids) public readonly manager: RaidManager
 	) {}
 
+	// TODO: re-add event types for raidmanager
 	public execute() {
 		this.manager.on('channelLocked', async (channel) => {
 			const { name, channelId, voiceChannelId, messageId, roleId } = channel;

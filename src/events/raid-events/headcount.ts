@@ -1,28 +1,22 @@
-import type { Event, Headcount, RaidManager } from '../../../struct';
-import {
-	Client,
-	Interaction,
-	MessageActionRow,
-	MessageButton,
-	MessageEmbed,
-	MessageSelectMenu,
-	TextChannel,
-} from 'discord.js';
+import type { Event, Headcount, RaidManager } from '../../struct';
+import { Client, Interaction, MessageActionRow, MessageEmbed, MessageSelectMenu, TextChannel } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';
-import { kClient, kRaids } from '../../../tokens';
+import { kClient, kRaids } from '../../tokens';
 
-import { createControlPanelChannel } from '../../../functions';
-import { awaitComponent, getVoiceChannels, inVetChannel, chunkButtons } from '../../../util';
+import { createControlPanelChannel } from '../../functions';
+import { awaitComponent, getVoiceChannels, inVetChannel, chunkButtons } from '../../util';
 
 import { Embed, inlineCode } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 import { nanoid } from 'nanoid';
-import { Buttons, Embeds, zws } from '../../../constants';
+import { Buttons, Embeds, zws } from '../../constants';
 
 import { setTimeout } from 'node:timers';
-
 // TODO: headcounts should have reactions logged in the control panel
+
+// TODO: this can probably be refactored
+const dungeonNameIndex = ['oryx', 'shatters', 'void', 'fungal', 'nest', 'cult'];
 
 @injectable()
 export default class implements Event {
@@ -48,11 +42,12 @@ export default class implements Event {
 			const user = this.client.users.cache.get(leaderId);
 			const controlPanel = await createControlPanelChannel(guild, user?.tag as string, isVet);
 
+			// TODO: move to constants
 			const controlPanelEmbed = new Embed()
 				.setTitle(`${inlineCode(user?.tag as string)} Control Panel`)
 				.setDescription(
 					stripIndents`
-			${inlineCode('Dungeon')} ${dungeon.full_name}
+			${inlineCode('Dungeon')} ${dungeon.fullName}
 
 			${inlineCode('Start afk check')} ✅
 			${inlineCode('Abort headcount')} 🛑
@@ -60,37 +55,36 @@ export default class implements Event {
 				)
 				.setThumbnail(member?.displayAvatarURL({ dynamic: true }) as string)
 				.setFooter({ text: 'Headcount' });
-
-			dungeon.buttons.reduce<{ name: string; value: string; inline: boolean }[]>((fields, row) => {
-				fields.push({
+			for (const row of dungeon.buttons) {
+				controlPanelEmbed.addField({
 					name: zws,
 					value: row.reduce((string, button) => `${string}${button.emoji as string}|0\n`, ''),
 					inline: true,
 				});
-				return fields;
-			}, []);
+			}
 
 			const cpMsg = await controlPanel.send({
 				embeds: [controlPanelEmbed],
 				components: [Buttons.headCountButtons],
 			});
 
-			// TODO: add for other dungeons
-			const embed = Embeds['Headcount'].Shatters;
+			const embed = Embeds.Headcount[dungeonNameIndex.indexOf(dungeon.name)].setTitle(
+				`Headcount started by ${member?.displayName as string}`
+			);
 
-			const afkCheckChannel = guild.channels.cache.get(channelId) as TextChannel;
-			const afkCheckMsg = await afkCheckChannel.send({
-				content: `@here Headcount for ${inlineCode(dungeon.full_name)} started by ${member?.displayName as string}`,
-				components: chunkButtons(dungeon.buttons),
+			const channel = guild.channels.cache.get(channelId) as TextChannel;
+			const headcountMessage = await channel.send({
 				embeds: [embed],
+				components: chunkButtons(dungeon.buttons),
+				content: '@here',
 				allowedMentions: {
 					parse: ['everyone'],
 				},
 			});
 
-			this.manager.headcounts.set(`headcount:${guild.id}:${afkCheckMsg.id}`, {
+			this.manager.headcounts.set(`headcount:${guild.id}:${headcountMessage.id}`, {
 				...headcount,
-				messageId: afkCheckMsg.id,
+				messageId: headcountMessage.id,
 				controlPanelChannelId: controlPanel.id,
 				controlPanelMessageId: cpMsg.id,
 			});
@@ -108,7 +102,7 @@ export default class implements Event {
 				await interaction.deferReply({ ephemeral: false });
 
 				if (headCountReact.leaderId !== interaction.user.id) {
-					const reply = await interaction.editReply({ content: 'Only the leader can manage the control panel.' });
+					const reply = await interaction.editReply({ content: 'Only the leader can manage the raid.' });
 					setTimeout(() => void reply.delete().catch(() => undefined), 2500).unref();
 					return;
 				}
@@ -125,6 +119,7 @@ export default class implements Event {
 						const channelIds = await getVoiceChannels(interaction.guildId, channelId);
 
 						const selectMenuOptions = [];
+
 						for (const channelId of channelIds) {
 							const channel = await interaction.guild.channels.fetch(channelId).catch(() => undefined);
 							if (channel) {
@@ -170,7 +165,7 @@ export default class implements Event {
 
 						const embed = new Embed()
 							.setColor(15548997)
-							.setTitle(inlineCode(headCountReact.dungeon.full_name))
+							.setTitle(inlineCode(headCountReact.dungeon.fullName))
 							.setFooter({ text: 'Headcount aborted' })
 							.setTimestamp();
 

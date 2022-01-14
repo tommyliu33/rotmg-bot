@@ -1,13 +1,12 @@
 import type { InteractionButtonOptions } from 'discord.js';
 
-// TODO: refactor
-enum Reacts {
+export enum Reacts {
 	WARRIOR = '<:Warrior:930900284413194240>',
 	PALADIN = '<:Paladin:930900392110358579>',
 	KNIGHT = '<:Knight:930900421084606565>',
-	WIZARD = '<:Wizard:886328165126008852>',
-	MYSTIC = '<:Mystic:886331698147635240>',
-	TRICKSTER = '<:Trickster:886331697858228226>',
+	WIZARD = '<:Wizard:930900309964906616>',
+	MYSTIC = '<:Mystic:930900408661053470>',
+	TRICKSTER = '<:Trickster:930900321914486796>',
 
 	FUNGAL_TOME = '<:TomeOfTheMushroomTribes:886328344126300221>',
 	MARBLE_SEAL = '<:MarbleSeal:886328165054697562>',
@@ -19,75 +18,16 @@ enum Reacts {
 
 export type Button = InteractionButtonOptions & { confirm?: boolean };
 
-export interface Dungeon {
-	name: string;
-	full_name: string;
+type DungeonNames = 'shatters' | 'void' | 'oryx' | 'fungal' | 'nest' | 'cult';
+export type DungeonMap = {
+	[dungeon in DungeonNames]: { name: string; fullName: string; buttons: Button[][]; images: string[] };
+};
+export type ValueOf<T> = T[keyof T];
 
-	portal: string;
-	keys: DungeonReacts[];
-
-	main_reacts: DungeonReacts[];
-	optional_reacts?: DungeonReacts[];
-
-	rusher?: {
-		emote: string;
-		what: string;
-	};
-
-	images: string[];
-
-	buttons: Button[][];
-}
-
-interface DungeonReacts {
-	name: string;
-	emote: string;
-	limit: number;
-}
-
-const dungeons: Dungeon[] = [
-	{
+const dungeons: DungeonMap = {
+	shatters: {
 		name: 'shatters',
-		full_name: 'The Shatters',
-
-		portal: '<:ShattersPortal:887532566977069138>',
-		keys: [
-			{
-				name: 'key',
-				emote: '<:ShattersKey:887532668181422122>',
-				limit: 1,
-			},
-		],
-		main_reacts: [
-			{
-				name: 'warrior',
-				emote: Reacts.WARRIOR,
-				limit: 0,
-			},
-			{
-				name: 'paladin',
-				emote: Reacts.PALADIN,
-				limit: 0,
-			},
-			{
-				name: 'knight',
-				emote: Reacts.KNIGHT,
-				limit: 0,
-			},
-		],
-		optional_reacts: [
-			{
-				name: 'fungal_tome',
-				emote: Reacts.FUNGAL_TOME,
-				limit: 2,
-			},
-			{
-				name: 'slow',
-				emote: Reacts.SLOW,
-				limit: 1,
-			},
-		],
-
+		fullName: 'The Shatters',
 		buttons: [
 			[
 				{
@@ -140,12 +80,6 @@ const dungeons: Dungeon[] = [
 				},
 			],
 		],
-
-		rusher: {
-			emote: '<:ShattersRusher:895458059894284319>',
-			what: 'monuments',
-		},
-
 		images: [
 			'https://i.imgur.com/vatlKfa.png',
 			'https://i.imgur.com/bnKFZjt.png',
@@ -153,301 +87,260 @@ const dungeons: Dungeon[] = [
 			'https://i.imgur.com/lmde5Ct.png',
 		],
 	},
-
-	{
-		name: 'cult',
-		full_name: 'Cultist Hideout',
-
-		portal: '<:CultistHideout:915138896604590120>',
-		keys: [
-			{
-				name: 'key',
-				emote: '<:LostHallsKey:886130322964639755>',
-				limit: 0,
-			},
-		],
-		main_reacts: [
-			{
-				name: 'warrior',
-				emote: Reacts.WARRIOR,
-				limit: 0,
-			},
-			{
-				name: 'paladin',
-				emote: Reacts.PALADIN,
-				limit: 0,
-			},
-			{
-				name: 'knight',
-				emote: Reacts.KNIGHT,
-				limit: 0,
-			},
-		],
-		optional_reacts: [],
-
-		rusher: {
-			emote: '<:Planewalker:886332230362861608>',
-			what: 'pot rooms',
-		},
-
-		images: ['https://i.imgur.com/nPkovWR.png'],
-
-		buttons: [],
-	},
-
-	{
-		name: 'nest',
-		full_name: 'The Nest',
-		keys: [
-			{
-				name: 'key',
-				emote: '<:TheNestKey:915140275230343178>',
-				limit: 0,
-			},
-		],
-		portal: '<:TheNestPortal:915140112617185320>',
-		main_reacts: [
-			{
-				name: 'warrior',
-				emote: Reacts.WARRIOR,
-				limit: 0,
-			},
-			{
-				name: 'paladin',
-				emote: Reacts.PALADIN,
-				limit: 0,
-			},
-			{
-				name: 'knight',
-				emote: Reacts.KNIGHT,
-				limit: 0,
-			},
-		],
-		optional_reacts: [
-			{
-				name: 'slow',
-				emote: Reacts.SLOW,
-				limit: 1,
-			},
-			{
-				name: 'daze',
-				emote: Reacts.DAZE,
-				limit: 1,
-			},
-		],
-
-		images: ['https://i.imgur.com/hUWc3IV.png'],
-
-		buttons: [],
-	},
-
-	{
-		name: 'fungal',
-		full_name: 'Fungal Cavern',
-		keys: [
-			{
-				name: 'key',
-				emote: '<:FungalCavernKey:915141233247141899>',
-				limit: 0,
-			},
-		],
-		portal: '<:FungalCavernPortal:915141137990320139>',
-		main_reacts: [
-			{
-				name: 'warrior',
-				emote: Reacts.WARRIOR,
-				limit: 0,
-			},
-			{
-				name: 'paladin',
-				emote: Reacts.PALADIN,
-				limit: 0,
-			},
-			{
-				name: 'knight',
-				emote: Reacts.KNIGHT,
-				limit: 0,
-			},
-			{
-				name: 'mystic',
-				emote: Reacts.MYSTIC,
-				limit: 0,
-			},
-		],
-		optional_reacts: [
-			{
-				name: 'm_seal',
-				emote: Reacts.MARBLE_SEAL,
-				limit: 0,
-			},
-			{
-				name: 'daze',
-				emote: Reacts.DAZE,
-				limit: 1,
-			},
-			{
-				name: 'fungal_tome',
-				emote: Reacts.FUNGAL_TOME,
-				limit: 0,
-			},
-			{
-				name: 'mystic',
-				emote: Reacts.MYSTIC,
-				limit: 0,
-			},
-			{
-				name: 'armor_break',
-				emote: Reacts.ARMOR_BREAK,
-				limit: 1,
-			},
-			{
-				name: 'slow',
-				emote: Reacts.SLOW,
-				limit: 1,
-			},
-		],
-
-		images: ['https://i.imgur.com/K6rOQzR.png'],
-
-		buttons: [],
-	},
-
-	{
+	void: {
 		name: 'void',
-		full_name: 'The Void',
-		keys: [
-			{
-				name: 'key',
-				emote: '<:LostHallsKey:886130322964639755>',
-				limit: 0,
-			},
-		],
-		portal: '<:Void:886066308075114527>',
-		main_reacts: [
-			{
-				name: 'warrior',
-				emote: Reacts.WARRIOR,
-				limit: 0,
-			},
-			{
-				name: 'paladin',
-				emote: Reacts.PALADIN,
-				limit: 0,
-			},
-			{
-				name: 'knight',
-				emote: Reacts.KNIGHT,
-				limit: 0,
-			},
-			{
-				name: 'trickster',
-				emote: Reacts.TRICKSTER,
-				limit: 0,
-			},
-		],
-		optional_reacts: [
-			{
-				name: 'fungal_tome',
-				emote: Reacts.FUNGAL_TOME,
-				limit: 0,
-			},
-			{
-				name: 'm_seal',
-				emote: Reacts.MARBLE_SEAL,
-				limit: 0,
-			},
-			{
-				name: 'armor_break',
-				emote: Reacts.ARMOR_BREAK,
-				limit: 1,
-			},
-		],
-
+		fullName: 'The Void',
 		images: ['https://i.imgur.com/7JGSvMq.png'],
-
-		buttons: [],
+		buttons: [
+			[
+				{
+					customId: 'portal',
+					emoji: '<:Void:886066308075114527>',
+					style: 'PRIMARY',
+				},
+				{
+					customId: 'key',
+					emoji: '<:LostHallsKey:886130322964639755>',
+					style: 'PRIMARY',
+					confirm: true,
+				},
+				{
+					customId: 'vial',
+					emoji: '<:VialOfPureDarkness:886326037212966922>',
+					style: 'PRIMARY',
+					confirm: true,
+				},
+			],
+			[
+				{
+					customId: 'warrior',
+					style: 'SECONDARY',
+					emoji: Reacts.WARRIOR,
+				},
+				{
+					customId: 'knight',
+					style: 'SECONDARY',
+					emoji: Reacts.KNIGHT,
+				},
+				{
+					customId: 'paladin',
+					style: 'SECONDARY',
+					emoji: Reacts.PALADIN,
+				},
+				{
+					customId: 'fungal_tome',
+					emoji: Reacts.FUNGAL_TOME,
+					style: 'SECONDARY',
+				},
+				{
+					customId: 'marble_seal',
+					emoji: Reacts.MARBLE_SEAL,
+					style: 'SECONDARY',
+				},
+			],
+		],
 	},
-
-	{
-		name: 'o3',
-		full_name: 'Oryx Sanctuary',
-		keys: [
-			{
-				name: 'inc',
-				emote: '<:WineCellarIncantation:886330945404272671>',
-				limit: 2,
-			},
-			{
-				name: 'sword_rune',
-				emote: '<:SwordRune:886134621127991337>',
-				limit: 2,
-			},
-			{
-				name: 'helmet_rune',
-				emote: '<:HelmetRune:886134621685837824>',
-				limit: 2,
-			},
-			{
-				name: 'shield_rune',
-				emote: '<:ShieldRune:886134621178331167>',
-				limit: 2,
-			},
+	oryx: {
+		name: 'oryx',
+		fullName: 'Oryx Sanctuary',
+		buttons: [
+			[
+				{
+					customId: 'portal',
+					emoji: '<:OryxSanctuaryPortal:908398287994896444>',
+					style: 'PRIMARY',
+				},
+				{
+					customId: 'inc',
+					emoji: '<:WineCellarIncantation:886330945404272671>',
+					style: 'PRIMARY',
+					confirm: true,
+				},
+				{
+					customId: 'sword_rune',
+					emoji: '<:SwordRune:886134621127991337>',
+					style: 'PRIMARY',
+					confirm: true,
+				},
+				{
+					customId: 'helmet_rune',
+					emoji: '<:HelmetRune:886134621685837824>',
+					style: 'PRIMARY',
+					confirm: true,
+				},
+				{
+					customId: 'shield_rune',
+					emoji: '<:ShieldRune:886134621178331167>',
+					style: 'PRIMARY',
+					confirm: true,
+				},
+			],
+			[
+				{
+					customId: 'warrior',
+					style: 'SECONDARY',
+					emoji: Reacts.WARRIOR,
+				},
+				{
+					customId: 'knight',
+					style: 'SECONDARY',
+					emoji: Reacts.KNIGHT,
+				},
+				{
+					customId: 'paladin',
+					style: 'SECONDARY',
+					emoji: Reacts.PALADIN,
+				},
+				{
+					customId: 'wizard',
+					style: 'SECONDARY',
+					emoji: Reacts.WIZARD,
+				},
+				{
+					customId: 'trickster',
+					style: 'SECONDARY',
+					emoji: Reacts.TRICKSTER,
+				},
+			],
 		],
-		portal: '<:OryxSanctuaryPortal:908398287994896444>',
-		main_reacts: [
-			{
-				name: 'warrior',
-				emote: Reacts.WARRIOR,
-				limit: 0,
-			},
-			{
-				name: 'paladin',
-				emote: Reacts.PALADIN,
-				limit: 0,
-			},
-			{
-				name: 'wizard',
-				emote: Reacts.WIZARD,
-				limit: 0,
-			},
-			{
-				name: 'mystic',
-				emote: Reacts.MYSTIC,
-				limit: 0,
-			},
-			{
-				name: 'trickster',
-				emote: Reacts.TRICKSTER,
-				limit: 0,
-			},
-		],
-		optional_reacts: [
-			{
-				name: 'fungal_tome',
-				emote: Reacts.FUNGAL_TOME,
-				limit: 0,
-			},
-			{
-				name: 'm_seal',
-				emote: Reacts.MARBLE_SEAL,
-				limit: 0,
-			},
-			{
-				name: 'slow',
-				emote: Reacts.SLOW,
-				limit: 1,
-			},
-			{
-				name: 'armor_break',
-				emote: Reacts.ARMOR_BREAK,
-				limit: 1,
-			},
-		],
-
 		images: ['https://i.imgur.com/3Biywi7.png', 'https://i.imgur.com/DSVqdZo.png'],
-
-		buttons: [],
 	},
-];
+	fungal: {
+		name: 'fungal',
+		fullName: 'Fungal Cavern',
+		buttons: [
+			[
+				{
+					customId: 'portal',
+					style: 'PRIMARY',
+					emoji: '<:FungalCavernPortal:915141137990320139>',
+				},
+				{
+					customId: 'key',
+					style: 'PRIMARY',
+					emoji: '<:FungalCavernKey:915141233247141899>',
+					confirm: true,
+				},
+			],
+			[
+				{
+					customId: 'warrior',
+					style: 'SECONDARY',
+					emoji: Reacts.WARRIOR,
+				},
+				{
+					customId: 'knight',
+					style: 'SECONDARY',
+					emoji: Reacts.KNIGHT,
+				},
+				{
+					customId: 'paladin',
+					style: 'SECONDARY',
+					emoji: Reacts.PALADIN,
+				},
+				{
+					customId: 'mystic',
+					emoji: Reacts.MYSTIC,
+					style: 'SECONDARY',
+				},
+				{
+					customId: 'slow',
+					emoji: Reacts.SLOW,
+					style: 'SECONDARY',
+				},
+			],
+		],
+		images: ['https://i.imgur.com/K6rOQzR.png'],
+	},
+	nest: {
+		name: 'nest',
+		fullName: 'The Nest',
+		buttons: [
+			[
+				{
+					customId: 'portal',
+					style: 'PRIMARY',
+					emoji: '<:TheNestPortal:915140112617185320>',
+				},
+				{
+					customId: 'key',
+					style: 'PRIMARY',
+					emoji: '<:TheNestKey:915140275230343178>',
+					confirm: true,
+				},
+			],
+			[
+				{
+					customId: 'warrior',
+					style: 'SECONDARY',
+					emoji: Reacts.WARRIOR,
+				},
+				{
+					customId: 'knight',
+					style: 'SECONDARY',
+					emoji: Reacts.KNIGHT,
+				},
+				{
+					customId: 'paladin',
+					style: 'SECONDARY',
+					emoji: Reacts.PALADIN,
+				},
+				{
+					customId: 'slow',
+					emoji: Reacts.SLOW,
+					style: 'SECONDARY',
+				},
+				{
+					customId: 'daze',
+					emoji: Reacts.DAZE,
+					style: 'SECONDARY',
+				},
+			],
+		],
+		images: ['https://i.imgur.com/hUWc3IV.png'],
+	},
+	cult: {
+		name: 'cult',
+		fullName: 'Cultist Hideout',
+		buttons: [
+			[
+				{
+					customId: 'portal',
+					emoji: '<:Malus:886067005659160576>',
+					style: 'PRIMARY',
+				},
+				{
+					customId: 'key',
+					emoji: '<:LostHallsKey:886130322964639755>',
+					style: 'PRIMARY',
+					confirm: true,
+				},
+				{
+					customId: 'rusher',
+					emoji: '<:Planewalker:886332230362861608>',
+					style: 'SECONDARY',
+				},
+			],
+			[
+				{
+					customId: 'warrior',
+					style: 'SECONDARY',
+					emoji: Reacts.WARRIOR,
+				},
+				{
+					customId: 'knight',
+					style: 'SECONDARY',
+					emoji: Reacts.KNIGHT,
+				},
+				{
+					customId: 'paladin',
+					style: 'SECONDARY',
+					emoji: Reacts.PALADIN,
+				},
+			],
+		],
+		images: ['https://i.imgur.com/nPkovWR.png'],
+	},
+};
 
 export { dungeons };
