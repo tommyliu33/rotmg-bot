@@ -1,33 +1,30 @@
 {
   "compilerOptions": {
+    /* Language and Environment */
     "target": "ES2020",
-    "module": "ESNext",
+
+    /* Modules */
+    "module": "ESNext", 
     "moduleResolution": "node",
+
+    /* Emit */
     "outDir": "./dist",
-    "declaration": false,
-    "skipLibCheck": true,
-    "removeComments": true,
-    "importHelpers": true,
-    "strict": true,
-    "strictBindCallApply": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": true,
     "importsNotUsedAsValues": "error",
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
+
+    /* Interop Constraints */
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+	
+    /* Type Checking */
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-  },
-  "exclude": [
-    "./dist",
-    "./node_modules"
-  ],
-  "include": [
-    "./src"
-  ]
+    "noFallthroughCasesInSwitch": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    
+    /* Completeness */
+    "skipLibCheck": true
+  }
 }
