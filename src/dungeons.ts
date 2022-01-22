@@ -1,5 +1,11 @@
 import type { InteractionButtonOptions } from 'discord.js';
 
+export type Button = InteractionButtonOptions & { confirm?: boolean };
+export type DungeonNames = 'shatters' | 'void' | 'oryx' | 'fungal' | 'nest' | 'cult';
+export type DungeonMap = {
+	[dungeon in DungeonNames]: { name: string; fullName: string; buttons: Button[][]; images: string[] };
+};
+
 export enum Reacts {
 	WARRIOR = '<:Warrior:930900284413194240>',
 	PALADIN = '<:Paladin:930900392110358579>',
@@ -15,14 +21,6 @@ export enum Reacts {
 	ARMOR_BREAK = '<:ArmorBreak:886328650562162740>',
 	DAZE = '<:QuiverOfThunder:887925455783600148>',
 }
-
-export type Button = InteractionButtonOptions & { confirm?: boolean };
-
-type DungeonNames = 'shatters' | 'void' | 'oryx' | 'fungal' | 'nest' | 'cult';
-export type DungeonMap = {
-	[dungeon in DungeonNames]: { name: string; fullName: string; buttons: Button[][]; images: string[] };
-};
-export type ValueOf<T> = T[keyof T];
 
 const dungeons: DungeonMap = {
 	shatters: {

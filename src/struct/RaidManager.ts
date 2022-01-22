@@ -41,7 +41,7 @@ export interface Raid extends RaidBase {
 	voiceChannelId: string;
 }
 
-export interface Headcount extends Exclude<Raid, 'location'> {}
+export interface Headcount extends Exclude<Raid, 'location' | 'voiceChannelId'> {}
 
 export interface Channel
 	extends Omit<

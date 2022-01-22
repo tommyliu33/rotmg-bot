@@ -1,34 +1,32 @@
 import type { Event, Headcount, RaidManager } from '../../struct';
-import { Client, Interaction, MessageActionRow, MessageEmbed, MessageSelectMenu, TextChannel } from 'discord.js';
+import { Client, TextChannel } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';
 import { kClient, kRaids } from '../../tokens';
 
-import { createControlPanelChannel } from '../../functions';
-import { awaitComponent, getVoiceChannels, inVetChannel, chunkButtons } from '../../util';
+import { createControlPanelChannel, createRaidChannel } from '../../functions';
+import { inVetChannel, chunkButtons, generateMessageUrl } from '../../util';
 
-import { Embed, inlineCode } from '@discordjs/builders';
-import { stripIndents } from 'common-tags';
-import { nanoid } from 'nanoid';
-import { Buttons, Embeds, zws } from '../../constants';
+import { Embed, hyperlink, inlineCode } from '@discordjs/builders';
+import { Embeds } from '../../constants';
 
 import { setTimeout } from 'node:timers';
-// TODO: headcounts should have reactions logged in the control panel
+import { toTitleCase } from '@sapphire/utilities';
+
+// TODO: headcounts should have important reactions logged in the control panel
 
 // TODO: this can probably be refactored
 const dungeonNameIndex = ['oryx', 'shatters', 'void', 'fungal', 'nest', 'cult'];
 
 @injectable()
 export default class implements Event {
-	public name = 'headcount';
+	public name = 'Raid headcounts';
 	public emitter = 'raidManager';
 
 	public constructor(
 		@inject(kRaids) public readonly manager: RaidManager,
 		@inject(kClient) public readonly client: Client<true>
-	) {
-		this.client.on('interactionCreate', this.handleControlPanelInteractions.bind(this));
-	}
+	) {}
 
 	public execute() {
 		this.manager.on('headcount', async (headcount: Headcount) => {
@@ -39,195 +37,97 @@ export default class implements Event {
 
 			const isVet = await inVetChannel(guildId, channelId);
 
-			const user = this.client.users.cache.get(leaderId);
-			const controlPanel = await createControlPanelChannel(guild, user?.tag as string, isVet);
-
-			// TODO: move to constants
-			const controlPanelEmbed = new Embed()
-				.setTitle(`${inlineCode(user?.tag as string)} Control Panel`)
-				.setDescription(
-					stripIndents`
-			${inlineCode('Dungeon')} ${dungeon.fullName}
-
-			${inlineCode('Start afk check')} ✅
-			${inlineCode('Abort headcount')} 🛑
-			`
-				)
-				.setThumbnail(member?.displayAvatarURL({ dynamic: true }) as string)
-				.setFooter({ text: 'Headcount' });
-			for (const row of dungeon.buttons) {
-				controlPanelEmbed.addField({
-					name: zws,
-					value: row.reduce((string, button) => `${string}${button.emoji as string}|0\n`, ''),
-					inline: true,
-				});
-			}
-
-			const cpMsg = await controlPanel.send({
-				embeds: [controlPanelEmbed],
-				components: [Buttons.headCountButtons],
-			});
+			const controlPanel = await createControlPanelChannel(guild, member?.user.tag as string, isVet);
 
 			const embed = Embeds.Headcount[dungeonNameIndex.indexOf(dungeon.name)].setTitle(
 				`Headcount started by ${member?.displayName as string}`
 			);
 
 			const channel = guild.channels.cache.get(channelId) as TextChannel;
-			const headcountMessage = await channel.send({
-				embeds: [embed],
-				components: chunkButtons(dungeon.buttons),
+			const headCountMessage = await channel.send({
 				content: '@here',
 				allowedMentions: {
 					parse: ['everyone'],
 				},
+				embeds: [embed],
+				components: chunkButtons(dungeon.buttons),
 			});
 
-			this.manager.headcounts.set(`headcount:${guild.id}:${headcountMessage.id}`, {
+			const controlPanelEmbed = new Embed()
+				.setDescription(
+					[
+						`${hyperlink('Jump to message', generateMessageUrl(guildId, channelId, headCountMessage.id))}`,
+						'',
+						`${inlineCode('Start afk check')} ✅`,
+						`${inlineCode('Abort headcount')} 🛑`,
+					].join('\n')
+				)
+				.setTitle(`${inlineCode(member?.user.tag as string)}'s Control Panel`)
+				.setThumbnail(member?.displayAvatarURL({ dynamic: true }) as string)
+				.setFooter({ text: 'Headcount' });
+
+			const cpMsg = await controlPanel.send({
+				embeds: [controlPanelEmbed],
+			});
+			await cpMsg.react('✅').catch(() => undefined);
+			await cpMsg.react('🛑').catch(() => undefined);
+
+			this.manager.headcounts.set(`headcount:${guild.id}:${headCountMessage.id}`, {
 				...headcount,
-				messageId: headcountMessage.id,
+				messageId: headCountMessage.id,
 				controlPanelChannelId: controlPanel.id,
 				controlPanelMessageId: cpMsg.id,
 			});
 		});
-	}
 
-	private async handleControlPanelInteractions(interaction: Interaction) {
-		if (interaction.isButton() && interaction.inCachedGuild()) {
-			const headCountReact = this.manager.headcounts.find((h) => h.controlPanelChannelId === interaction.channelId);
-			const afkCheckReact = this.manager.headcounts.find(
-				(h) => h.messageId === interaction.message.id && h.channelId === interaction.channelId
-			);
+		this.client.on('messageReactionAdd', async (reaction, user) => {
+			if (reaction.partial) await reaction.fetch();
+			if (user.partial) await user.fetch();
 
-			if (headCountReact) {
-				await interaction.deferReply({ ephemeral: false });
+			if (user.bot) return;
 
-				if (headCountReact.leaderId !== interaction.user.id) {
-					const reply = await interaction.editReply({ content: 'Only the leader can manage the raid.' });
-					setTimeout(() => void reply.delete().catch(() => undefined), 2500).unref();
-					return;
-				}
+			const { message, emoji } = reaction;
+			if (message.embeds[0]?.footer?.text !== 'Headcount') return;
 
-				const emoji = interaction.component.emoji?.name as string;
+			const key = this.manager.headcounts.findKey((h) => h.controlPanelChannelId === message.channel.id);
+			if (!key) return;
 
-				const { channelId, messageId, controlPanelChannelId } = headCountReact;
+			const headcount = this.manager.headcounts.get(key)!;
+			if (user.id !== headcount.leaderId) return;
 
-				const channel = interaction.guild.channels.cache.get(channelId) as TextChannel;
-				const msg = channel.messages.cache.get(messageId);
+			const member = message.guild?.members.cache.get(user.id);
 
-				switch (emoji) {
-					case '✅':
-						const channelIds = await getVoiceChannels(interaction.guildId, channelId);
+			if (emoji.toString() === '✅') {
+				const channel = await createRaidChannel(
+					message.guild!,
+					`${member?.displayName as string}'s ${toTitleCase(headcount.dungeon.name)}'s Raid`,
+					await inVetChannel(message.guildId!, headcount.channelId)
+				);
 
-						const selectMenuOptions = [];
+				this.manager.emit('raidStart', {
+					...headcount,
+					voiceChannelId: channel.id,
+				});
+			} else if (emoji.toString() === '🛑') {
+				const channel = message.guild?.channels.cache.get(headcount.channelId) as TextChannel;
+				const msg = channel.messages.cache.get(headcount.messageId);
 
-						for (const channelId of channelIds) {
-							const channel = await interaction.guild.channels.fetch(channelId).catch(() => undefined);
-							if (channel) {
-								selectMenuOptions.push({
-									label: channel.name,
-									value: channelId,
-								});
-							}
-						}
+				const embed = msg?.embeds[0]
+					.setTitle(`Headcount aborted by ${message.guild?.members.cache.get(user.id)?.displayName as string}`)
+					.setColor(15548997)
+					.setDescription('')
+					.setThumbnail('');
 
-						const selectMenuKey = nanoid();
-						const selectMenu = new MessageSelectMenu().setOptions(selectMenuOptions).setCustomId(selectMenuKey);
-						const message = await interaction.editReply({
-							content: 'Select a voice channel to use.',
-							components: [new MessageActionRow().addComponents(selectMenu)],
-						});
+				await msg?.edit({ content: ' ', embeds: [embed!], components: [] });
+				if (msg?.reactions.cache.size) await msg.reactions.removeAll().catch(() => undefined);
 
-						const collectedInteraction = await awaitComponent(interaction.client, message, {
-							componentType: 'SELECT_MENU',
-							time: 60000,
-						}).catch(async () => {
-							await interaction.editReply({
-								content: 'You failed to select a voice channel in time, click the button again to start the afk check.',
-							});
-							return undefined;
-						});
+				const m = await message.channel.send('Deleting channel in 10 seconds.');
+				setTimeout(() => {
+					void message.channel.delete().catch(() => void m.edit('Failed to delete channel, try deleting it manually.'));
+				}, 10000).unref();
 
-						if (collectedInteraction?.customId === selectMenuKey) {
-							const selectedChannelId = collectedInteraction.values[0];
-
-							this.manager.emit('raidStart', {
-								...headCountReact,
-								voiceChannelId: selectedChannelId,
-							});
-							await interaction.deleteReply();
-						}
-
-						break;
-					case '🛑':
-						this.manager.headcounts.delete(
-							this.manager.headcounts.findKey((h) => h.controlPanelChannelId === interaction.channelId) as string
-						);
-
-						const embed = new Embed()
-							.setColor(15548997)
-							.setTitle(inlineCode(headCountReact.dungeon.fullName))
-							.setFooter({ text: 'Headcount aborted' })
-							.setTimestamp();
-
-						await msg?.edit({ content: ' ', embeds: [embed], components: [] });
-						await interaction.editReply({
-							content: 'Aborted the afk check. This channel will automatically be deleted in 30 seconds.',
-						});
-
-						setTimeout(() => {
-							void interaction.guild.channels.cache
-								.get(controlPanelChannelId)
-								?.delete()
-								.catch(() => undefined);
-						}, 30000).unref();
-				}
+				this.manager.headcounts.delete(key);
 			}
-
-			if (afkCheckReact) {
-				await interaction.deferReply({ ephemeral: true });
-
-				const { controlPanelChannelId, controlPanelMessageId, dungeon } = afkCheckReact;
-
-				const controlPanelChannel = interaction.guild.channels.cache.get(controlPanelChannelId) as TextChannel;
-				const message = controlPanelChannel.messages.cache.get(controlPanelMessageId);
-
-				const embed = new MessageEmbed(message?.embeds[0]);
-				const clickedButton = dungeon.buttons.flat().find((button) => button.customId === interaction.customId);
-				if (clickedButton) {
-					let targettedFieldIndex = -1;
-
-					const splitFields = embed.fields.map((field) => field.value.split('\n'));
-					splitFields.find((field, index) => {
-						if (field.find((element) => element.split('|')[0] === clickedButton.emoji)) {
-							targettedFieldIndex = index;
-							return true;
-						}
-						return false;
-					});
-					if (targettedFieldIndex === -1) return;
-
-					const { value } = embed.fields[targettedFieldIndex];
-					const updatedFieldValue = value
-						.split('\n')
-						.map((c) => {
-							if (c.split('|').indexOf(clickedButton.emoji as string) !== -1) {
-								const [emoji_, counter] = c.split('|');
-								return `${emoji_}|${Number(counter) + 1}`;
-							}
-
-							return c;
-						})
-						.join('\n');
-
-					embed.fields[targettedFieldIndex] = { name: zws, value: updatedFieldValue, inline: true };
-
-					await message?.edit({
-						embeds: [embed],
-					});
-
-					await interaction.editReply({ content: `You clicked on ${clickedButton.emoji as string}, logging.` });
-				}
-			}
-		}
+		});
 	}
 }
