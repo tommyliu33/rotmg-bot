@@ -1,0 +1,150 @@
+# 0 - oryx
+# 1 - void
+# 2 - fsv
+# 3 shatters
+# 4 cult
+# 5 nest
+# 6 fungal
+
+[oryx-sanctuary]
+color = 15844367
+images = ['https://i.imgur.com/3Biywi7.png', 'https://i.imgur.com/DSVqdZo.png']
+
+keys = [
+  {emoji = '<:ShieldRune:886134621178331167>', max = 2},
+  {emoji = '<:HelmetRune:886134621685837824>', max = 2},
+  {emoji = '<:SwordRune:886134621127991337>', max = 2},
+  {emoji = '<:WineCellarIncantation:886330945404272671>', max = 2},
+]
+portal = '<:OryxSanctuaryPortal:908398287994896444>'
+
+main = [
+  {emoji = '<:Warrior:930900284413194240>', max = 0},
+  {emoji = '<:Paladin:930900392110358579>', max = 0},
+]
+
+[void]
+color = 1246287
+images = ['https://i.imgur.com/7JGSvMq.png']
+
+keys = [
+  {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
+  {emoji = '<:VialOfPureDarkness:886326037212966922>', max = 2},
+]
+portal = '<:Void:886066308075114527>'
+
+main = [
+  {emoji = '<:Warrior:930900284413194240>', max = 0},
+  {emoji = '<:Paladin:930900392110358579>', max = 0},
+  {emoji = '<:Knight:930900421084606565>', max = 0},
+  {emoji = '<:Samurai:930900377740656740>', max = 0},
+  {emoji = '<:TomeOfTheMushroomTribes:886328344126300221>', max = 0},
+  {emoji = '<:MarbleSeal:886328165054697562>', max = 0},
+  {emoji = '<:ArmorBreak:886328650562162740>', max = 0},
+]
+
+[fullskip-void]
+color = 1246287
+images = ['https://i.imgur.com/7JGSvMq.png']
+
+keys = [
+  {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
+  {emoji = '<:VialOfPureDarkness:886326037212966922>', max = 2},
+]
+portal = '<:FullSkipVoid:934856677302349915>'
+
+main = [
+  {emoji='<:Mystic:930900408661053470>', max = 0},
+  {emoji='<:BrainOfTheGolem:934857022309036033>', max = 0}
+  {emoji = '<:Warrior:930900284413194240>', max = 0},
+  {emoji = '<:Paladin:930900392110358579>', max = 0},
+  {emoji = '<:Knight:930900421084606565>', max = 0},
+  {emoji = '<:Samurai:930900377740656740>', max = 0},
+  {emoji = '<:TomeOfTheMushroomTribes:886328344126300221>', max = 0},
+  {emoji = '<:MarbleSeal:886328165054697562>', max = 0},
+  {emoji = '<:ArmorBreak:886328650562162740>', max = 0},
+]
+
+[shatters]
+color = 5131854
+images = [
+  'https://i.imgur.com/vatlKfa.png',
+  'https://i.imgur.com/bnKFZjt.png',
+  'https://i.imgur.com/qL3BVpR.png',
+  'https://i.imgur.com/lmde5Ct.png',
+]
+
+keys = [
+  {emoji = '<:ShattersKey:887532668181422122>', max = 2},
+]
+portal = '<:ShattersPortal:887532566977069138>'
+
+main = [
+  {emoji = '<:Warrior:930900284413194240>', max = 0},
+  {emoji = '<:Paladin:930900392110358579>', max = 0},
+  {emoji = '<:Knight:930900421084606565>', max = 0},
+]
+
+optional = [
+  {emoji = '<:Planewalker:886332230362861608>', max = 0},
+  {emoji = '<:LightsOutPuzzle:908439164087840819>', max = 0},
+]
+
+[cult]
+color = 15158332
+images = ['https://i.imgur.com/nPkovWR.png']
+
+keys = [
+  {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
+]
+portal = '<:CultistHideout:915138896604590120>'
+
+main = [
+  {emoji = '<:Warrior:930900284413194240>', max = 0},
+  {emoji = '<:Paladin:930900392110358579>', max = 0},
+  {emoji = '<:Knight:930900421084606565>', max = 0},
+]
+
+optional = [
+  {emoji = '<:Planewalker:886332230362861608>', max = 0},
+]
+
+[nest]
+color = 14840869
+images = ['https://i.imgur.com/hUWc3IV.png']
+
+keys = [
+  {emoji = '<:TheNestKey:915140275230343178>', max = 2},
+]
+portal = '<:TheNestPortal:915140112617185320>'
+
+main = [
+  {emoji = '<:Warrior:930900284413194240>', max = 0},
+  {emoji = '<:Paladin:930900392110358579>', max = 0},
+  {emoji = '<:Knight:930900421084606565>', max = 0},
+]
+
+optional = [
+  {emoji = '<:QuiverOfThunder:887925455783600148>', max = 0},
+  {emoji = '<:Slow:930900333859840002>', max = 0},
+]
+
+[fungal]
+color = 9093742
+images = ['https://i.imgur.com/K6rOQzR.png']
+
+keys = [
+  {emoji = '<:FungalCavernKey:915141233247141899>', max = 2},
+]
+portal = '<:FungalCavernPortal:915141137990320139>'
+
+main = [
+  {emoji = '<:Warrior:930900284413194240>', max = 0},
+  {emoji = '<:Paladin:930900392110358579>', max = 0},
+  {emoji = '<:Knight:930900421084606565>', max = 0},
+]
+
+optional = [
+  {emoji = '<:QuiverOfThunder:887925455783600148>', max = 0},
+  {emoji = '<:Slow:930900333859840002>', max = 0},
+]
