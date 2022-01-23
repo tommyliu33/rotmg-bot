@@ -55,7 +55,7 @@ portal = '<:FullSkipVoid:934856677302349915>'
 
 main = [
   {emoji='<:Mystic:930900408661053470>', max = 0},
-  {emoji='<:BrainOfTheGolem:934857022309036033>', max = 0}
+  {emoji='<:BrainOfTheGolem:934857022309036033>', max = 0},
   {emoji = '<:Warrior:930900284413194240>', max = 0},
   {emoji = '<:Paladin:930900392110358579>', max = 0},
   {emoji = '<:Knight:930900421084606565>', max = 0},
