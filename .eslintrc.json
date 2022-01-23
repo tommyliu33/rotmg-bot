@@ -3,8 +3,5 @@
 		"marine/node",
 		"marine/prettier"
 	],
-	"rules": {
-		"no-case-declarations": "off",
-		"@typescript-eslint/prefer-includes": "off"
-	}
+	"rules": {}
 }
