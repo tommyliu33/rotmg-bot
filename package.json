@@ -9,6 +9,7 @@
 	},
 	"dependencies": {
 		"@discordjs/rest": "^0.2.0-canary.0",
+		"@ltd/j-toml": "^1.24.0",
 		"bree": "^7.1.4",
 		"common-tags": "^1.8.1",
 		"discord-api-types": "^0.26.1",
