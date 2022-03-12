@@ -11,7 +11,7 @@
 
 		/* Emit */
 		"outDir": "./dist",
-   	"importHelpers": true,
+		"importHelpers": true,
 		"importsNotUsedAsValues": "error",
 
 		/* Interop Constraints */
