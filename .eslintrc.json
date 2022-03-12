@@ -3,5 +3,7 @@
 		"marine/node",
 		"marine/prettier"
 	],
-	"rules": {}
+	"rules": {
+		"no-case-declarations": "off"
+	}
 }

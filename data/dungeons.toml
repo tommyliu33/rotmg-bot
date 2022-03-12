@@ -6,9 +6,12 @@
 # 5 nest
 # 6 fungal
 
-[oryx-sanctuary]
+# TODO: setup constants (warr,knight,paladin) and parse from constants and use that instead 
+
+[o3]
 color = 15844367
 images = ['https://i.imgur.com/3Biywi7.png', 'https://i.imgur.com/DSVqdZo.png']
+name = 'Oryx Sanctuary'
 
 keys = [
   {emoji = '<:ShieldRune:886134621178331167>', max = 2},
@@ -26,6 +29,7 @@ main = [
 [void]
 color = 1246287
 images = ['https://i.imgur.com/7JGSvMq.png']
+name = 'The Void'
 
 keys = [
   {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
@@ -43,9 +47,10 @@ main = [
   {emoji = '<:ArmorBreak:886328650562162740>', max = 0},
 ]
 
-[fullskip-void]
+[fsv]
 color = 1246287
 images = ['https://i.imgur.com/7JGSvMq.png']
+name = 'Fullskip Void'
 
 keys = [
   {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
@@ -54,8 +59,8 @@ keys = [
 portal = '<:FullSkipVoid:934856677302349915>'
 
 main = [
-  {emoji='<:Mystic:930900408661053470>', max = 0},
-  {emoji='<:BrainOfTheGolem:934857022309036033>', max = 0},
+  {emoji = '<:Mystic:930900408661053470>', max = 0},
+  {emoji = '<:BrainOfTheGolem:934857022309036033>', max = 0},
   {emoji = '<:Warrior:930900284413194240>', max = 0},
   {emoji = '<:Paladin:930900392110358579>', max = 0},
   {emoji = '<:Knight:930900421084606565>', max = 0},
@@ -73,6 +78,7 @@ images = [
   'https://i.imgur.com/qL3BVpR.png',
   'https://i.imgur.com/lmde5Ct.png',
 ]
+name = 'The Shatters'
 
 keys = [
   {emoji = '<:ShattersKey:887532668181422122>', max = 2},
@@ -83,6 +89,7 @@ main = [
   {emoji = '<:Warrior:930900284413194240>', max = 0},
   {emoji = '<:Paladin:930900392110358579>', max = 0},
   {emoji = '<:Knight:930900421084606565>', max = 0},
+  {emoji = '<:Slow:930900333859840002>', max = 0},
 ]
 
 optional = [
@@ -93,6 +100,7 @@ optional = [
 [cult]
 color = 15158332
 images = ['https://i.imgur.com/nPkovWR.png']
+name = 'Cultist Hideout'
 
 keys = [
   {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
@@ -112,6 +120,7 @@ optional = [
 [nest]
 color = 14840869
 images = ['https://i.imgur.com/hUWc3IV.png']
+name = 'The Nest'
 
 keys = [
   {emoji = '<:TheNestKey:915140275230343178>', max = 2},
@@ -132,6 +141,7 @@ optional = [
 [fungal]
 color = 9093742
 images = ['https://i.imgur.com/K6rOQzR.png']
+name = 'Fungal Cavern'
 
 keys = [
   {emoji = '<:FungalCavernKey:915141233247141899>', max = 2},

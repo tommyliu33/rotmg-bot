@@ -1,26 +1,36 @@
-import type { Event } from '../Event';
-import type { Interaction } from 'discord.js';
-
-import type { Command } from '../Command';
+import type { Event } from '../struct/Event';
+import { Events, Interaction } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';
 import { kCommands } from '../tokens';
 
 import { logger } from '../util/logger';
 
+import type { Command } from '../struct/Command';
+
 @injectable()
 export default class implements Event {
-	public name = 'interactionCreate';
+	public name = 'Interaction handling';
+	public event = Events.InteractionCreate;
 
-	public constructor(@inject(kCommands) public commands: Map<string, Command>) {}
+	public constructor(@inject(kCommands) public readonly commands: Map<string, Command>) {}
 
-	public async execute(interaction: Interaction) {
-		if (interaction.isCommand()) {
+	public async run(interaction: Interaction) {
+		if (interaction.isChatInputCommand()) {
 			const command = this.commands.get(interaction.commandName);
+			try {
+				await command?.run(interaction);
+			} catch (e) {
+				logger.error(e);
+			}
+		}
+
+		if (interaction.isAutocomplete()) {
+			const command = this.commands.get(interaction.commandName);
+			if (typeof command?.autocomplete !== 'function') return;
 
 			try {
-				await command?.execute(interaction);
-				logger.info(`${interaction.user.tag} (${interaction.user.id}) ran a command: ${interaction.toString()}`);
+				await command.autocomplete(interaction);
 			} catch (e) {
 				logger.error(e);
 			}

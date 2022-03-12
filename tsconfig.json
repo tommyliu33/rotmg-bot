@@ -11,7 +11,7 @@
 
 		/* Emit */
 		"outDir": "./dist",
-    "importHelpers": true,
+   	"importHelpers": true,
 		"importsNotUsedAsValues": "error",
 
 		/* Interop Constraints */
@@ -21,14 +21,16 @@
 
 		/* Type Checking */
 		"strict": true,
-		"noUnusedLocals": true,
+		"noUnusedLocals": false,
 		"noUnusedParameters": true,
-		"noImplicitAny": true,
 		"noFallthroughCasesInSwitch": true,
 		"allowUnusedLabels": false,
 		"allowUnreachableCode": false,
 
 		/* Completeness */
-		"skipLibCheck": true
+		"skipLibCheck": true,
+
+		/* Projects */
+		"incremental": true
 	}
 }
