@@ -3,8 +3,10 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 
 import { scrapePlayer, scrapeGuild } from 'realmeye-scrape';
 
-import { UnsafeEmbed, Util } from 'discord.js';
-import { inlineCode } from '@discordjs/builders';
+import { UnsafeEmbed, UnsafeButtonComponent, ActionRow, ButtonStyle, ComponentType, Util } from 'discord.js';
+import { inlineCode, hyperlink } from '@discordjs/builders';
+
+import { nanoid } from 'nanoid';
 
 import { cutText } from '@sapphire/utilities';
 
@@ -43,7 +45,7 @@ export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction) {
 		if (!interaction.inCachedGuild()) return;
 
-		await interaction.deferReply();
+		const m = await interaction.deferReply({ fetchReply: true });
 
 		const embed = new UnsafeEmbed();
 		switch (interaction.options.getSubcommand()) {
@@ -72,6 +74,8 @@ export default class implements Command {
 						name: player.name ?? playerName,
 						url: player.realmEyeUrl,
 					});
+
+					await interaction.editReply({ embeds: [embed] });
 				}
 
 				break;
@@ -122,10 +126,49 @@ export default class implements Command {
 						name: guild.name ?? guildName,
 						url: guild.realmEyeUrl,
 					});
+
+					const viewKey = nanoid();
+					const viewTopButton = new UnsafeButtonComponent()
+						.setCustomId(viewKey)
+						.setStyle(ButtonStyle.Primary)
+						.setLabel('View Top Members');
+
+					await interaction.editReply({ embeds: [embed], components: [new ActionRow().addComponents(viewTopButton)] });
+
+					const collectedInteraction = await m
+						.awaitMessageComponent({
+							filter: (i) => i.user.id === interaction.user.id,
+							componentType: ComponentType.Button,
+							time: 50_000 * 6,
+						})
+						.catch(async () => {
+							await m.edit({ components: [new ActionRow().addComponents(viewTopButton.setDisabled(true))] });
+							return undefined;
+						});
+
+					if (collectedInteraction?.customId === viewKey) {
+						const top = guild.members!.sort((a, b) => b.fame! - a.fame!).slice(0, 10);
+
+						const embed_ = new UnsafeEmbed()
+							.setAuthor({
+								name: `${guild.name ?? guildName} Top Characters`,
+								url: guild.realmEyeUrl,
+							})
+							.setDescription(
+								top
+									.map(
+										(member, i) =>
+											`**${++i}**. ${hyperlink(member.name!, member.realmEyeUrl!)} - ${
+												member.fame?.toLocaleString() ?? 0
+											}<:fame:952444390809423943>`
+									)
+									.join('\n')
+							);
+
+						await collectedInteraction.update({ embeds: [embed_], components: [] });
+					}
 				}
 				break;
 		}
-
-		await interaction.editReply({ embeds: [embed] });
 	}
 }
