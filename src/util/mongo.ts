@@ -27,7 +27,6 @@ export interface GuildDocument extends Document {
 const client = new MongoClient(process.env.CONNECTION_STRING!);
 const db = client.db('rotmg');
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
 export const guilds = db.collection<GuildDocument>('guilds');
 
 await client.connect();
