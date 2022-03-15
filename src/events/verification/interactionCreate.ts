@@ -12,7 +12,7 @@ import {
 import { codeBlock, hyperlink } from '@discordjs/builders';
 
 import { logger } from '../../util/logger';
-import { scrapePlayer } from 'realmeye-scrape';
+import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 
 import { nanoid } from 'nanoid';
 import { getGuildSetting } from '../../functions/settings/settings';

@@ -1,7 +1,7 @@
 import type { Command } from '../struct/Command';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-import { scrapePlayer, scrapeGuild } from 'realmeye-scrape';
+import { scrapePlayer, scrapeGuild } from '@toommyliu/realmeye-scraper';
 
 import { UnsafeEmbed, UnsafeButtonComponent, ActionRow, ButtonStyle, ComponentType, Util } from 'discord.js';
 import { inlineCode, hyperlink } from '@discordjs/builders';

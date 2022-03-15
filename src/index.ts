@@ -28,7 +28,7 @@ await loadEvents(resolve('./events'));
 
 await client.login();
 
-import { scrapePlayer } from 'realmeye-scrape';
+import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 
 client.on('messageCreate', async (msg) => {
 	if (msg.author.id !== '') return;
