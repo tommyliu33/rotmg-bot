@@ -1,32 +1,32 @@
-import fetch from 'node-fetch';
+import fetch from 'petitio';
 
 const BASE = 'https://sourceb.in/';
 
 export async function haste(title: string, content: string): Promise<{ key: string; url: string } | string> {
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	return new Promise(async (resolve, reject) => {
-		const res = await fetch(`${BASE}api/bins/`, {
-			method: 'POST',
-			body: JSON.stringify({
-				title,
-				files: [
-					{
-						content,
-					},
-				],
-			}),
-			headers: { 'Content-Type': 'application/json' },
-		});
+	const req = await fetch(`${BASE}api/bins/`, 'POST');
+	req.body(
+		JSON.stringify({
+			title,
+			files: [
+				{
+					content,
+				},
+			],
+		})
+	);
+	req.header('content-type', 'application/json');
 
-		if (!res.ok) reject(res.statusText);
+	const res = await req.send();
+	if (!(res.statusCode! >= 200 && res.statusCode! < 300)) {
+		throw new Error(`Code '${res.statusCode!}' while creating bin`);
+	}
 
-		const { key } = (await res.json()) as BinResponse;
+	const { key } = await res.json<BinResponse>();
 
-		resolve({
-			key,
-			url: `${BASE}${key}`,
-		});
-	});
+	return {
+		key,
+		url: `${BASE}${key}`,
+	};
 }
 
 interface BinResponse {

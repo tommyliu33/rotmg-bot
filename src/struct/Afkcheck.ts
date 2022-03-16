@@ -5,16 +5,17 @@ import type { Dungeon, RaidManager } from './RaidManager';
 import { container } from 'tsyringe';
 import { kClient, kRaids } from '../tokens';
 
-import { Embed, ActionRow, ButtonComponent, ButtonStyle } from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { inlineCode } from '@discordjs/builders';
 
 import { random } from '../util/util';
 import { nanoid } from 'nanoid';
 import { sentenceCase } from 'sentence-case';
 
-import { getGuildSetting, Settings } from '../functions/settings/settings';
+import { getGuildSetting, Settings } from '../functions/settings/getGuildSetting';
 import { inVeteranSection } from '../util/inVeteranSection';
-const participateButton = new ButtonComponent()
+
+const participateButton = new ButtonBuilder()
 	.setStyle(ButtonStyle.Primary)
 	.setCustomId('participate')
 	.setEmoji({
@@ -57,9 +58,9 @@ export class Afkcheck implements IAfkcheck {
 	}
 
 	public async start() {
-		let key: keyof Settings = 'main_section';
+		let key: keyof Settings = 'main';
 		if (await inVeteranSection(this.guildId, this.textChannelId)) {
-			key = 'veteran_section';
+			key = 'veteran';
 		}
 
 		const settings = await getGuildSetting(this.guildId, key);
@@ -69,7 +70,7 @@ export class Afkcheck implements IAfkcheck {
 		this.textChannel = (await this.guild.channels.fetch(this.textChannelId)) as TextChannel;
 		this.voiceChannel = (await this.guild.channels.fetch(this.voiceChannelId)) as VoiceChannel;
 
-		const embed = new Embed()
+		const embed = new EmbedBuilder()
 			.setColor(this.dungeon.color)
 			.setThumbnail(random(this.dungeon.images))
 			.setAuthor({
@@ -80,10 +81,10 @@ export class Afkcheck implements IAfkcheck {
 				'If you want to participate in this raid, click the first button (I want to join)\nIf you have any key(s) and are willing to pop, react to the corresponding button(s)\nOtherwise, react to class/item choices that you are bringing'
 			);
 
-		const row = new ActionRow().addComponents(participateButton);
+		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(participateButton);
 
 		for (const key of this.dungeon.keys) {
-			const button = new ButtonComponent().setCustomId(nanoid()).setStyle(ButtonStyle.Secondary);
+			const button = new ButtonBuilder().setCustomId(nanoid()).setStyle(ButtonStyle.Secondary);
 			const res = emojiRegex.exec(key.emoji);
 			if (res !== null) {
 				const name = res[2];

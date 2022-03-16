@@ -1,12 +1,12 @@
-import fetch from 'node-fetch';
+import fetch from 'petitio';
 
 const API = (apiKey: string, url: string) => `https://api.ocr.space/parse/imageurl?apikey=${apiKey}&url=${url}`;
 
 async function isImage(url: string) {
 	const req = await fetch(url);
 
-	const contentType = req.headers.get('content-type')!;
-	return contentType.split('/')[0] === 'image';
+	const contentType = req.reqHeaders['content-type'];
+	return contentType?.split('/')[0] === 'image';
 }
 
 export function parse(url: string): Promise<OCRApiResponse> {
@@ -14,11 +14,18 @@ export function parse(url: string): Promise<OCRApiResponse> {
 	return new Promise(async (resolve, reject) => {
 		if (!(await isImage(url))) reject('Not an image');
 
-		const res = await fetch(API(process.env.OCR_SPACE_API_KEY!, url), {});
+		const req = await fetch(API(process.env.OCR_SPACE_API_KEY!, url));
+		req.header(
+			'user-agent',
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
+		);
 
-		if (!res.ok) reject(res.statusText);
+		const res = await req.send();
+		if (!(res.statusCode! >= 200 && res.statusCode! < 300)) {
+			throw new Error(`Code '${res.statusCode!}' parsing image ${url}`);
+		}
 
-		const json = (await res.json()) as OCRApiResponse;
+		const json = await req.json<OCRApiResponse>();
 		resolve(json);
 	});
 }

@@ -1,7 +1,7 @@
-import type { ChatInputCommandInteraction, ModalActionRowComponent } from 'discord.js';
-
-import { ActionRow, Modal, TextInputComponent, TextInputStyle } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import type { Command } from '../../struct/Command';
+
+import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 
 export default class implements Command {
 	public name = 'verify';
@@ -11,15 +11,16 @@ export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction) {
 		if (!interaction.inCachedGuild()) return;
 
-		const modal = new Modal().setTitle(`${interaction.guild.name} Verification`).setCustomId('verification_modal');
+		const modal = new ModalBuilder()
+			.setTitle(`${interaction.guild.name} Verification`)
+			.setCustomId('verification_modal');
 
-		const nameForm = new TextInputComponent()
+		const nameForm = new TextInputBuilder()
 			.setCustomId('name')
 			.setLabel('What is your ingame name?')
 			.setStyle(TextInputStyle.Short);
 
-		const rows = [nameForm].map((component) => new ActionRow<ModalActionRowComponent>().addComponents(component));
-		modal.addComponents(...rows);
+		modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(nameForm));
 
 		await interaction.showModal(modal);
 	}

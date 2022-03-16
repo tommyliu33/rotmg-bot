@@ -23,9 +23,11 @@
 		"dotenv": "^10.0.0",
 		"mongodb": "^4.3.1",
 		"nanoid": "^3.1.30",
+		"petitio": "^1.4.0",
 		"pino": "^7.1.0",
 		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
+		"sentence-case": "^3.0.4",
 		"tsyringe": "^4.6.0"
 	},
 	"devDependencies": {

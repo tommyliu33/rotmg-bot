@@ -1,24 +1,24 @@
-import { GatewayIntentBits } from 'discord-api-types/v9';
+import { ObjectId } from 'mongodb';
 
-import { ButtonStyle, UnsafeButtonComponent } from 'discord.js';
-
-export const ClientIntents = [
-	GatewayIntentBits.Guilds,
-	GatewayIntentBits.GuildMembers,
-	GatewayIntentBits.GuildMessages,
-	GatewayIntentBits.GuildVoiceStates,
-	GatewayIntentBits.GuildMessageReactions,
-	GatewayIntentBits.DirectMessages,
-	GatewayIntentBits.DirectMessageReactions,
-] as const;
-
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class Buttons {
-	public static crashersButton = new UnsafeButtonComponent()
-		.setCustomId('view_crashers')
-		.setStyle(ButtonStyle.Primary)
-		.setLabel('View crashers')
-		.setEmoji({
-			name: '🕵️',
-		});
-}
+export const BASE_GUILD_DOC = (guildId: string) => ({
+	_id: new ObjectId(),
+	guild_id: guildId,
+	main: {
+		category_id: '',
+		afk_check_channel_id: '',
+		verification_channel_id: '',
+		control_panel_channel_id: '',
+		voice_channel_ids: [],
+		user_role: '',
+		leader_role: '',
+	},
+	veteran: {
+		category_id: '',
+		afk_check_channel_id: '',
+		verification_channel_id: '',
+		control_panel_channel_id: '',
+		voice_channel_ids: [],
+		user_role: '',
+		leader_role: '',
+	},
+});

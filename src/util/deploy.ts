@@ -1,5 +1,5 @@
 import { REST } from '@discordjs/rest';
-import { Routes, APIApplicationCommand } from 'discord-api-types/v9';
+import { Routes, APIApplicationCommand } from 'discord-api-types/v10';
 
 import { logger } from './logger';
 

@@ -1,14 +1,14 @@
 import type { Command } from '../../struct/Command';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-import { UnsafeEmbed, ActionRow, ComponentType } from 'discord.js';
 import { codeBlock, hyperlink } from '@discordjs/builders';
+import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ComponentType } from 'discord.js';
 
 import { parse } from '../../functions/parse/parse';
 import { Stopwatch } from '@sapphire/stopwatch';
 
-import { Buttons } from '../../util/constants';
 import { haste } from '../../util/haste';
+import { nanoid } from 'nanoid';
 
 const clean = (str: string) => str.replace(/[^A-Za-z]/g, '');
 
@@ -76,7 +76,7 @@ export default class implements Command {
 			const text = res.ParsedResults[0].ParsedText;
 			const cleanNames = text.split(',').map((name) => name.trim());
 
-			const embed = new UnsafeEmbed()
+			const embed = new EmbedBuilder()
 				.setDescription(`${hyperlink('Image url', url, 'Click to view image')}`)
 				.setFooter({ text: `Took ${timer.toString()}` })
 				.setImage(url);
@@ -87,18 +87,27 @@ export default class implements Command {
 				const res = await haste('Raw screenshot content', text).catch(() => undefined);
 
 				if (typeof res === 'object' && ('key' in res || 'url' in res)) {
-					embed.setDescription(`${embed.description!} | ${hyperlink('View raw parse', res.url)}`);
+					embed.setDescription(`${embed.data.description!} | ${hyperlink('View raw parse', res.url)}`);
 				}
 
-				embed.setDescription(`${embed.description!}\n${codeBlock(cleanNames.join(', '))}`);
+				embed.setDescription(`${embed.data.description!}\n${codeBlock(cleanNames.join(', '))}`);
 			} else {
 				embed.setTitle('Failed to parse screenshot').setColor(0xed4245);
 			}
 
+			const crashersKey = nanoid();
+			const crashersButton = new ButtonBuilder()
+				.setStyle(ButtonStyle.Primary)
+				.setCustomId(crashersKey)
+				.setLabel('View crashers')
+				.setEmoji({
+					name: '🕵️',
+				});
+
 			await interaction.editReply({
 				content: ' ',
 				embeds: [embed],
-				components: [new ActionRow().addComponents(Buttons.crashersButton)],
+				components: [new ActionRowBuilder<ButtonBuilder>().addComponents(crashersButton)],
 			});
 
 			const collectedInteraction = await m
@@ -108,7 +117,9 @@ export default class implements Command {
 					time: 60000 * 5,
 				})
 				.catch(async () => {
-					await m.edit({ components: [new ActionRow().addComponents(Buttons.crashersButton.setDisabled(true))] });
+					await m.edit({
+						components: [new ActionRowBuilder<ButtonBuilder>().addComponents(crashersButton.setDisabled(true))],
+					});
 					return undefined;
 				});
 
@@ -139,7 +150,7 @@ export default class implements Command {
 					const missing = names.filter((name) => !cleanNames.includes(name));
 
 					if (missing.length) {
-						const embed = new UnsafeEmbed()
+						const embed = new EmbedBuilder()
 							.setColor(0x992d22)
 							.setTitle('Possible crashers')
 							.addFields({
