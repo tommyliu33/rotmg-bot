@@ -132,27 +132,45 @@ export default class implements Command {
 				await collectedInteraction.deferReply({ ephemeral: true });
 
 				if (voiceChannel?.isVoice()) {
-					const names = [];
+					const voiceChannelNames = [];
 					for (const member of voiceChannel.members.values()) {
-						if (member.id === interaction.user.id) continue;
+						if (member.id === interaction.user.id || member.user.bot) continue;
 
 						if (member.displayName.includes('|')) {
-							names.push(...member.displayName.split('|').map((name) => clean(name)));
+							voiceChannelNames.push(...member.displayName.split('|').map((name) => clean(name)));
 						} else {
-							names.push(clean(member.displayName));
+							voiceChannelNames.push(clean(member.displayName));
 						}
 					}
 
-					const missing = names.filter((name) => !cleanNames.includes(name));
+					const guildMemberNames = [];
+					for (const member_ of interaction.guild.members.cache.values()) {
+						if (member_.id === interaction.user.id || member_.user.bot) continue;
 
-					if (missing.length) {
+						if (member_.displayName.includes('|')) {
+							guildMemberNames.push(...member_.displayName.split('|').map((name) => clean(name)));
+						} else {
+							guildMemberNames.push(clean(member_.displayName));
+						}
+					}
+
+					const missing = voiceChannelNames.filter((name) => !cleanNames.includes(name));
+					const missing_ = guildMemberNames.filter((name) => !cleanNames.includes(name));
+
+					if (missing.length || missing_.length) {
 						const embed = new EmbedBuilder()
 							.setColor(0x992d22)
 							.setTitle('Possible crashers')
-							.addFields({
-								name: 'Not in voice channel',
-								value: missing.join('\n'),
-							});
+							.addFields(
+								{
+									name: 'Not in voice channel',
+									value: missing.join('\n'),
+								},
+								{
+									name: 'Not in server',
+									value: missing_.join('\n'),
+								}
+							);
 
 						await collectedInteraction.editReply({ embeds: [embed] });
 					} else {
