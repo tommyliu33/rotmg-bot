@@ -22,3 +22,5 @@ export const BASE_GUILD_DOC = (guildId: string) => ({
 		leader_role: '',
 	},
 });
+
+export const FAME_EMOJI_ID = '952444390809423943'

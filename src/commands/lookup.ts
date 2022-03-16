@@ -10,6 +10,7 @@ import { ButtonStyle } from 'discord-api-types/v10';
 import { nanoid } from 'nanoid';
 
 import { cutText } from '@sapphire/utilities';
+import { FAME_EMOJI_ID } from '../util/constants';
 
 export default class implements Command {
 	public name = 'lookup';
@@ -159,14 +160,13 @@ export default class implements Command {
 								name: `${guild.name ?? guildName} Top Public Characters`,
 								url: guild.realmEyeUrl,
 							})
-							// TODO: move and add emoji to constants
 							.setDescription(
 								top
 									.map(
 										(member, i) =>
 											`**${++i}**. ${hyperlink(member.name!, member.realmEyeUrl!)} - ${
 												member.fame?.toLocaleString() ?? 0
-											}<:fame:952444390809423943>`
+											}${interaction.client.emojis.cache.get(FAME_EMOJI_ID)?.toString() ?? ''}`
 									)
 									.join('\n')
 							);
