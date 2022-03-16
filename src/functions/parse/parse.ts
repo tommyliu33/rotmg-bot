@@ -4,9 +4,15 @@ const API = (apiKey: string, url: string) => `https://api.ocr.space/parse/imageu
 
 async function isImage(url: string) {
 	const req = await fetch(url);
+	req.header(
+		'user-agent',
+		'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
+	);
 
-	const contentType = req.reqHeaders['content-type'];
-	return contentType?.split('/')[0] === 'image';
+	const res = await req.send();
+	const contentType = res.headers['content-type'] as string;
+
+	return contentType.split('/')[0] === 'image';
 }
 
 export function parse(url: string): Promise<OCRApiResponse> {
