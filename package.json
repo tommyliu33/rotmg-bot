@@ -27,7 +27,6 @@
 		"pino": "^7.1.0",
 		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
-		"sentence-case": "^3.0.4",
 		"tsyringe": "^4.6.0"
 	},
 	"devDependencies": {
