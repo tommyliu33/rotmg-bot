@@ -20,8 +20,6 @@ export default class implements Command {
 			.setLabel('What is your ingame name?')
 			.setStyle(TextInputStyle.Short);
 
-		modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(nameForm));
-
-		await interaction.showModal(modal);
+		await interaction.showModal(modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(nameForm)));
 	}
 }
