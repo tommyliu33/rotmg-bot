@@ -68,7 +68,7 @@ export default class implements Command {
 		const { channel } = interaction;
 		const parentId = channel?.parentId;
 
-		const section = parentId === guild?.main_section.id ? 'main_section' : 'veteran_section';
+		const section = parentId === guild?.main.category_id ? 'main' : 'veteran';
 		const channelIds = guild![section].voice_channel_ids;
 
 		const response = [];

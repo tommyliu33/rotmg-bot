@@ -2,9 +2,9 @@ import type { Event } from '../../struct/Event';
 import {
 	Events,
 	Interaction,
-	UnsafeEmbed,
-	UnsafeButtonComponent,
-	ActionRow,
+	EmbedBuilder,
+	ButtonBuilder,
+	ActionRowBuilder,
 	ButtonStyle,
 	ComponentType,
 } from 'discord.js';
@@ -15,7 +15,7 @@ import { logger } from '../../util/logger';
 import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 
 import { nanoid } from 'nanoid';
-import { getGuildSetting } from '../../functions/settings/settings';
+import { getGuildSetting } from '../../functions/settings/getGuildSetting';
 import { messageCountdown } from '../../functions/messages/messageCountdown';
 
 const profileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
@@ -56,18 +56,11 @@ export default class implements Event {
 			const doneKey = nanoid();
 			const cancelKey = nanoid();
 
-			const doneButton = new UnsafeButtonComponent()
-				.setCustomId(doneKey)
-				.setLabel('Done')
-				.setStyle(ButtonStyle.Primary);
-
-			const cancelButton = new UnsafeButtonComponent()
-				.setCustomId(cancelKey)
-				.setLabel('Cancel')
-				.setStyle(ButtonStyle.Danger);
+			const doneButton = new ButtonBuilder().setCustomId(doneKey).setLabel('Done').setStyle(ButtonStyle.Primary);
+			const cancelButton = new ButtonBuilder().setCustomId(cancelKey).setLabel('Cancel').setStyle(ButtonStyle.Danger);
 
 			const dmChannel = await interaction.user.createDM();
-			const embed = new UnsafeEmbed()
+			const embed = new EmbedBuilder()
 				// .setTitle(`${inlineCode(interaction.guild.name)} Verification`)
 				.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() ?? '' })
 				.setDescription(
@@ -80,7 +73,7 @@ export default class implements Event {
 
 			const m = await dmChannel.send({
 				embeds: [embed],
-				components: [new ActionRow().addComponents(doneButton, cancelButton)],
+				components: [new ActionRowBuilder<ButtonBuilder>().addComponents(doneButton, cancelButton)],
 			});
 			messageCountdown(m, 50_000 * 6, 30_000);
 
@@ -91,12 +84,7 @@ export default class implements Event {
 					time: 60_000 * 5,
 				})
 				.catch(async () => {
-					const comp = m.components.map((row) => {
-						row.components.map((comp) => comp.setDisabled(true));
-						return row;
-					});
-
-					await m.edit({ components: comp });
+					await m.edit({ components: [] });
 					return undefined;
 				});
 
@@ -121,7 +109,7 @@ export default class implements Event {
 					return;
 				}
 
-				const settings = await getGuildSetting(interaction.guildId, 'main_section');
+				const settings = await getGuildSetting(interaction.guildId, 'main');
 				const roleId = settings.user_role;
 
 				const res = await interaction.member.roles.add(roleId).catch(async (err) => {

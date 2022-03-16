@@ -3,8 +3,9 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 
 import { scrapePlayer, scrapeGuild } from '@toommyliu/realmeye-scraper';
 
-import { UnsafeEmbed, UnsafeButtonComponent, ActionRow, ButtonStyle, ComponentType, Util } from 'discord.js';
+import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, Util } from 'discord.js';
 import { inlineCode, hyperlink } from '@discordjs/builders';
+import { ButtonStyle } from 'discord-api-types/v10';
 
 import { nanoid } from 'nanoid';
 
@@ -47,7 +48,7 @@ export default class implements Command {
 
 		const m = await interaction.deferReply({ fetchReply: true });
 
-		const embed = new UnsafeEmbed();
+		const embed = new EmbedBuilder();
 		switch (interaction.options.getSubcommand()) {
 			case 'player':
 				const playerName = interaction.options.getString('name', true);
@@ -128,12 +129,14 @@ export default class implements Command {
 					});
 
 					const viewKey = nanoid();
-					const viewTopButton = new UnsafeButtonComponent()
+					const viewTopButton = new ButtonBuilder()
 						.setCustomId(viewKey)
 						.setStyle(ButtonStyle.Primary)
 						.setLabel('View Top Members');
-
-					await interaction.editReply({ embeds: [embed], components: [new ActionRow().addComponents(viewTopButton)] });
+					await interaction.editReply({
+						embeds: [embed],
+						components: [new ActionRowBuilder<ButtonBuilder>().addComponents(viewTopButton)],
+					});
 
 					const collectedInteraction = await m
 						.awaitMessageComponent({
@@ -142,18 +145,21 @@ export default class implements Command {
 							time: 50_000 * 6,
 						})
 						.catch(async () => {
-							await m.edit({ components: [new ActionRow().addComponents(viewTopButton.setDisabled(true))] });
+							await m.edit({
+								components: [new ActionRowBuilder<ButtonBuilder>().addComponents(viewTopButton.setDisabled(true))],
+							});
 							return undefined;
 						});
 
 					if (collectedInteraction?.customId === viewKey) {
 						const top = guild.members!.sort((a, b) => b.fame! - a.fame!).slice(0, 10);
 
-						const embed_ = new UnsafeEmbed()
+						const embed_ = new EmbedBuilder()
 							.setAuthor({
-								name: `${guild.name ?? guildName} Top Characters`,
+								name: `${guild.name ?? guildName} Top Public Characters`,
 								url: guild.realmEyeUrl,
 							})
+							// TODO: move and add emoji to constants
 							.setDescription(
 								top
 									.map(
@@ -165,7 +171,7 @@ export default class implements Command {
 									.join('\n')
 							);
 
-						await collectedInteraction.update({ embeds: [embed_], components: [] });
+						await collectedInteraction.update({ embeds: [embed_.toJSON()], components: [] });
 					}
 				}
 				break;
