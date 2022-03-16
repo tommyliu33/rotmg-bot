@@ -123,9 +123,9 @@ export default class implements Command {
 					return undefined;
 				});
 
-			if (collectedInteraction?.customId === 'view_crashers') {
+			if (collectedInteraction?.customId === crashersKey) {
 				if (interaction.options.getSubcommand(true) !== 'vc') {
-					await collectedInteraction.reply({ content: 'No voice channel selected.', ephemeral: true });
+					await collectedInteraction.reply({ content: 'No voice channel selected to compare.', ephemeral: true });
 					return undefined;
 				}
 
@@ -137,11 +137,7 @@ export default class implements Command {
 						if (member.id === interaction.user.id) continue;
 
 						if (member.displayName.includes('|')) {
-							const names_ = member.displayName.split('|');
-							const cleaned = names_.map((name) => clean(name));
-							console.log('cleaned', cleaned);
-
-							names.push(...names_.map((name) => clean(name)));
+							names.push(...member.displayName.split('|').map((name) => clean(name)));
 						} else {
 							names.push(clean(member.displayName));
 						}
