@@ -3,7 +3,7 @@ import type { Message, MessageCollectorOptions, TextBasedChannel } from 'discord
 import { MessageCollector } from 'discord.js';
 import { mergeDefault } from '@sapphire/utilities';
 
-export function awaitMessage(options: MessageCollectorOptions & { channel: TextBasedChannel }): Promise<Message> {
+export function collectMessage(options: MessageCollectorOptions & { channel: TextBasedChannel }): Promise<Message> {
 	return new Promise((resolve, reject) => {
 		const _options = mergeDefault({ max: 1, time: 60_000 }, options);
 		const collector = new MessageCollector(options.channel, _options);
