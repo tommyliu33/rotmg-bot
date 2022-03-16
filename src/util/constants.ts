@@ -23,4 +23,4 @@ export const BASE_GUILD_DOC = (guildId: string) => ({
 	},
 });
 
-export const FAME_EMOJI_ID = '952444390809423943'
+export const FAME_EMOJI_ID = '952444390809423943';
