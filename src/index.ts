@@ -23,6 +23,7 @@ const client = new Client({
 		GatewayIntentBits.GuildMessageReactions,
 		GatewayIntentBits.DirectMessages,
 		GatewayIntentBits.DirectMessageReactions,
+		GatewayIntentBits.MessageContent,
 	],
 });
 const manager = new RaidManager();
