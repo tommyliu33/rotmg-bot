@@ -14,16 +14,16 @@ images = ['https://i.imgur.com/3Biywi7.png', 'https://i.imgur.com/DSVqdZo.png']
 name = 'Oryx Sanctuary'
 
 keys = [
-  {emoji = '<:ShieldRune:886134621178331167>', max = 2},
-  {emoji = '<:HelmetRune:886134621685837824>', max = 2},
-  {emoji = '<:SwordRune:886134621127991337>', max = 2},
-  {emoji = '<:WineCellarIncantation:886330945404272671>', max = 2},
+  {emoji = '886134621178331167', max = 2},
+  {emoji = '886134621685837824', max = 2},
+  {emoji = '886134621127991337', max = 2},
+  {emoji = '886330945404272671', max = 2},
 ]
-portal = '<:OryxSanctuaryPortal:908398287994896444>'
+portal = '908398287994896444'
 
 main = [
-  {emoji = '<:Warrior:930900284413194240>', max = 0},
-  {emoji = '<:Paladin:930900392110358579>', max = 0},
+  {emoji = '930900284413194240', max = 0},
+  {emoji = '930900392110358579', max = 0},
 ]
 
 [void]
@@ -32,19 +32,19 @@ images = ['https://i.imgur.com/7JGSvMq.png']
 name = 'The Void'
 
 keys = [
-  {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
-  {emoji = '<:VialOfPureDarkness:886326037212966922>', max = 2},
+  {emoji = '886130322964639755', max = 2},
+  {emoji = '886326037212966922', max = 2},
 ]
-portal = '<:Void:886066308075114527>'
+portal = '886066308075114527'
 
 main = [
-  {emoji = '<:Warrior:930900284413194240>', max = 0},
-  {emoji = '<:Paladin:930900392110358579>', max = 0},
-  {emoji = '<:Knight:930900421084606565>', max = 0},
-  {emoji = '<:Samurai:930900377740656740>', max = 0},
-  {emoji = '<:TomeOfTheMushroomTribes:886328344126300221>', max = 0},
-  {emoji = '<:MarbleSeal:886328165054697562>', max = 0},
-  {emoji = '<:ArmorBreak:886328650562162740>', max = 0},
+  {emoji = '930900284413194240', max = 0},
+  {emoji = '930900392110358579', max = 0},
+  {emoji = '930900421084606565', max = 0},
+  {emoji = '930900377740656740', max = 0},
+  {emoji = '886328344126300221', max = 0},
+  {emoji = '886328165054697562', max = 0},
+  {emoji = '886328650562162740', max = 0},
 ]
 
 [fsv]
@@ -53,21 +53,21 @@ images = ['https://i.imgur.com/7JGSvMq.png']
 name = 'Fullskip Void'
 
 keys = [
-  {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
-  {emoji = '<:VialOfPureDarkness:886326037212966922>', max = 2},
+  {emoji = '886130322964639755', max = 2},
+  {emoji = '886326037212966922', max = 2},
 ]
-portal = '<:FullSkipVoid:934856677302349915>'
+portal = 'FullSkipVoid:934856677302349915'
 
 main = [
-  {emoji = '<:Mystic:930900408661053470>', max = 0},
-  {emoji = '<:BrainOfTheGolem:934857022309036033>', max = 0},
-  {emoji = '<:Warrior:930900284413194240>', max = 0},
-  {emoji = '<:Paladin:930900392110358579>', max = 0},
-  {emoji = '<:Knight:930900421084606565>', max = 0},
-  {emoji = '<:Samurai:930900377740656740>', max = 0},
-  {emoji = '<:TomeOfTheMushroomTribes:886328344126300221>', max = 0},
-  {emoji = '<:MarbleSeal:886328165054697562>', max = 0},
-  {emoji = '<:ArmorBreak:886328650562162740>', max = 0},
+  {emoji = '930900408661053470', max = 0},
+  {emoji = '934857022309036033', max = 0},
+  {emoji = '930900284413194240', max = 0},
+  {emoji = '930900392110358579', max = 0},
+  {emoji = '930900421084606565', max = 0},
+  {emoji = '930900377740656740', max = 0},
+  {emoji = '886328344126300221', max = 0},
+  {emoji = '886328165054697562', max = 0},
+  {emoji = '886328650562162740', max = 0},
 ]
 
 [shatters]
@@ -81,20 +81,20 @@ images = [
 name = 'The Shatters'
 
 keys = [
-  {emoji = '<:ShattersKey:887532668181422122>', max = 2},
+  {emoji = '887532668181422122', max = 2},
 ]
-portal = '<:ShattersPortal:887532566977069138>'
+portal = '887532566977069138'
 
 main = [
-  {emoji = '<:Warrior:930900284413194240>', max = 0},
-  {emoji = '<:Paladin:930900392110358579>', max = 0},
-  {emoji = '<:Knight:930900421084606565>', max = 0},
-  {emoji = '<:Slow:930900333859840002>', max = 0},
+  {emoji = '930900284413194240', max = 0},
+  {emoji = '930900392110358579', max = 0},
+  {emoji = '930900421084606565', max = 0},
+  {emoji = '930900333859840002', max = 0},
 ]
 
 optional = [
-  {emoji = '<:Planewalker:886332230362861608>', max = 0},
-  {emoji = '<:LightsOutPuzzle:908439164087840819>', max = 0},
+  {emoji = '886332230362861608', max = 0},
+  {emoji = '908439164087840819', max = 0},
 ]
 
 [cult]
@@ -103,18 +103,18 @@ images = ['https://i.imgur.com/nPkovWR.png']
 name = 'Cultist Hideout'
 
 keys = [
-  {emoji = '<:LostHallsKey:886130322964639755>', max = 2},
+  {emoji = '886130322964639755', max = 2},
 ]
-portal = '<:CultistHideout:915138896604590120>'
+portal = '915138896604590120'
 
 main = [
-  {emoji = '<:Warrior:930900284413194240>', max = 0},
-  {emoji = '<:Paladin:930900392110358579>', max = 0},
-  {emoji = '<:Knight:930900421084606565>', max = 0},
+  {emoji = '930900284413194240', max = 0},
+  {emoji = '930900392110358579', max = 0},
+  {emoji = '930900421084606565', max = 0},
 ]
 
 optional = [
-  {emoji = '<:Planewalker:886332230362861608>', max = 0},
+  {emoji = '886332230362861608', max = 0},
 ]
 
 [nest]
@@ -123,19 +123,19 @@ images = ['https://i.imgur.com/hUWc3IV.png']
 name = 'The Nest'
 
 keys = [
-  {emoji = '<:TheNestKey:915140275230343178>', max = 2},
+  {emoji = '915140275230343178', max = 2},
 ]
-portal = '<:TheNestPortal:915140112617185320>'
+portal = '915140112617185320'
 
 main = [
-  {emoji = '<:Warrior:930900284413194240>', max = 0},
-  {emoji = '<:Paladin:930900392110358579>', max = 0},
-  {emoji = '<:Knight:930900421084606565>', max = 0},
+  {emoji = '930900284413194240', max = 0},
+  {emoji = '930900392110358579', max = 0},
+  {emoji = '930900421084606565', max = 0},
 ]
 
 optional = [
-  {emoji = '<:QuiverOfThunder:887925455783600148>', max = 0},
-  {emoji = '<:Slow:930900333859840002>', max = 0},
+  {emoji = '887925455783600148', max = 0},
+  {emoji = '930900333859840002', max = 0},
 ]
 
 [fungal]
@@ -144,17 +144,17 @@ images = ['https://i.imgur.com/K6rOQzR.png']
 name = 'Fungal Cavern'
 
 keys = [
-  {emoji = '<:FungalCavernKey:915141233247141899>', max = 2},
+  {emoji = '915141233247141899', max = 2},
 ]
-portal = '<:FungalCavernPortal:915141137990320139>'
+portal = '915141137990320139'
 
 main = [
-  {emoji = '<:Warrior:930900284413194240>', max = 0},
-  {emoji = '<:Paladin:930900392110358579>', max = 0},
-  {emoji = '<:Knight:930900421084606565>', max = 0},
+  {emoji = '930900284413194240', max = 0},
+  {emoji = '930900392110358579', max = 0},
+  {emoji = '930900421084606565', max = 0},
 ]
 
 optional = [
-  {emoji = '<:QuiverOfThunder:887925455783600148>', max = 0},
-  {emoji = '<:Slow:930900333859840002>', max = 0},
+  {emoji = '887925455783600148', max = 0},
+  {emoji = '930900333859840002', max = 0},
 ]
