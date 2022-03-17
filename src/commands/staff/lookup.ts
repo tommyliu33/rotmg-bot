@@ -10,7 +10,7 @@ import { ButtonStyle } from 'discord-api-types/v10';
 import { nanoid } from 'nanoid';
 
 import { cutText } from '@sapphire/utilities';
-import { FAME_EMOJI_ID } from '../../util/constants';
+import { FAME_EMOJI_ID } from '../../constants';
 
 export default class implements Command {
 	public name = 'lookup';

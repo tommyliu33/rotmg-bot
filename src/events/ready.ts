@@ -6,7 +6,7 @@ import { guilds } from '../util/mongo';
 
 import { injectable, inject } from 'tsyringe';
 import { kClient } from '../tokens';
-import { BASE_GUILD_DOC } from '../util/constants';
+import { BASE_GUILD_DOC } from '../constants';
 
 @injectable()
 export default class implements Event {
