@@ -20,6 +20,7 @@ export default class implements Command {
 		const key = `${interaction.guildId}-${interaction.member.id}`;
 
 		const afkcheck = this.manager.afkchecks.get(key);
+		const headcount = this.manager.headcounts.get(key);
 		if (afkcheck) {
 			await afkcheck.abort();
 			this.manager.afkchecks.delete(key);
@@ -28,6 +29,13 @@ export default class implements Command {
 			return;
 		}
 
-		await interaction.editReply({ content: 'No afkcheck found.' });
+		if (headcount) {
+			this.manager.headcounts.delete(key);
+
+			await interaction.editReply({ content: 'Aborted your headcount.' });
+			return;
+		}
+
+		await interaction.editReply({ content: 'Nothing found.' });
 	}
 }
