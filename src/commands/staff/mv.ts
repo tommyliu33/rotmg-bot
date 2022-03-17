@@ -54,7 +54,7 @@ export default class implements Command {
 			} catch {}
 
 			await interaction.editReply(
-				'Done. If they did not receive the role or their nickname, please change it manually.'
+				'Done. If they did not receive the role or their nickname, please update it manually.'
 			);
 		}
 	}
