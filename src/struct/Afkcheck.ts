@@ -217,8 +217,9 @@ export class Afkcheck implements IAfkcheck {
 			collector.on('collect', async (collectedInteraction) => {
 				if (!collectedInteraction.isButton()) return;
 
+				await collectedInteraction.deferReply();
+
 				if (collectedInteraction.customId === 'change') {
-					await collectedInteraction.deferReply();
 					await collectedInteraction.editReply({
 						content: 'Enter the new location for this raid.',
 					});
@@ -240,7 +241,6 @@ export class Afkcheck implements IAfkcheck {
 						await message.delete().catch(() => undefined);
 					}
 				} else if (collectedInteraction.customId === 'reveal') {
-					await collectedInteraction.deferReply();
 					if (!this.location) {
 						await collectedInteraction.editReply('Set a location before revealing.');
 						timedDelete(collectedInteraction, 5000);
@@ -263,15 +263,11 @@ export class Afkcheck implements IAfkcheck {
 					await collectedInteraction.editReply('Revealed location.');
 					timedDelete(collectedInteraction, 5000);
 				} else if (collectedInteraction.customId === 'abort') {
-					await collectedInteraction.deferReply();
-
 					await this.abort();
 
 					await collectedInteraction.editReply('Aborted afk check.');
 					timedDelete(collectedInteraction, 5000);
 				} else if (collectedInteraction.customId === 'end') {
-					await collectedInteraction.deferReply();
-
 					await this.end();
 
 					await collectedInteraction.editReply('Ended afk check.');
