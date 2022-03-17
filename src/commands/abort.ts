@@ -8,7 +8,7 @@ import type { RaidManager } from '../struct/RaidManager';
 @injectable()
 export default class implements Command {
 	public name = 'abort';
-	public description = 'abort an afkcheck';
+	public description = 'Abort your afkcheck or headcount';
 
 	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
@@ -16,8 +16,8 @@ export default class implements Command {
 		if (!interaction.inCachedGuild()) return;
 
 		await interaction.deferReply({ ephemeral: true });
-		if (this.manager.afkchecks.has(interaction.user.id)) {
-			// await this.manager.raids.get(interaction.user.id)?.abort();
+		if (this.manager.afkchecks.has(`${interaction.guildId}-${interaction.member.id}`)) {
+			this.manager.afkchecks.delete(`${interaction.guildId}-${interaction.member.id}`);
 			await interaction.editReply({ content: 'Aborted your afkcheck.' });
 			return;
 		}

@@ -148,7 +148,7 @@ export class Afkcheck implements IAfkcheck {
 		this.message = m;
 		this.messageId = m.id;
 
-		this.manager.afkchecks.set(`${this.guildId}-${this.textChannelId}-${this.memberId}`, this);
+		this.manager.afkchecks.set(`${this.guildId}-${this.memberId}`, this);
 
 		await this.createControlPanelThread();
 	}
