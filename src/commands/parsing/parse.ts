@@ -1,5 +1,5 @@
 import type { Command } from '../../struct/Command';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
 import { codeBlock, hyperlink } from '@discordjs/builders';
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ComponentType } from 'discord.js';
@@ -9,45 +9,43 @@ import { Stopwatch } from '@sapphire/stopwatch';
 
 import { haste } from '../../util/haste';
 import { nanoid } from 'nanoid';
+import { paginate } from '../../functions/paginate';
 
-const clean = (str: string) => str.replace(/[^A-Za-z]/g, '');
+const clean = (str: string) => str.replace(/[^A-Za-z]/g, '').toLowerCase();
+
+function getNames(array: string[]) {
+	const names: string[] = [];
+
+	// eslint-disable-next-line @typescript-eslint/prefer-for-of
+	for (let i = 0; i < array.length; ++i) {
+		if (array[i].includes('|')) {
+			const split = array[i].split('|');
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			names.push(...getNames(split).map((name) => clean(name)));
+		} else {
+			names.push(clean(array[i]));
+		}
+	}
+
+	return names;
+}
 
 export default class implements Command {
 	public name = 'parse';
-	public description = 'parse usernames from /who screenshot';
+	public description = 'Parse usernames from /who screenshot (may be unreliable)';
 	public options = [
 		{
-			type: 1,
-			name: 'vc',
-			description: "Voice parse (basic parse + checks if they're in vc)",
-			options: [
-				{
-					name: 'screenshot',
-					description: 'screenshot to parse',
-					type: 11,
-					required: true,
-				},
-				{
-					type: 7,
-					name: 'voice_channel',
-					description: 'Voice channel to use (leave blank to use your current voice channel)',
-					required: false,
-					channel_types: [2],
-				},
-			],
+			name: 'screenshot',
+			description: 'screenshot to parse',
+			type: 11,
+			required: true,
 		},
 		{
-			type: 1,
-			name: 'basic',
-			description: 'Basic parse (only extracts IGNs from screenshot)',
-			options: [
-				{
-					name: 'screenshot',
-					description: 'screenshot to parse',
-					type: 11,
-					required: true,
-				},
-			],
+			type: 7,
+			name: 'voice_channel',
+			description: 'Voice channel to use (leave blank to use your current voice channel if available)',
+			required: false,
+			channel_types: [2],
 		},
 	];
 
@@ -57,43 +55,58 @@ export default class implements Command {
 		const timer = new Stopwatch();
 
 		const m = await interaction.deferReply({ fetchReply: true });
-
 		const attachment = interaction.options.getAttachment('screenshot', true);
 		const voiceChannel = interaction.options.getChannel('voice_channel', false) ?? interaction.member.voice.channel;
 
+		await interaction.editReply('Starting parse (if this takes too long, it most likely failed)');
+
 		const url = attachment.url || attachment.proxyURL;
-		const res = await parse(url).catch(async (reason) => {
-			if (reason === 'Not an image') {
-				await interaction.editReply({ content: 'Attachment was not an image.' });
-				return undefined;
+		const res = await parse(url).catch(async (err) => {
+			if (err instanceof Error) {
+				if (err.message === 'Not an image') {
+					await interaction.editReply({ content: 'Attachment was not an image.' });
+					return undefined;
+				}
+
+				if (err.message === 'Headers Timeout Error') {
+					await interaction.editReply({ content: 'Timed out trying to send request, try again.' });
+					return undefined;
+				}
 			}
 
-			await interaction.editReply({ content: 'An error occured while trying to read screenshot.' });
+			await interaction.editReply({
+				content: `An error occured while trying to read screenshot.\n${codeBlock(err)}`,
+			});
 			return undefined;
 		});
 
 		if (res) {
-			const text = res.ParsedResults[0].ParsedText;
-			const cleanNames = text.split(',').map((name) => name.trim());
+			await interaction.editReply('Parsing image results');
+			timer.stop();
 
-			const embed = new EmbedBuilder()
-				.setDescription(`${hyperlink('Image url', url, 'Click to view image')}`)
-				.setFooter({ text: `Took ${timer.toString()}` })
-				.setImage(url);
+			const text = res.ParsedResults[0].ParsedText;
+			const cleanedText = text.replace(/\r\n/g, ' ');
+			const embed = new EmbedBuilder().setFooter({ text: `Took ${timer.toString()}` }).setImage(url);
 
 			if (text) {
 				embed.setTitle('Parsed screenshot results').setColor(0x34495e);
 
 				const res = await haste('Raw screenshot content', text).catch(() => undefined);
 
-				if (typeof res === 'object' && ('key' in res || 'url' in res)) {
-					embed.setDescription(`${embed.data.description!} | ${hyperlink('View raw parse', res.url)}`);
+				if (typeof res === 'object' && 'url' in res) {
+					embed.setDescription(hyperlink('View raw', res.url));
 				}
 
-				embed.setDescription(`${embed.data.description!}\n${codeBlock(cleanNames.join(', '))}`);
+				embed.setDescription(`${embed.data.description!}\n${codeBlock(cleanedText)}`);
 			} else {
 				embed.setTitle('Failed to parse screenshot').setColor(0xed4245);
 			}
+
+			const options = {
+				content: ' ',
+				embeds: [embed],
+				components: [],
+			};
 
 			const crashersKey = nanoid();
 			const crashersButton = new ButtonBuilder()
@@ -104,11 +117,12 @@ export default class implements Command {
 					name: '🕵️',
 				});
 
-			await interaction.editReply({
-				content: ' ',
-				embeds: [embed],
-				components: [new ActionRowBuilder<ButtonBuilder>().addComponents(crashersButton)],
-			});
+			if (voiceChannel?.isVoice()) {
+				// @ts-expect-error
+				options.components = [new ActionRowBuilder<ButtonBuilder>().addComponents(crashersButton)];
+			}
+
+			await interaction.editReply(options);
 
 			const collectedInteraction = await m
 				.awaitMessageComponent({
@@ -123,60 +137,54 @@ export default class implements Command {
 					return undefined;
 				});
 
-			if (collectedInteraction?.customId === crashersKey) {
-				if (interaction.options.getSubcommand(true) !== 'vc') {
-					await collectedInteraction.reply({ content: 'No voice channel selected to compare.', ephemeral: true });
-					return undefined;
-				}
-
+			if (collectedInteraction?.customId === crashersKey && voiceChannel?.isVoice()) {
 				await collectedInteraction.deferReply({ ephemeral: true });
 
-				if (voiceChannel?.isVoice()) {
-					const voiceChannelNames = [];
-					for (const member of voiceChannel.members.values()) {
-						if (member.id === interaction.user.id || member.user.bot) continue;
+				const filter = (m: GuildMember) => m.id !== interaction.user.id || !m.user.bot;
 
-						if (member.displayName.includes('|')) {
-							voiceChannelNames.push(...member.displayName.split('|').map((name) => clean(name)));
-						} else {
-							voiceChannelNames.push(clean(member.displayName));
-						}
-					}
+				const guildMembers = interaction.guild.members.cache
+					.filter((m) => m.id !== interaction.user.id || !m.user.bot)
+					.map((member) => member.displayName);
+				const guildMemberNames = getNames(guildMembers);
 
-					const guildMemberNames = [];
-					for (const member_ of interaction.guild.members.cache.values()) {
-						if (member_.id === interaction.user.id || member_.user.bot) continue;
+				const voiceChannelMembers = voiceChannel.members.filter(filter).map((member) => member.displayName);
+				const voiceChannelMemberNames = getNames(voiceChannelMembers);
 
-						if (member_.displayName.includes('|')) {
-							guildMemberNames.push(...member_.displayName.split('|').map((name) => clean(name)));
-						} else {
-							guildMemberNames.push(clean(member_.displayName));
-						}
-					}
+				const embeds: EmbedBuilder[] = [];
 
-					const missing = voiceChannelNames.filter((name) => !cleanNames.includes(name));
-					const missing_ = guildMemberNames.filter((name) => !cleanNames.includes(name));
+				// eslint-disable-next-line @typescript-eslint/prefer-includes
+				if (guildMemberNames.length && cleanedText.indexOf(':') !== -1) {
+					const names = cleanedText.split(': ')[1];
+					const split = names.split(', ');
 
-					if (missing.length || missing_.length) {
-						const embed = new EmbedBuilder()
-							.setColor(0x992d22)
-							.setTitle('Possible crashers')
-							.addFields(
-								{
-									name: 'Not in voice channel',
-									value: missing.join('\n'),
-								},
-								{
-									name: 'Not in server',
-									value: missing_.join('\n'),
-								}
-							);
-
-						await collectedInteraction.editReply({ embeds: [embed] });
-					} else {
-						await collectedInteraction.editReply({ content: 'No crashers found.' });
+					const inScreenshotButNotInVoiceChannel = split.filter((name) => !voiceChannelMemberNames.includes(name));
+					if (inScreenshotButNotInVoiceChannel.length) {
+						embeds.push(
+							new EmbedBuilder()
+								.setTitle('Players found in screenshot, but not in voice channel (Possible alts)')
+								.setDescription(codeBlock(inScreenshotButNotInVoiceChannel.join('\n')))
+								.setFooter({ text: 'Not 100% accurate!' })
+						);
 					}
 				}
+
+				// eslint-disable-next-line @typescript-eslint/prefer-includes
+				if (voiceChannelMemberNames.length && cleanedText.indexOf(':') !== -1) {
+					const names = cleanedText.split(': ')[1];
+					const split = names.split(', ');
+
+					const inVoiceChannelButNotInScreenshot = voiceChannelMemberNames.filter((name) => !split.includes(name));
+					if (inVoiceChannelButNotInScreenshot.length) {
+						embeds.push(
+							new EmbedBuilder()
+								.setTitle('Players in voice channel, but not found in screenshot (Possible alts)')
+								.setDescription(codeBlock(inVoiceChannelButNotInScreenshot.join('\n')))
+								.setFooter({ text: 'Not 100% accurate!' })
+						);
+					}
+				}
+
+				await paginate(collectedInteraction, embeds);
 			}
 		}
 	}
