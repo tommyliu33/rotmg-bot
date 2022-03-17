@@ -100,7 +100,7 @@ export class Afkcheck implements IAfkcheck {
 		}
 
 		const settings = await getGuildSetting(this.guildId, key);
-		this.controlPanelChannelId = settings.control_panel_channel_id;
+		this.controlPanelChannelId = settings.controlPanelChannelId;
 
 		this.member = this.guild.members.cache.get(this.memberId)!;
 		this.textChannel = (await this.guild.channels.fetch(this.textChannelId)) as TextChannel;

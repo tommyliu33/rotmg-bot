@@ -110,7 +110,7 @@ export default class implements Event {
 				}
 
 				const settings = await getGuildSetting(interaction.guildId, 'main');
-				const roleId = settings.user_role;
+				const roleId = settings.userRole;
 
 				const res = await interaction.member.roles.add(roleId).catch(async (err) => {
 					await interaction.editReply('Failed to add the role');
