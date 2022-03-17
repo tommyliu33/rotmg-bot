@@ -44,6 +44,11 @@ export default class implements Command {
 
 		await interaction.deferReply();
 
+		if (this.manager.afkchecks.has(`${interaction.guildId}-${interaction.member.id}`)) {
+			await interaction.editReply('You already have an active afkcheck, abort to start another.');
+			return;
+		}
+
 		const voiceChannelId = interaction.options.getString('voice_channel', true);
 		const dungeon = this.manager.dungeonCache.get(interaction.options.getString('dungeon', true))!;
 

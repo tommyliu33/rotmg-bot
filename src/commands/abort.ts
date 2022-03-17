@@ -16,8 +16,14 @@ export default class implements Command {
 		if (!interaction.inCachedGuild()) return;
 
 		await interaction.deferReply({ ephemeral: true });
-		if (this.manager.afkchecks.has(`${interaction.guildId}-${interaction.member.id}`)) {
-			this.manager.afkchecks.delete(`${interaction.guildId}-${interaction.member.id}`);
+
+		const key = `${interaction.guildId}-${interaction.member.id}`;
+
+		const afkcheck = this.manager.afkchecks.get(key);
+		if (afkcheck) {
+			await afkcheck.abort();
+			this.manager.afkchecks.delete(key);
+
 			await interaction.editReply({ content: 'Aborted your afkcheck.' });
 			return;
 		}
