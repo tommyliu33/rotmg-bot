@@ -36,6 +36,6 @@ export default class implements Command {
 			return;
 		}
 
-		await interaction.editReply({ content: 'Nothing found.' });
+		await interaction.editReply({ content: 'No afkcheck or headcount found.' });
 	}
 }
