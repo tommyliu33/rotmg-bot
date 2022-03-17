@@ -1,4 +1,4 @@
-import type { Command } from '../struct/Command';
+import type { Command } from '../../struct/Command';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 import { scrapePlayer, scrapeGuild } from '@toommyliu/realmeye-scraper';
@@ -10,7 +10,7 @@ import { ButtonStyle } from 'discord-api-types/v10';
 import { nanoid } from 'nanoid';
 
 import { cutText } from '@sapphire/utilities';
-import { FAME_EMOJI_ID } from '../util/constants';
+import { FAME_EMOJI_ID } from '../../util/constants';
 
 export default class implements Command {
 	public name = 'lookup';
