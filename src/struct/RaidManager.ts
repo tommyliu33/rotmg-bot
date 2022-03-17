@@ -1,13 +1,13 @@
 import { Collection } from '@discordjs/collection';
 import type { Afkcheck } from './Afkcheck';
-import type { IHeadcount } from './Headcount';
+import type { Headcount } from './Headcount';
 
 import { readFileSync } from 'node:fs';
 import { parse } from '@ltd/j-toml';
 
 export class RaidManager {
 	public afkchecks: Collection<string, Afkcheck>;
-	public headcounts: Collection<string, IHeadcount>;
+	public headcounts: Collection<string, Headcount>;
 	public dungeonCache: Collection<string, Dungeon>;
 
 	public constructor() {
