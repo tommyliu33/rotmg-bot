@@ -120,6 +120,7 @@ export class Afkcheck implements IAfkcheck {
 					.join('')}) and are willing to pop, react to the corresponding button
 				Otherwise, react to class/item choices that you are bringing`
 			);
+		// TODO: add other emojis
 
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(participateButton);
 
