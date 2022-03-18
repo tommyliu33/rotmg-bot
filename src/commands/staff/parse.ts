@@ -58,7 +58,7 @@ export default class implements Command {
 		const attachment = interaction.options.getAttachment('screenshot', true);
 		const voiceChannel = interaction.options.getChannel('voice_channel', false) ?? interaction.member.voice.channel;
 
-		await interaction.editReply('Starting parse (if this takes too long, it most likely failed)');
+		await interaction.editReply('Starting parse (if this takes too long, it may have failed)');
 
 		const url = attachment.url || attachment.proxyURL;
 		const res = await parse(url).catch(async (err) => {
