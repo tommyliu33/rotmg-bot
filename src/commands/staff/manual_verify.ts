@@ -4,7 +4,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import { getGuildSetting } from '../../functions/settings/getGuildSetting';
 
 export default class implements Command {
-	public name = 'mv';
+	public name = 'manual_verify';
 	public description = 'Manually verify a member';
 	public options = [
 		{
