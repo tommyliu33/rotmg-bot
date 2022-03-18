@@ -6,6 +6,7 @@ export interface Command {
 	description: string;
 	options?: APIApplicationCommandOption[];
 
+	// TODO: cachetype to cached 
 	run: (interaction: ChatInputCommandInteraction) => Promise<void> | void;
 	autocomplete?: (interaction: AutocompleteInteraction) => Promise<void> | void;
 }
