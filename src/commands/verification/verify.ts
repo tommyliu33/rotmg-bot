@@ -11,6 +11,7 @@ export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction) {
 		if (!interaction.inCachedGuild()) return;
 
+		// TODO: broken until https://github.com/discordjs/discord.js/pull/7649 gets merged
 		const modal = new ModalBuilder()
 			.setTitle(`${interaction.guild.name} Verification`)
 			.setCustomId('verification_modal');

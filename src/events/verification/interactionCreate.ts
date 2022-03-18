@@ -67,7 +67,7 @@ export default class implements Event {
 					`Add the following code to any line of your ${hyperlink('Realmeye profile', profileUrl(name))} description
 				
 				${codeBlock('fix', code)}
-				Click 'Done' to continue. Click 'Cancel' to cancel.
+				Click 'Done' to continue or 'Cancel' to cancel.
 				`
 				);
 
@@ -112,13 +112,14 @@ export default class implements Event {
 				const settings = await getGuildSetting(interaction.guildId, 'main');
 				const roleId = settings.userRole;
 
-				const res = await interaction.member.roles.add(roleId).catch(async (err) => {
-					await interaction.editReply('Failed to add the role');
-					console.log('error from interaction create', err);
-					return undefined;
-				});
+				try {
+					await interaction.member.roles.add(roleId);
+					await interaction.member.setNickname(player.name!);
+				} catch {}
 
-				if (res) await collectedInteraction.editReply('You are now verified!');
+				await collectedInteraction.editReply(
+					'You are now verified! If yout receive the role or a nickname, please contact a staff member.'
+				);
 			} else if (collectedInteraction?.customId === cancelKey) {
 				await collectedInteraction.update({ content: ' ', embeds: [], components: [] });
 			}
