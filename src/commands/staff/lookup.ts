@@ -14,7 +14,7 @@ import { FAME_EMOJI_ID } from '../../constants';
 
 export default class implements Command {
 	public name = 'lookup';
-	public description = 'Lookup a player/guild';
+	public description = 'Lookup a player/guild on Realmeye';
 	public options = [
 		{
 			type: 1,
