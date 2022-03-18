@@ -5,6 +5,8 @@ import type { Headcount } from './Headcount';
 import { readFileSync } from 'node:fs';
 import { parse } from '@ltd/j-toml';
 
+import { logger } from '../util/logger';
+
 export class RaidManager {
 	public afkchecks: Collection<string, Afkcheck>;
 	public headcounts: Collection<string, Headcount>;
@@ -26,6 +28,8 @@ export class RaidManager {
 			const dungeon_ = dungeon as unknown as Dungeon;
 			this.dungeonCache.set(key, { ...dungeon_, color: Number(dungeon_.color) });
 		}
+
+		logger.info('Cached dungeon data');
 	}
 }
 

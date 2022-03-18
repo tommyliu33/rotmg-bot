@@ -19,6 +19,7 @@ import {
 	EmbedBuilder,
 	ActionRowBuilder,
 	ButtonBuilder,
+	Collection,
 	ButtonStyle,
 	ComponentType,
 } from 'discord.js';
@@ -90,6 +91,8 @@ export class Afkcheck implements IAfkcheck {
 	public location!: string;
 	public locationRevealed: boolean;
 
+	public reactions: Collection<string, Set<string>>;
+
 	public constructor(data: Omit<IAfkcheck, 'messageId'>) {
 		this.guild = this.client.guilds.cache.get(data.guildId)!;
 
@@ -101,6 +104,7 @@ export class Afkcheck implements IAfkcheck {
 		this.voiceChannelId = data.voiceChannelId;
 
 		this.locationRevealed = false;
+		this.reactions = new Collection();
 	}
 
 	public async start() {
@@ -134,7 +138,6 @@ export class Afkcheck implements IAfkcheck {
 				Otherwise, click the class/item choices that you are bringing`
 			)
 			.setTimestamp();
-		// TODO: add other emojis
 
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(participateButton);
 
@@ -144,7 +147,6 @@ export class Afkcheck implements IAfkcheck {
 				const emoji = this.client.emojis.cache.get(key.emoji);
 				button.setEmoji({
 					id: emoji?.id,
-					name: emoji!.name!,
 				});
 			}
 			row.addComponents(button);
@@ -171,6 +173,8 @@ export class Afkcheck implements IAfkcheck {
 		this.manager.afkchecks.set(`${this.guildId}-${this.memberId}`, this);
 
 		await this.createControlPanelThread();
+
+		// console.log('done with init');
 	}
 
 	public async end() {
