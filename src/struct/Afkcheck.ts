@@ -30,6 +30,7 @@ import { getGuildSetting, Settings } from '../functions/settings/getGuildSetting
 import { inVeteranSection } from '../util/inVeteranSection';
 
 import { setTimeout } from 'node:timers';
+import { messageReact } from '../functions/messages/messageReact';
 
 const participateButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('participate').setEmoji({
 	name: '🤚',
@@ -69,6 +70,8 @@ export class Afkcheck implements IAfkcheck {
 	public controlPanelChannel!: TextChannel;
 	public controlPanelChannelId!: string;
 	public controlPanelThreadChannel!: ThreadChannel;
+	public controlPanelThreadMessage!: Message;
+	public controlPanelThreadMessageId!: string;
 
 	public guildId: string;
 	public memberId: string;
@@ -106,25 +109,29 @@ export class Afkcheck implements IAfkcheck {
 		this.textChannel = (await this.guild.channels.fetch(this.textChannelId)) as TextChannel;
 		this.voiceChannel = (await this.guild.channels.fetch(this.voiceChannelId)) as VoiceChannel;
 
+		const { dungeon } = this;
 		const embed = new EmbedBuilder()
-			.setColor(this.dungeon.color)
-			.setThumbnail(this.dungeon.images[Math.floor(Math.random() * this.dungeon.images.length)])
+			.setColor(dungeon.color)
+			.setThumbnail(dungeon.images[Math.floor(Math.random() * dungeon.images.length)])
 			.setAuthor({
-				name: `Afk check started by ${this.member.displayName}`,
-				iconURL: this.member.displayAvatarURL({ forceStatic: false }),
+				name: `${dungeon.name} started by ${this.member.displayName}`,
+				iconURL: this.member.displayAvatarURL(),
 			})
 			.setDescription(
 				`If you want to participate in this raid, click 🤚
-				If you have a key (${this.dungeon.keys
+				
+				If you have a key (${dungeon.keys
 					.map((key) => this.client.emojis.cache.get(key.emoji)?.toString() ?? '')
-					.join('')}) and are willing to pop, react to the corresponding button
-				Otherwise, react to class/item choices that you are bringing`
-			);
+					.join('')}) and are willing to pop, click to the corresponding button
+				
+				Otherwise, click the class/item choices that you are bringing`
+			)
+			.setTimestamp();
 		// TODO: add other emojis
 
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(participateButton);
 
-		for (const key of this.dungeon.keys) {
+		for (const key of dungeon.keys) {
 			const button = new ButtonBuilder().setCustomId(nanoid()).setStyle(ButtonStyle.Secondary);
 			if (this.client.emojis.cache.has(key.emoji)) {
 				const emoji = this.client.emojis.cache.get(key.emoji);
@@ -137,8 +144,8 @@ export class Afkcheck implements IAfkcheck {
 		}
 
 		const m = await this.textChannel.send({
-			content: `@here ${inlineCode(this.dungeon.name)} ${
-				this.client.emojis.cache.get(this.dungeon.portal)?.toString() ?? ''
+			content: `@here ${inlineCode(dungeon.name)} ${
+				this.client.emojis.cache.get(dungeon.portal)?.toString() ?? ''
 			} is now starting in ${this.voiceChannel.name}`,
 			allowedMentions: {
 				parse: ['everyone'],
@@ -146,6 +153,11 @@ export class Afkcheck implements IAfkcheck {
 			embeds: [embed],
 			components: [row],
 		});
+		await messageReact(
+			m,
+			dungeon.main.map((emoji) => emoji.emoji)
+		).catch(() => undefined);
+
 		this.message = m;
 		this.messageId = m.id;
 
@@ -189,11 +201,8 @@ export class Afkcheck implements IAfkcheck {
 			});
 
 			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: this.member.displayName,
-					iconURL: this.member.displayAvatarURL(),
-				})
-				.setDescription('📝 - Change Location\n🗺️ - Reveal Location\n🛑 - Abort Afk\n❌ - End Afk');
+				.setDescription('📝 - Change Location\n🗺️ - Reveal Location\n🛑 - Abort Afk\n❌ - End Afk')
+				.setTimestamp();
 
 			const m = await this.controlPanelThreadChannel.send({
 				embeds: [embed.toJSON()],
@@ -206,19 +215,24 @@ export class Afkcheck implements IAfkcheck {
 					),
 				],
 			});
+			this.controlPanelThreadMessage = m;
+			this.controlPanelThreadMessageId = m.id;
 
 			await m.pin().catch(() => undefined);
 
 			const collector = new InteractionCollector(this.client, {
 				channel: this.controlPanelThreadChannel,
 				componentType: ComponentType.Button,
-				filter: (i) => i.user.id === this.memberId,
 			});
 			collector.on('collect', async (collectedInteraction) => {
 				if (!collectedInteraction.isButton()) return;
 
-				await collectedInteraction.deferReply();
+				if (collectedInteraction.user.id !== this.memberId) {
+					await collectedInteraction.reply({ content: 'This is only available to the raid leader.', ephemeral: true });
+					return;
+				}
 
+				await collectedInteraction.deferReply();
 				if (collectedInteraction.customId === 'change') {
 					await collectedInteraction.editReply({
 						content: 'Enter the new location for this raid.',
@@ -237,6 +251,12 @@ export class Afkcheck implements IAfkcheck {
 					if (message?.content) {
 						this.location = message.content;
 						await collectedInteraction.editReply({ content: 'Updated location.' });
+
+						const embed = this.controlPanelThreadMessage.embeds[0];
+						const embed_ = new EmbedBuilder(embed.data).setFields({ name: 'Location', value: this.location });
+
+						await this.controlPanelThreadMessage.edit({ embeds: [embed_.toJSON()] });
+
 						timedDelete(collectedInteraction, 5000);
 						await message.delete().catch(() => undefined);
 					}
