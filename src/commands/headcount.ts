@@ -39,9 +39,7 @@ export default class implements Command {
 
 	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
-	public async run(interaction: ChatInputCommandInteraction) {
-		if (!interaction.inCachedGuild()) return;
-
+	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 
 		if (this.manager.headcounts.has(`${interaction.guildId}-${interaction.member.id}`)) {
@@ -65,9 +63,7 @@ export default class implements Command {
 		await interaction.deleteReply();
 	}
 
-	public async autocomplete(interaction: AutocompleteInteraction) {
-		if (!interaction.inCachedGuild()) return;
-
+	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
 		const guild = await guilds.findOne({ guild_id: interaction.guildId });
 
 		const { channel } = interaction;

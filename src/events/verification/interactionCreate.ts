@@ -24,8 +24,8 @@ export default class implements Event {
 	public name = 'Verification interaction handling';
 	public event = Events.InteractionCreate;
 
-	public async run(interaction: Interaction) {
-		if (!interaction.isModalSubmit() || !interaction.inCachedGuild()) return;
+	public async run(interaction: Interaction<'cached'>) {
+		if (!interaction.isModalSubmit()) return;
 
 		logger.info(
 			`${interaction.user.tag} (${interaction.user.id}) started verification in ${interaction.guild.name} (${interaction.guildId})`

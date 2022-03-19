@@ -16,6 +16,8 @@ export default class implements Event {
 	public constructor(@inject(kCommands) public readonly commands: Map<string, Command>) {}
 
 	public async run(interaction: Interaction) {
+		if (!interaction.inCachedGuild()) return;
+
 		if (interaction.isChatInputCommand()) {
 			const command = this.commands.get(interaction.commandName);
 			try {

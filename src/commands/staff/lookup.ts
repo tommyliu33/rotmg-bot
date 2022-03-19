@@ -44,9 +44,7 @@ export default class implements Command {
 		},
 	];
 
-	public async run(interaction: ChatInputCommandInteraction) {
-		if (!interaction.inCachedGuild()) return;
-
+	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const m = await interaction.deferReply({ fetchReply: true });
 
 		const embed = new EmbedBuilder();

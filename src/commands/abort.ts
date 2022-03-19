@@ -12,9 +12,7 @@ export default class implements Command {
 
 	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
-	public async run(interaction: ChatInputCommandInteraction) {
-		if (!interaction.inCachedGuild()) return;
-
+	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: true });
 
 		const key = `${interaction.guildId}-${interaction.member.id}`;

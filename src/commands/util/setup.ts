@@ -19,7 +19,7 @@ export default class implements Command {
 		},
 	];
 
-	public async run(interaction: ChatInputCommandInteraction) {
+	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.reply('pong.');
 	}
 }

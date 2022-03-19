@@ -21,9 +21,7 @@ export default class implements Command {
 		},
 	];
 
-	public async run(interaction: ChatInputCommandInteraction) {
-		if (!interaction.inCachedGuild()) return;
-
+	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 
 		const { userRole } = await getGuildSetting(interaction.guildId, 'main');

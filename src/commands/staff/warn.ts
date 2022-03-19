@@ -29,10 +29,8 @@ export default class implements Command {
 		},
 	];
 
-	public async run(interaction: ChatInputCommandInteraction) {
+	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		// TODO: setup role to execute and permissions
-
-		if (!interaction.inCachedGuild()) return;
 
 		const m = await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
@@ -43,6 +41,6 @@ export default class implements Command {
 		}
 
 		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
-		const slient = interaction.options.getBoolean('slient', false) ?? false;	
+		const slient = interaction.options.getBoolean('slient', false) ?? false;
 	}
 }
