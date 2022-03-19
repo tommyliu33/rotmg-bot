@@ -14,5 +14,5 @@ node_modules/
 # log files
 *.log
 
-# yarn lock files
-*.lock
+# sensitive commands
+eval.ts
