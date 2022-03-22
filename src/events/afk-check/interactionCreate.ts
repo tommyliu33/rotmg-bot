@@ -48,7 +48,7 @@ export default class implements Event {
 		}
 
 		// @ts-expect-error
-		if (!reactedEmoji) return console.log('No reacted emoji'); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		if (!reactedEmoji) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
 		const { dungeon, reactions } = raid;
 		const emojiRule = dungeon.keys.find((key) => key.emoji === reactedEmoji.id);
