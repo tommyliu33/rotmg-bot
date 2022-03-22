@@ -35,8 +35,6 @@ export default class implements Event {
 		let index = -1;
 		let reactedEmoji: GuildEmoji;
 
-		const thing = interaction.message.resolveComponent(interaction.customId);
-
 		for (let i = 0; i < row!.components.length; ++i) {
 			const component = row!.components[i];
 			if (component.type === ComponentType.Button && component.customId === interaction.customId) {
