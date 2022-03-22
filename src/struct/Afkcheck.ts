@@ -316,26 +316,18 @@ export class Afkcheck implements IAfkcheck {
 
 	public addPendingReaction(emojiId: string, userId: string) {
 		this.reactions.get(emojiId)!.pending.add(userId);
-
-		console.log('added pending reaction', this.reactions.get(emojiId));
 	}
 
 	public addConfirmedReaction(emojiId: string, userId: string) {
 		this.reactions.get(emojiId)!.confirmed.add(userId);
-
-		console.log('added confirmed reaction', this.reactions.get(emojiId));
 	}
 
 	public removePendingReaction(emojiId: string, userId: string) {
 		this.reactions.get(emojiId)!.pending.delete(userId);
-
-		console.log('deleted pending reaction', this.reactions.get(emojiId));
 	}
 
 	public removeConfirmedReaction(emojiId: string, userId: string) {
 		this.reactions.get(emojiId)!.confirmed.delete(userId);
-
-		console.log('deleted pending reaction', this.reactions.get(emojiId));
 	}
 
 	public getConfirmedReactions(emojiId: string) {
