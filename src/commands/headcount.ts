@@ -74,7 +74,7 @@ export default class implements Command {
 
 		const response = [];
 		for (const id of channelIds) {
-			const channel = await interaction.guild.channels.fetch(id).catch(() => undefined);
+			const channel = await interaction.guild.channels.fetch(id, { cache: true }).catch(() => undefined);
 			if (channel?.isVoice()) response.push({ name: channel.name, value: id });
 		}
 
