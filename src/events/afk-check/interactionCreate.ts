@@ -61,15 +61,12 @@ export default class implements Event {
 		const emojiId = emojiRule.emoji;
 		const userId = interaction.user.id;
 
-		if (reactions.get(emojiRule.emoji)) {
-			const reacted = reactions.get(emojiRule.emoji);
-			if (reacted?.confirmed.has(interaction.user.id) || reacted?.pending.has(interaction.user.id)) {
-				await interaction.editReply('you already reacted to this');
-				return;
-			}
-
-			raid.addPendingReaction(emojiId, interaction.user.id);
+		if (raid.getConfirmedReactions(emojiId).has(userId)) {
+			await interaction.editReply('You already confirmed your reaction.');
+			return;
 		}
+
+		raid.addPendingReaction(emojiId, interaction.user.id);
 
 		const yesKey = 'yes';
 		const cancelKey = 'cancel';
