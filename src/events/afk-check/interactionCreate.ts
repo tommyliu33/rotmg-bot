@@ -37,7 +37,7 @@ export default class implements Event {
 
 		for (let i = 0; i < row!.components.length; ++i) {
 			const component = row!.components[i];
-			if (component.type === ComponentType.Button) {
+			if (component.type === ComponentType.Button && component.customId === interaction.customId) {
 				const emoji = this.client.emojis.cache.get(component.emoji!.id!);
 				if (!emoji) continue;
 
@@ -95,7 +95,7 @@ export default class implements Event {
 					content: 'Timed out, your reaction was not confirmed.',
 					components: [],
 				});
-				raid.reactions.get(emojiRule.emoji)?.pending.delete(interaction.user.id);
+				raid.removePendingReaction(emojiId, userId);
 				return undefined;
 			});
 
