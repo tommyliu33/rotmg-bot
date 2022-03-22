@@ -123,10 +123,6 @@ export default class implements Event {
 
 			const row_ = new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons);
 			await interaction.message.edit({ components: [row_] });
-
-			console.log('removed 2');
-		} else {
-			console.log('no.');
 		}
 	}
 }
