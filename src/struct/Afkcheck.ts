@@ -58,6 +58,8 @@ function timedDelete(interaction: Interaction, deleteAfter: number) {
 	setTimeout(() => void interaction.deleteReply(), deleteAfter).unref();
 }
 
+// TODO: refactor
+
 export class Afkcheck implements IAfkcheck {
 	public client = container.resolve<Client<true>>(kClient);
 	public manager = container.resolve<RaidManager>(kRaids);
@@ -91,7 +93,13 @@ export class Afkcheck implements IAfkcheck {
 	public location!: string;
 	public locationRevealed: boolean;
 
-	public reactions: Collection<string, Set<string>>;
+	public reactions: Collection<
+		string,
+		{
+			confirmed: Set<string>;
+			pending: Set<string>;
+		}
+	>;
 
 	public constructor(data: Omit<IAfkcheck, 'messageId'>) {
 		this.guild = this.client.guilds.cache.get(data.guildId)!;
@@ -173,8 +181,6 @@ export class Afkcheck implements IAfkcheck {
 		this.manager.afkchecks.set(`${this.guildId}-${this.memberId}`, this);
 
 		await this.createControlPanelThread();
-
-		// console.log('done with init');
 	}
 
 	public async end() {
@@ -306,6 +312,38 @@ export class Afkcheck implements IAfkcheck {
 				}
 			});
 		}
+	}
+
+	public addPendingReaction(emojiId: string, userId: string) {
+		this.reactions.get(emojiId)!.pending.add(userId);
+
+		console.log('added pending reaction', this.reactions.get(emojiId));
+	}
+
+	public addConfirmedReaction(emojiId: string, userId: string) {
+		this.reactions.get(emojiId)!.confirmed.add(userId);
+
+		console.log('added confirmed reaction', this.reactions.get(emojiId));
+	}
+
+	public removePendingReaction(emojiId: string, userId: string) {
+		this.reactions.get(emojiId)!.pending.delete(userId);
+
+		console.log('deleted pending reaction', this.reactions.get(emojiId));
+	}
+
+	public removeConfirmedReaction(emojiId: string, userId: string) {
+		this.reactions.get(emojiId)!.confirmed.delete(userId);
+
+		console.log('deleted pending reaction', this.reactions.get(emojiId));
+	}
+
+	public getConfirmedReactions(emojiId: string) {
+		return this.reactions.get(emojiId)!.confirmed;
+	}
+
+	public getPendingReactions(emojiId: string) {
+		return this.reactions.get(emojiId)!.pending;
 	}
 }
 

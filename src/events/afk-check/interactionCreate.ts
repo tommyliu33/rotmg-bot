@@ -2,7 +2,7 @@ import type { Event } from '../../struct/Event';
 import type { Client, GuildEmoji, Interaction } from 'discord.js';
 import type { RaidManager } from '../../struct/RaidManager';
 
-import { Events, ComponentType, ButtonBuilder, ButtonComponent, ActionRowBuilder } from 'discord.js';
+import { Events, ComponentType, ButtonBuilder, ButtonStyle, ButtonComponent, ActionRowBuilder } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';
 import { kClient, kRaids } from '../../tokens';
@@ -27,7 +27,7 @@ export default class implements Event {
 
 		const raid = this.manager.afkchecks.get(raidKey)!;
 
-		await interaction.deferReply({ ephemeral: true });
+		const reply = await interaction.deferReply({ fetchReply: true, ephemeral: true });
 
 		const rows = interaction.message.components;
 		const row = rows.find((row) => row.components.find((button) => button instanceof ButtonComponent));
@@ -48,48 +48,85 @@ export default class implements Event {
 		}
 
 		// @ts-expect-error
-		if (!reactedEmoji) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		if (!reactedEmoji) return console.log('No reacted emoji'); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
 		const { dungeon, reactions } = raid;
 		const emojiRule = dungeon.keys.find((key) => key.emoji === reactedEmoji.id);
 		if (!emojiRule) return console.log('No emoji rule');
 
 		if (!reactions.has(emojiRule.emoji)) {
-			reactions.set(emojiRule.emoji, new Set());
+			reactions.set(emojiRule.emoji, { pending: new Set(), confirmed: new Set() });
 		}
+
+		const emojiId = emojiRule.emoji;
+		const userId = interaction.user.id;
 
 		if (reactions.get(emojiRule.emoji)) {
 			const reacted = reactions.get(emojiRule.emoji);
-			if (reacted?.has(interaction.user.id)) {
+			if (reacted?.confirmed.has(interaction.user.id) || reacted?.pending.has(interaction.user.id)) {
 				await interaction.editReply('you already reacted to this');
 				return;
 			}
 
-			console.log('max is', emojiRule.max ?? 0);
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			if (reacted!.size >= (Number(emojiRule.max) ?? 0) && index !== -1) {
-				let i = 0;
-				const buttons = [];
-				for (const comp of row!.components) {
-					if (comp instanceof ButtonComponent) {
-						const button = new ButtonBuilder(comp.data);
-						if (i === index) button.setDisabled(true);
-						buttons.push(button);
+			raid.addPendingReaction(emojiId, interaction.user.id);
+		}
 
-						++i;
-					}
+		const yesKey = 'yes';
+		const cancelKey = 'cancel';
+
+		const yesButton = new ButtonBuilder().setCustomId(yesKey).setLabel('Yes').setStyle(ButtonStyle.Primary);
+		const cancelButton = new ButtonBuilder().setCustomId(cancelKey).setLabel('Cancel').setStyle(ButtonStyle.Danger);
+
+		await interaction.editReply({
+			content: 'Click yes/cancel to confirm/cancel.',
+			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(yesButton, cancelButton)],
+		});
+		const collectedInteraction = await reply
+			.awaitMessageComponent({
+				filter: async (i) => {
+					await i.deferUpdate();
+					return i.user.id === interaction.user.id;
+				},
+				componentType: ComponentType.Button,
+				time: 60_000,
+			})
+			.catch(async () => {
+				await collectedInteraction?.editReply({
+					content: 'Timed out, your reaction was not confirmed.',
+					components: [],
+				});
+				raid.reactions.get(emojiRule.emoji)?.pending.delete(interaction.user.id);
+				return undefined;
+			});
+
+		if (collectedInteraction?.customId === yesKey) {
+			raid.addConfirmedReaction(emojiId, userId);
+			raid.removePendingReaction(emojiId, userId);
+			await collectedInteraction.editReply({ content: 'Confirmed.', components: [] });
+		} else if (collectedInteraction?.customId === cancelKey) {
+			raid.removePendingReaction(emojiId, userId);
+			await collectedInteraction.editReply({ content: 'Cancelled.', components: [] });
+		}
+
+		if (this.manager.afkchecks.get(raidKey)!.getConfirmedReactions(emojiRule.emoji).size + 1 > emojiRule.max) {
+			let i = 0;
+			const buttons = [];
+			for (const comp of row!.components) {
+				if (comp instanceof ButtonComponent) {
+					const button = new ButtonBuilder(comp.data);
+					if (i === index) button.setDisabled(true);
+					buttons.push(button);
+
+					++i;
 				}
-
-				const row_ = new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons);
-				await interaction.message.edit({ components: [row_] });
-				return;
 			}
 
-			reacted?.add(interaction.user.id);
+			const row_ = new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons);
+			await interaction.message.edit({ components: [row_] });
 
-			// @ts-expect-error
-			this.manager.afkchecks.set(raidKey, { ...raid, reactions });
+			console.log('removed 2');
+		} else {
+			console.log('no.');
 		}
-		await interaction.editReply('.');
 	}
 }

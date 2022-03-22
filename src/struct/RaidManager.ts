@@ -26,6 +26,11 @@ export class RaidManager {
 
 		for (const [key, dungeon] of Object.entries(file_)) {
 			const dungeon_ = dungeon as unknown as Dungeon;
+			dungeon_.keys.map((key) => ({
+				emoji: key.emoji,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				max: Number(key.max) ?? 0,
+			}));
 			this.dungeonCache.set(key, { ...dungeon_, color: Number(dungeon_.color) });
 		}
 
@@ -47,5 +52,5 @@ export interface Dungeon {
 
 interface EmojiReaction {
 	emoji: string;
-	max?: number;
+	max: number;
 }

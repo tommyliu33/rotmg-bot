@@ -59,8 +59,8 @@ export default class implements Command {
 			voiceChannelId,
 		});
 
-		await afkcheck.start();
 		await interaction.deleteReply();
+		await afkcheck.start();
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
