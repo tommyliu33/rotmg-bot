@@ -52,7 +52,7 @@ export default class implements Event {
 
 		const { dungeon, reactions } = raid;
 		const emojiRule = dungeon.keys.find((key) => key.emoji === reactedEmoji.id);
-		if (!emojiRule) return console.log('No emoji rule');
+		if (!emojiRule) return;
 
 		if (!reactions.has(emojiRule.emoji)) {
 			reactions.set(emojiRule.emoji, { pending: new Set(), confirmed: new Set() });
