@@ -108,7 +108,7 @@ export default class implements Event {
 			await collectedInteraction.editReply({ content: 'Cancelled.', components: [] });
 		}
 
-		if (this.manager.afkchecks.get(raidKey)!.getConfirmedReactions(emojiRule.emoji).size + 1 > emojiRule.max) {
+		if (raid.getConfirmedReactions(emojiId).size + 1 > emojiRule.max) {
 			let i = 0;
 			const buttons = [];
 			for (const comp of row!.components) {
