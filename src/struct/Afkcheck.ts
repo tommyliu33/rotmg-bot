@@ -107,7 +107,6 @@ export class Afkcheck implements IAfkcheck {
 		this.reactions = new Collection();
 	}
 
-	// Populate raid data
 	public async populate() {
 		this.guild = this.client.guilds.cache.get(this.guildId)!;
 		this.member = this.guild.members.cache.get(this.memberId)!;
