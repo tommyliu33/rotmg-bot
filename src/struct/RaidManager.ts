@@ -29,7 +29,7 @@ export class RaidManager {
 			const dungeon_ = dungeon as unknown as Dungeon;
 
 			const keys = dungeon_.keys.map((key) => ({
-				emoji: this.resolveEmojiFromConstants(key.emoji),
+				emoji: key.emoji in constants ? this.resolveEmojiFromConstants(key.emoji) : key.emoji,
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				max: Number(key.max) ?? 0,
 			}));
