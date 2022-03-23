@@ -64,33 +64,33 @@ export class Afkcheck implements IAfkcheck {
 	public client = container.resolve<Client<true>>(kClient);
 	public manager = container.resolve<RaidManager>(kRaids);
 
-	public guild!: Guild;
+	public declare guild: Guild;
 	public guildId: string;
 
-	public member!: GuildMember;
+	public declare member: GuildMember;
 	public memberId: string;
 
-	public message!: Message;
+	public declare message: Message;
 	public messageId!: string;
 
-	public textChannel!: TextChannel;
+	public declare textChannel: TextChannel;
 	public textChannelId: string;
 
-	public voiceChannel!: VoiceChannel;
+	public declare voiceChannel: VoiceChannel;
 	public voiceChannelId: string;
 
-	public controlPanelChannel!: TextChannel;
+	public declare controlPanelChannel: TextChannel;
 	public controlPanelChannelId!: string;
 
-	public controlPanelThreadChannel!: ThreadChannel;
+	public declare controlPanelThreadChannel: ThreadChannel;
 	public controlPanelThreadChannelId!: string;
 
-	public controlPanelThreadMessage!: Message;
+	public declare controlPanelThreadMessage: Message;
 	public controlPanelThreadMessageId!: string;
 
 	public dungeon: Dungeon;
 
-	public location!: string;
+	public declare location: string;
 	public locationRevealed: boolean;
 
 	public reactions: Collection<
