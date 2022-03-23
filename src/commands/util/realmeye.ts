@@ -13,8 +13,8 @@ import { cutText } from '@sapphire/utilities';
 import { FAME_EMOJI_ID } from '../../constants';
 
 export default class implements Command {
-	public name = 'lookup';
-	public description = 'Lookup a player/guild on Realmeye';
+	public name = 'realmeye';
+	public description = 'Realmeye search';
 	public options = [
 		{
 			type: 1,
@@ -51,8 +51,8 @@ export default class implements Command {
 		switch (interaction.options.getSubcommand()) {
 			case 'player':
 				const playerName = interaction.options.getString('name', true);
-				const player = await scrapePlayer(playerName).catch(async (reason) => {
-					if (reason === `Error: '${playerName}' has a private profile or does not exist`) {
+				const player = await scrapePlayer(playerName).catch(async (err: Error) => {
+					if (err.message === 'Player not found') {
 						await interaction.editReply(`${inlineCode(playerName)} could not be found or has a private profile.`);
 						return undefined;
 					}
@@ -81,9 +81,9 @@ export default class implements Command {
 				break;
 			case 'guild':
 				const guildName = interaction.options.getString('guild', true);
-				const guild = await scrapeGuild(guildName).catch(async (reason) => {
-					if (reason === `Guild '${guildName.replace(/\s/g, '%20')}' could not be found`) {
-						await interaction.editReply(`${inlineCode(playerName)} could not be found.`);
+				const guild = await scrapeGuild(guildName).catch(async (err: Error) => {
+					if (err.message === 'Guild not found') {
+						await interaction.editReply(`${inlineCode(guildName)} could not be found.`);
 						return undefined;
 					}
 
@@ -126,6 +126,9 @@ export default class implements Command {
 						name: guild.name ?? guildName,
 						url: guild.realmEyeUrl,
 					});
+
+					if (guild.members?.findIndex((member) => member.name === 'Private'))
+						embed.setFooter({ text: 'Private profiles may be excluded' });
 
 					const viewKey = nanoid();
 					const viewTopButton = new ButtonBuilder()
