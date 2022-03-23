@@ -15,22 +15,23 @@ name = 'Oryx Sanctuary'
 
 keys = [
   {emoji = '886134621178331167', max = 2},
-  {emoji = '886134621685837824', max = 2},
   {emoji = '886134621127991337', max = 2},
+  {emoji = '886134621685837824', max = 2},
   {emoji = '886330945404272671', max = 2},
 ]
+
 portal = '908398287994896444'
 
 main = [
-  {emoji = '930900284413194240', max = 0},
-  {emoji = '930900392110358579', max = 0},
-  {emoji = '930900421084606565', max = 0},
-  {emoji = '930900321914486796', max = 0},
-  {emoji = '886328344126300221', max = 0},
-  {emoji = '954244972394209282', max = 0},
-  {emoji = '886328650562162740', max = 0},
-  {emoji = '930900333859840002', max = 0},
-  {emoji = '954244760820940811', max = 0},
+  {emoji = 'WARRIOR_EMOJI_ID', max = 0},
+  {emoji = 'PALADIN_EMOJI_ID', max = 0},
+  {emoji = 'KNIGHT_EMOJI_ID', max = 0},
+  {emoji = 'TRICKSTER_EMOJI_ID', max = 0},
+  {emoji = 'FUNGAL_TOME_EMOJI_ID', max = 0},
+  {emoji = 'CURSE_EMOJI_ID', max = 0},
+  {emoji = 'ARMOR_BREAK_EMOJI_ID', max = 0},
+  {emoji = 'SLOW_EMOJI_ID', max = 0},
+  {emoji = 'EXPOSE_EMOJI_ID', max = 0},
 ]
 
 [void]

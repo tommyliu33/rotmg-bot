@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { parse } from '@ltd/j-toml';
 
 import { logger } from '../util/logger';
+import * as constants from '../constants';
 
 export class RaidManager {
 	public afkchecks: Collection<string, Afkcheck>;
@@ -17,7 +18,6 @@ export class RaidManager {
 		this.headcounts = new Collection();
 
 		this.dungeonCache = new Collection();
-		this.init();
 	}
 
 	public init() {
@@ -25,16 +25,30 @@ export class RaidManager {
 		const file_ = parse(file, 1.0, '\n');
 
 		for (const [key, dungeon] of Object.entries(file_)) {
+			if (key !== 'o3') continue;
 			const dungeon_ = dungeon as unknown as Dungeon;
-			dungeon_.keys.map((key) => ({
-				emoji: key.emoji,
+
+			const keys = dungeon_.keys.map((key) => ({
+				emoji: this.resolveEmojiFromConstants(key.emoji),
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				max: Number(key.max) ?? 0,
 			}));
-			this.dungeonCache.set(key, { ...dungeon_, color: Number(dungeon_.color) });
+
+			const main = dungeon_.main.map((key) => ({
+				emoji: this.resolveEmojiFromConstants(key.emoji),
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				max: Number(key.max) ?? 0,
+			}));
+
+			this.dungeonCache.set(key, { ...dungeon_, keys, main, color: Number(dungeon_.color) });
 		}
 
 		logger.info('Cached dungeon data');
+	}
+
+	private resolveEmojiFromConstants(emojiName: string) {
+		if (emojiName in constants) return Reflect.get(constants, emojiName) as string;
+		return '';
 	}
 }
 

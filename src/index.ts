@@ -27,6 +27,7 @@ const client = new Client({
 	],
 });
 const manager = new RaidManager();
+await manager.init();
 
 container.register(kClient, { useValue: client });
 container.register(kRaids, { useValue: manager });
