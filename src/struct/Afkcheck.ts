@@ -65,27 +65,21 @@ export class Afkcheck implements IAfkcheck {
 	public manager = container.resolve<RaidManager>(kRaids);
 
 	public declare guild: Guild;
-	public guildId: string;
-
 	public declare member: GuildMember;
-	public memberId: string;
-
-	public declare message: Message;
-	public messageId!: string;
-
 	public declare textChannel: TextChannel;
-	public textChannelId: string;
-
-	public declare voiceChannel: VoiceChannel;
-	public voiceChannelId: string;
-
 	public declare controlPanelChannel: TextChannel;
-	public controlPanelChannelId!: string;
-
+	public declare voiceChannel: VoiceChannel;
 	public declare controlPanelThreadChannel: ThreadChannel;
-	public controlPanelThreadChannelId!: string;
-
+	public declare message: Message;
 	public declare controlPanelThreadMessage: Message;
+
+	public guildId: string;
+	public memberId: string;
+	public textChannelId: string;
+	public controlPanelChannelId!: string;
+	public voiceChannelId: string;
+	public controlPanelThreadChannelId!: string;
+	public messageId!: string;
 	public controlPanelThreadMessageId!: string;
 
 	public dungeon: Dungeon;
@@ -102,8 +96,6 @@ export class Afkcheck implements IAfkcheck {
 	>;
 
 	public constructor(data: Omit<IAfkcheck, 'messageId'>) {
-		this.guild = this.client.guilds.cache.get(data.guildId)!;
-
 		this.dungeon = data.dungeon;
 
 		this.guildId = data.guildId;
@@ -115,7 +107,14 @@ export class Afkcheck implements IAfkcheck {
 		this.reactions = new Collection();
 	}
 
-	public async start() {
+	// Populate raid data
+	public async populate() {
+		this.guild = this.client.guilds.cache.get(this.guildId)!;
+		this.member = this.guild.members.cache.get(this.memberId)!;
+
+		this.textChannel = (await this.guild.channels.fetch(this.textChannelId)) as TextChannel;
+		this.voiceChannel = (await this.guild.channels.fetch(this.voiceChannelId)) as VoiceChannel;
+
 		let key: keyof Settings = 'main';
 		if (await inVeteranSection(this.guildId, this.textChannelId)) {
 			key = 'veteran';
@@ -124,9 +123,11 @@ export class Afkcheck implements IAfkcheck {
 		const settings = await getGuildSetting(this.guildId, key);
 		this.controlPanelChannelId = settings.controlPanelChannelId;
 
-		this.member = this.guild.members.cache.get(this.memberId)!;
-		this.textChannel = (await this.guild.channels.fetch(this.textChannelId)) as TextChannel;
-		this.voiceChannel = (await this.guild.channels.fetch(this.voiceChannelId)) as VoiceChannel;
+		await this.createControlPanelThread();
+	}
+
+	public async start() {
+		await this.populate();
 
 		const { dungeon } = this;
 		const embed = new EmbedBuilder()
@@ -179,8 +180,6 @@ export class Afkcheck implements IAfkcheck {
 		this.messageId = m.id;
 
 		this.manager.afkchecks.set(`${this.guildId}-${this.memberId}`, this);
-
-		await this.createControlPanelThread();
 	}
 
 	public async end() {
