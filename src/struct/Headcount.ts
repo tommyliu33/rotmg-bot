@@ -19,17 +19,7 @@ import { getGuildSetting, Settings } from '../functions/settings/getGuildSetting
 import { inVeteranSection } from '../util/inVeteranSection';
 import { messageReact } from '../functions/messages/messageReact';
 
-const participateButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('participate').setEmoji({
-	name: '🤚',
-});
-
-const abortAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('abort').setEmoji({
-	name: '🛑',
-});
-
-const endAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('end').setEmoji({
-	name: '❌',
-});
+import { participateButton, abortAfkButton, endAfkButton } from '../constants';
 
 export class Headcount implements IHeadcount {
 	public client = container.resolve<Client<true>>(kClient);

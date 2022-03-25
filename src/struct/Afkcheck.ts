@@ -33,25 +33,13 @@ import { inVeteranSection } from '../util/inVeteranSection';
 import { setTimeout } from 'node:timers';
 import { messageReact } from '../functions/messages/messageReact';
 
-const participateButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('participate').setEmoji({
-	name: '🤚',
-});
-
-const changeLocationButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('change').setEmoji({
-	name: '📝',
-});
-
-const revealLocationButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('reveal').setEmoji({
-	name: '🗺️',
-});
-
-const abortAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('abort').setEmoji({
-	name: '🛑',
-});
-
-const endAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('end').setEmoji({
-	name: '❌',
-});
+import {
+	participateButton,
+	changeLocationButton,
+	revealLocationButton,
+	abortAfkButton,
+	endAfkButton,
+} from '../constants';
 
 function timedDelete(interaction: Interaction, deleteAfter: number) {
 	if (!interaction.isRepliable()) return;

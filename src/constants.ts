@@ -1,4 +1,29 @@
+import { ButtonBuilder, ButtonStyle } from 'discord.js';
 import { ObjectId } from 'mongodb';
+
+// #region Buttons
+export const participateButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('participate').setEmoji({
+	name: '🤚',
+});
+
+export const changeLocationButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('change').setEmoji({
+	name: '📝',
+});
+
+export const revealLocationButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('reveal').setEmoji({
+	name: '🗺️',
+});
+
+export const abortAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('abort').setEmoji({
+	name: '🛑',
+});
+
+export const endAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('end').setEmoji({
+	name: '❌',
+});
+// #endregion
+
+// #region Database
 
 export const BASE_GUILD_DOC = (guildId: string) => ({
 	_id: new ObjectId(),
@@ -22,15 +47,19 @@ export const BASE_GUILD_DOC = (guildId: string) => ({
 		leader_role: '',
 	},
 });
+// #endregion
 
-export const WARRIOR_EMOJI_ID = '930900284413194240';
-export const PALADIN_EMOJI_ID = '930900392110358579';
-export const KNIGHT_EMOJI_ID = '930900421084606565';
-export const TRICKSTER_EMOJI_ID = '930900321914486796';
-export const FUNGAL_TOME_EMOJI_ID = '886328344126300221';
-export const CURSE_EMOJI_ID = '954244972394209282';
-export const ARMOR_BREAK_EMOJI_ID = '886328650562162740';
-export const SLOW_EMOJI_ID = '930900333859840002';
-export const EXPOSE_EMOJI_ID = '954244760820940811';
+// #region Emojis
 
-export const FAME_EMOJI_ID = '952444390809423943';
+export const WARRIOR_EMOJI_ID = '930900284413194240' as const;
+export const PALADIN_EMOJI_ID = '930900392110358579' as const;
+export const KNIGHT_EMOJI_ID = '930900421084606565' as const;
+export const TRICKSTER_EMOJI_ID = '930900321914486796' as const;
+export const FUNGAL_TOME_EMOJI_ID = '886328344126300221' as const;
+export const CURSE_EMOJI_ID = '954244972394209282' as const;
+export const ARMOR_BREAK_EMOJI_ID = '886328650562162740' as const;
+export const SLOW_EMOJI_ID = '930900333859840002' as const;
+export const EXPOSE_EMOJI_ID = '954244760820940811' as const;
+
+export const FAME_EMOJI_ID = '952444390809423943' as const;
+// #endregion
