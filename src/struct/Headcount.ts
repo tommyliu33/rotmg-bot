@@ -41,11 +41,6 @@ const endAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustom
 	name: '❌',
 });
 
-function timedDelete(interaction: Interaction, deleteAfter: number) {
-	if (!interaction.isRepliable()) return;
-	setTimeout(() => void interaction.deleteReply(), deleteAfter).unref();
-}
-
 export class Headcount implements IHeadcount {
 	public client = container.resolve<Client<true>>(kClient);
 	public manager = container.resolve<RaidManager>(kRaids);
