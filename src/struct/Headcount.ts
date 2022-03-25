@@ -224,8 +224,4 @@ export interface IHeadcount {
 	voiceChannelId: string;
 
 	dungeon: Dungeon;
-
-	start: () => void;
-	end: () => void;
-	abort: () => void;
 }
