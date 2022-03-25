@@ -28,6 +28,7 @@ export default class implements Command {
 		}
 
 		if (headcount) {
+			await headcount.abort();
 			this.manager.headcounts.delete(key);
 
 			await interaction.editReply({ content: 'Aborted your headcount.' });

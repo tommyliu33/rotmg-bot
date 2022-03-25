@@ -1,13 +1,4 @@
-import type {
-	Client,
-	Interaction,
-	Guild,
-	GuildMember,
-	Message,
-	TextChannel,
-	ThreadChannel,
-	VoiceChannel,
-} from 'discord.js';
+import type { Client, Guild, GuildMember, Message, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
 import type { Dungeon, RaidManager } from './RaidManager';
 
 import { container } from 'tsyringe';
@@ -26,8 +17,7 @@ import { nanoid } from 'nanoid';
 
 import { getGuildSetting, Settings } from '../functions/settings/getGuildSetting';
 import { inVeteranSection } from '../util/inVeteranSection';
-
-import { setTimeout } from 'node:timers';
+import { messageReact } from '../functions/messages/messageReact';
 
 const participateButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('participate').setEmoji({
 	name: '🤚',
@@ -130,77 +120,89 @@ export class Headcount implements IHeadcount {
 		this.message = m;
 		this.messageId = m.id;
 
+		await messageReact(
+			m,
+			this.dungeon.main.map((emoji) => emoji.emoji)
+		);
+
 		this.manager.headcounts.set(`${this.guildId}-${this.memberId}`, this);
 
 		await this.createControlPanelThread();
 	}
 
 	public async end() {
-		await this.message.edit({
-			content: `This ${inlineCode(this.dungeon.name)} headcount has ended.`,
-			embeds: [],
-			components: [],
-		});
+		const embed = new EmbedBuilder()
+			.setDescription(`This ${this.dungeon.name} headcount was ended by the raid leader.`)
+			.setColor(0xfee75c);
 
-		const messages = await this.controlPanelChannel.messages.fetchPinned().catch(() => undefined);
+		await this.message.edit({
+			content: ' ',
+			components: [],
+			embeds: [embed.toJSON()],
+		});
+		await this.message.reactions.removeAll().catch(() => undefined);
+
+		const messages = await this.controlPanelThreadChannel.messages.fetchPinned().catch(() => undefined);
 		const embedMessage = messages?.find((msg) => msg.embeds.length > 0 && msg.author.id === this.client.user.id);
 		if (!embedMessage) return;
 
 		await embedMessage.edit({ components: [] });
+		this.manager.headcounts.delete(`${this.guildId}-${this.memberId}`);
 	}
 
 	public async abort() {
-		await this.message.edit({
-			content: `This ${inlineCode(this.dungeon.name)} headcount was aborted.`,
-			embeds: [],
-			components: [],
-		});
+		const embed = new EmbedBuilder()
+			.setDescription(`This ${this.dungeon.name} headcount was aborted by the raid leader.`)
+			.setColor(0xed4245);
 
-		await this.controlPanelThreadChannel.delete().catch(async () => {
-			await this.controlPanelThreadChannel.setArchived(true);
-			return undefined;
+		await this.message.edit({
+			content: ' ',
+			components: [],
+			embeds: [embed.toJSON()],
 		});
+		await this.message.reactions.removeAll().catch(() => undefined);
+		await this.controlPanelThreadChannel.setArchived(true);
 	}
 
 	private async createControlPanelThread() {
 		const controlPanel = await this.guild.channels.fetch(this.controlPanelChannelId).catch(() => undefined);
-		if (controlPanel?.isText()) {
-			this.controlPanelThreadChannel = await controlPanel.threads.create({
-				name: `${this.member.displayName}'s ${this.dungeon.name} Headcount`,
-			});
+		if (!controlPanel?.isText()) return;
 
-			const embed = new EmbedBuilder()
-				.setAuthor({
-					name: this.member.displayName,
-					iconURL: this.member.displayAvatarURL(),
-				})
-				.setDescription('🛑 - Abort headcount\n❌ - End headcount');
+		this.controlPanelThreadChannel = await controlPanel.threads.create({
+			name: `${this.member.displayName}'s ${this.dungeon.name} Headcount`,
+		});
 
-			const m = await this.controlPanelThreadChannel.send({
-				embeds: [embed.toJSON()],
-				components: [new ActionRowBuilder<ButtonBuilder>().addComponents(abortAfkButton, endAfkButton)],
-			});
+		const embed = new EmbedBuilder()
+			.setAuthor({
+				name: this.member.displayName,
+				iconURL: this.member.displayAvatarURL(),
+			})
+			.setDescription('🛑 - Abort headcount\n❌ - End headcount');
 
-			await m.pin().catch(() => undefined);
+		const m = await this.controlPanelThreadChannel.send({
+			embeds: [embed.toJSON()],
+			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(abortAfkButton, endAfkButton)],
+		});
 
-			const collector = new InteractionCollector(this.client, {
-				channel: this.controlPanelThreadChannel,
-				componentType: ComponentType.Button,
-				filter: (i) => i.user.id === this.memberId,
-			});
-			collector.on('collect', async (collectedInteraction) => {
-				if (!collectedInteraction.isButton()) return;
+		await m.pin().catch(() => undefined);
 
-				await collectedInteraction.deferReply();
-				if (collectedInteraction.customId === 'abort') {
-					await this.abort();
-					await collectedInteraction.editReply('Aborted headcount.');
-				} else if (collectedInteraction.customId === 'end') {
-					await this.end();
-					await collectedInteraction.editReply('Ended headcount.');
-				}
-			});
-		}
+		const collector = new InteractionCollector(this.client, {
+			channel: this.controlPanelThreadChannel,
+			componentType: ComponentType.Button,
+			filter: (i) => i.user.id === this.memberId,
+		});
+		collector.on('collect', async (collectedInteraction) => {
+			if (!collectedInteraction.isButton()) return;
+
+			await collectedInteraction.deferReply();
+			if (collectedInteraction.customId === 'abort') {
+				await this.abort();
+				await collectedInteraction.editReply('Aborted headcount.');
+			} else if (collectedInteraction.customId === 'end') {
+				await this.end();
+				await collectedInteraction.editReply('Ended headcount.');
+			}
+		});
 	}
 }
 
