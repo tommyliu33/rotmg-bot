@@ -35,15 +35,13 @@ export default class implements Event {
 
 		const name = interaction.fields.getTextInputValue('name');
 
-		const player = await scrapePlayer(name).catch(async (err) => {
-			if (err === `Error: '${name}' has a private profile or does not exist`) {
-				await interaction.editReply({ content: 'Profile was private or the player does not exist.' });
+		const player = await scrapePlayer(name).catch(async (err: Error) => {
+			if (err.message === 'Player not found') {
+				await interaction.editReply({ content: 'Your profile was private or the player does not exist.' });
 				return undefined;
 			}
 
-			console.log(err);
 			await interaction.editReply({ content: 'Unexpected error while fetching player.' });
-
 			return undefined;
 		});
 
@@ -61,7 +59,6 @@ export default class implements Event {
 
 			const dmChannel = await interaction.user.createDM();
 			const embed = new EmbedBuilder()
-				// .setTitle(`${inlineCode(interaction.guild.name)} Verification`)
 				.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() ?? '' })
 				.setDescription(
 					`Add the following code to any line of your ${hyperlink('Realmeye profile', profileUrl(name))} description
@@ -90,9 +87,9 @@ export default class implements Event {
 
 			if (collectedInteraction?.customId === doneKey) {
 				await collectedInteraction.deferReply();
-				const player = await scrapePlayer(name).catch(async (err) => {
-					if (err === `Error: '${name}' has a private profile or does not exist`) {
-						await interaction.editReply({ content: 'Profile was private or the player does not exist.' });
+				const player = await scrapePlayer(name).catch(async (err: Error) => {
+					if (err.message === 'Player not found') {
+						await interaction.editReply({ content: 'Your profile was private or the player does not exist.' });
 						return undefined;
 					}
 
@@ -118,7 +115,7 @@ export default class implements Event {
 				} catch {}
 
 				await collectedInteraction.editReply(
-					'You are now verified! If yout receive the role or a nickname, please contact a staff member.'
+					'You are now verified! If you did not receive the role or a nickname, please contact a staff member.'
 				);
 			} else if (collectedInteraction?.customId === cancelKey) {
 				await collectedInteraction.update({ content: ' ', embeds: [], components: [] });
