@@ -18,6 +18,8 @@ export class RaidManager {
 		this.headcounts = new Collection();
 
 		this.dungeonCache = new Collection();
+
+		this.init();
 	}
 
 	public init() {
