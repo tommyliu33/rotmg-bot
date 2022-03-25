@@ -59,17 +59,15 @@ export default class implements Command {
 		await interaction.editReply('Starting parse (if this takes too long, it may have failed)');
 
 		const url = attachment.url || attachment.proxyURL;
-		const res = await parse(url).catch(async (err) => {
-			if (err instanceof Error) {
-				if (err.message === 'Not an image') {
-					await interaction.editReply({ content: 'Attachment was not an image.' });
-					return undefined;
-				}
+		const res = await parse(url).catch(async (err: Error) => {
+			if (err.message === 'Not an image') {
+				await interaction.editReply({ content: 'Attachment was not an image.' });
+				return undefined;
+			}
 
-				if (err.message === 'Headers Timeout Error') {
-					await interaction.editReply({ content: 'Timed out trying to send request, try again.' });
-					return undefined;
-				}
+			if (err.message === 'Headers Timeout Error') {
+				await interaction.editReply({ content: 'Timed out trying to send request, try again.' });
+				return undefined;
 			}
 
 			await interaction.editReply({
