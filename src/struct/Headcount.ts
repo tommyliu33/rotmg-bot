@@ -100,9 +100,11 @@ export class Headcount implements IHeadcount {
 			})
 			.setDescription(
 				`If you want to participate in this raid, click 🤚
+				
 				If you have a key (${this.dungeon.keys
 					.map((key) => this.client.emojis.cache.get(key.emoji)?.toString() ?? '')
 					.join('')}) and are willing to pop, react to the corresponding button
+				
 				Otherwise, react to class/item choices that you are bringing`
 			);
 
@@ -140,7 +142,7 @@ export class Headcount implements IHeadcount {
 
 	public async end() {
 		await this.message.edit({
-			content: `This ${inlineCode(this.dungeon.name)} afk check has ended.`,
+			content: `This ${inlineCode(this.dungeon.name)} headcount has ended.`,
 			embeds: [],
 			components: [],
 		});
@@ -194,20 +196,13 @@ export class Headcount implements IHeadcount {
 			collector.on('collect', async (collectedInteraction) => {
 				if (!collectedInteraction.isButton()) return;
 
+				await collectedInteraction.deferReply();
 				if (collectedInteraction.customId === 'abort') {
-					await collectedInteraction.deferReply();
-
 					await this.abort();
-
 					await collectedInteraction.editReply('Aborted headcount.');
-					timedDelete(collectedInteraction, 5000);
 				} else if (collectedInteraction.customId === 'end') {
-					await collectedInteraction.deferReply();
-
 					await this.end();
-
 					await collectedInteraction.editReply('Ended headcount.');
-					timedDelete(collectedInteraction, 5000);
 				}
 			});
 		}
