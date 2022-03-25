@@ -61,12 +61,12 @@ export default class implements Event {
 		const emojiId = emojiRule.emoji;
 		const userId = interaction.user.id;
 
-		if (raid.getConfirmedReactions(emojiId).has(userId)) {
+		if (raid.getReaction(emojiId, 'confirmed').has(userId)) {
 			await interaction.editReply('You already confirmed your reaction.');
 			return;
 		}
 
-		raid.addPendingReaction(emojiId, interaction.user.id);
+		raid.addReaction(emojiId, userId, 'pending');
 
 		const yesKey = 'yes';
 		const cancelKey = 'cancel';
@@ -92,20 +92,20 @@ export default class implements Event {
 					content: 'Timed out, your reaction was not confirmed.',
 					components: [],
 				});
-				raid.removePendingReaction(emojiId, userId);
+				raid.removeReaction(emojiId, userId, 'pending');
 				return undefined;
 			});
 
 		if (collectedInteraction?.customId === yesKey) {
-			raid.addConfirmedReaction(emojiId, userId);
-			raid.removePendingReaction(emojiId, userId);
+			raid.addReaction(emojiId, userId, 'confirmed');
+			raid.removeReaction(emojiId, userId, 'pending');
 			await collectedInteraction.editReply({ content: 'Confirmed.', components: [] });
 		} else if (collectedInteraction?.customId === cancelKey) {
-			raid.removePendingReaction(emojiId, userId);
+			raid.removeReaction(emojiId, userId, 'pending');
 			await collectedInteraction.editReply({ content: 'Cancelled.', components: [] });
 		}
 
-		if (raid.getConfirmedReactions(emojiId).size + 1 > emojiRule.max) {
+		if (raid.getReaction(emojiId, 'confirmed').size + 1 > emojiRule.max) {
 			let i = 0;
 			const buttons = [];
 			for (const comp of row!.components) {
