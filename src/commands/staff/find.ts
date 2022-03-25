@@ -1,5 +1,5 @@
 import type { Command } from '../../struct/Command';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
 import { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } from 'discord.js';
 import { memberNicknameMention, inlineCode, time } from '@discordjs/builders';
@@ -13,6 +13,22 @@ function chunkButtons(buttons: ButtonBuilder[]) {
 	const rows = chunks.map((chunk) => new ActionRowBuilder<ButtonBuilder>().addComponents(...chunk));
 
 	return rows;
+}
+
+function generateMemberInformation(member: GuildMember) {
+	const embed = new EmbedBuilder().setThumbnail(member.displayAvatarURL()).setDescription(`
+	${inlineCode('Member')} ${memberNicknameMention(member.id)} (${member.id})
+	${inlineCode('Roles')} ${member.roles.cache
+		.filter((role) => role.id !== member.guild.id)
+		.sort((a, b) => b.position - a.position)
+		.map((role) => role.toString())
+		.join(', ')}
+
+	${inlineCode('Joined server')} ${time(member.joinedAt!, 'R')}
+	${inlineCode('Account created')} ${time(member.user.createdAt, 'R')}
+	`);
+
+	return embed;
 }
 
 export default class implements Command {
@@ -38,7 +54,6 @@ export default class implements Command {
 
 		if (!members) return;
 
-		const embed = new EmbedBuilder();
 		const members_ = members.filter((member) => {
 			if (member.displayName.toLowerCase().includes(name.toLowerCase())) return true;
 			if (member.displayName.toLowerCase() === name.toLowerCase()) return true;
@@ -52,26 +67,18 @@ export default class implements Command {
 
 		if (members_.size === 1) {
 			const member = members_.first()!;
-			embed.setThumbnail(member.displayAvatarURL()).setDescription(`
-				${inlineCode('Member')} ${memberNicknameMention(member.id)} (${member.id})
-				${inlineCode('Roles')} ${member.roles.cache
-				.filter((role) => role.id !== interaction.guildId)
-				.sort((a, b) => b.position - a.position)
-				.map((role) => role.toString())
-				.join(', ')}
+			const embed = generateMemberInformation(member);
 
-				${inlineCode('Joined server')} ${time(member.joinedAt!, 'R')}
-				${inlineCode('Account created')} ${time(member.user.createdAt, 'R')}
-				`);
-
-			await interaction.editReply({ embeds: [embed.toJSON()] });
+			await interaction.editReply({ embeds: [embed] });
 			return;
 		}
 
+		const embed = new EmbedBuilder();
 		if (members_.size > 10) {
 			embed.setDescription('Too many members found, narrow your search.');
-
-			await interaction.editReply({ embeds: [embed.toJSON()] });
+			await interaction.editReply({
+				embeds: [embed],
+			});
 			return;
 		}
 
@@ -105,18 +112,7 @@ export default class implements Command {
 			const emojiIndex = Number(collectedInteraction.customId);
 			const member = members_.at(emojiIndex)!;
 
-			embed.setThumbnail(member.displayAvatarURL()).setDescription(`
-			${inlineCode('Member')} ${memberNicknameMention(member.id)} (${member.id})
-			${inlineCode('Roles')} ${member.roles.cache
-				.filter((role) => role.id !== interaction.guildId)
-				.sort((a, b) => b.position - a.position)
-				.map((role) => role.toString())
-				.join(', ')}
-
-			${inlineCode('Joined server')} ${time(member.joinedAt!, 'R')}
-			${inlineCode('Account created')} ${time(member.user.createdAt, 'R')}
-			`);
-
+			const embed = generateMemberInformation(member);
 			await collectedInteraction.update({ embeds: [embed.toJSON()], components: [] });
 		}
 	}
