@@ -164,16 +164,14 @@ export class Afkcheck implements IAfkcheck {
 			content: `@here ${inlineCode(dungeon.name)} ${
 				this.client.emojis.cache.get(dungeon.portal)?.toString() ?? ''
 			} is now starting in ${this.voiceChannel.name}`,
-			allowedMentions: {
-				parse: ['everyone'],
-			},
+			allowedMentions: { parse: ['everyone'] },
 			embeds: [embed],
 			components: [row],
 		});
 		await messageReact(
 			m,
 			dungeon.main.map((emoji) => emoji.emoji)
-		).catch(() => undefined);
+		);
 
 		this.message = m;
 		this.messageId = m.id;
