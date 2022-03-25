@@ -143,7 +143,7 @@ export class Afkcheck implements IAfkcheck {
 					.map((key) => this.client.emojis.cache.get(key.emoji)?.toString() ?? '')
 					.join('')}) and are willing to pop, click to the corresponding button
 				
-				Otherwise, click the class/item choices that you are bringing`
+				Otherwise, react to the class/item choices that you are bringing`
 			)
 			.setTimestamp();
 
