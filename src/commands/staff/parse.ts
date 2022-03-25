@@ -71,7 +71,7 @@ export default class implements Command {
 			}
 
 			await interaction.editReply({
-				content: `An error occured while trying to read screenshot.\n${codeBlock(err)}`,
+				content: `An error occured while trying to read screenshot.\n${codeBlock(err.message)}`,
 			});
 			return undefined;
 		});
