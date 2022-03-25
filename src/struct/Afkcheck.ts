@@ -188,10 +188,7 @@ export class Afkcheck implements IAfkcheck {
 			components: [],
 		});
 
-		await this.controlPanelThreadChannel.delete().catch(async () => {
-			await this.controlPanelThreadChannel.setArchived(true);
-			return undefined;
-		});
+		await this.controlPanelThreadChannel.setArchived(true);
 	}
 
 	private async createControlPanelThread() {
