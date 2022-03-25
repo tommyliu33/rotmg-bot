@@ -193,106 +193,105 @@ export class Afkcheck implements IAfkcheck {
 
 	private async createControlPanelThread() {
 		const controlPanel = await this.guild.channels.fetch(this.controlPanelChannelId).catch(() => undefined);
-		if (controlPanel?.isText()) {
-			this.controlPanelThreadChannel = await controlPanel.threads.create({
-				name: `${this.member.displayName}'s ${this.dungeon.name} Raid`,
-			});
+		if (!controlPanel?.isText()) return;
+		this.controlPanelThreadChannel = await controlPanel.threads.create({
+			name: `${this.member.displayName}'s ${this.dungeon.name} Raid`,
+		});
 
-			const embed = new EmbedBuilder()
-				.setDescription('📝 - Change Location\n🗺️ - Reveal Location\n🛑 - Abort Afk\n❌ - End Afk')
-				.setTimestamp();
+		const embed = new EmbedBuilder()
+			.setDescription('📝 - Change Location\n🗺️ - Reveal Location\n🛑 - Abort Afk\n❌ - End Afk')
+			.setTimestamp();
 
-			const m = await this.controlPanelThreadChannel.send({
-				embeds: [embed.toJSON()],
-				components: [
-					new ActionRowBuilder<ButtonBuilder>().addComponents(
-						changeLocationButton,
-						revealLocationButton,
-						abortAfkButton,
-						endAfkButton
-					),
-				],
-			});
-			this.controlPanelThreadMessage = m;
-			this.controlPanelThreadMessageId = m.id;
+		const m = await this.controlPanelThreadChannel.send({
+			embeds: [embed.toJSON()],
+			components: [
+				new ActionRowBuilder<ButtonBuilder>().addComponents(
+					changeLocationButton,
+					revealLocationButton,
+					abortAfkButton,
+					endAfkButton
+				),
+			],
+		});
+		this.controlPanelThreadMessage = m;
+		this.controlPanelThreadMessageId = m.id;
 
-			await m.pin().catch(() => undefined);
+		await m.pin().catch(() => undefined);
 
-			const collector = new InteractionCollector(this.client, {
-				channel: this.controlPanelThreadChannel,
-				componentType: ComponentType.Button,
-			});
-			collector.on('collect', async (collectedInteraction) => {
-				if (!collectedInteraction.isButton()) return;
+		const collector = new InteractionCollector(this.client, {
+			channel: this.controlPanelThreadChannel,
+			componentType: ComponentType.Button,
+		});
+		collector.on('collect', async (collectedInteraction) => {
+			if (!collectedInteraction.isButton()) return;
 
-				if (collectedInteraction.user.id !== this.memberId) {
-					await collectedInteraction.reply({ content: 'This is only available to the raid leader.', ephemeral: true });
+			if (collectedInteraction.user.id !== this.memberId) {
+				await collectedInteraction.reply({ content: 'This is only available to the raid leader.', ephemeral: true });
+				return;
+			}
+
+			await collectedInteraction.deferReply();
+			if (collectedInteraction.customId === 'change') {
+				await collectedInteraction.editReply({
+					content: 'Enter the new location for this raid.',
+				});
+
+				const message = await collectMessage({
+					filter: (m) => m.author.id === this.memberId,
+					channel: this.controlPanelThreadChannel,
+					time: 60_000,
+				}).catch(async () => {
+					await collectedInteraction.editReply({ content: 'You failed to enter a new location.' });
+					timedDelete(collectedInteraction, 5000);
+					return undefined;
+				});
+
+				if (message?.content) {
+					this.location = message.content;
+					await collectedInteraction.editReply({ content: 'Updated location.' });
+
+					const embed = this.controlPanelThreadMessage.embeds[0];
+					const embed_ = new EmbedBuilder(embed.data).setFields({ name: 'Location', value: this.location });
+
+					await this.controlPanelThreadMessage.edit({ embeds: [embed_.toJSON()] });
+
+					timedDelete(collectedInteraction, 5000);
+					await message.delete().catch(() => undefined);
+				}
+			} else if (collectedInteraction.customId === 'reveal') {
+				if (!this.location) {
+					await collectedInteraction.editReply('Set a location before revealing.');
+					timedDelete(collectedInteraction, 5000);
 					return;
 				}
 
-				await collectedInteraction.deferReply();
-				if (collectedInteraction.customId === 'change') {
-					await collectedInteraction.editReply({
-						content: 'Enter the new location for this raid.',
-					});
-
-					const message = await collectMessage({
-						filter: (m) => m.author.id === this.memberId,
-						channel: this.controlPanelThreadChannel,
-						time: 60_000,
-					}).catch(async () => {
-						await collectedInteraction.editReply({ content: 'You failed to enter a new location.' });
-						timedDelete(collectedInteraction, 5000);
-						return undefined;
-					});
-
-					if (message?.content) {
-						this.location = message.content;
-						await collectedInteraction.editReply({ content: 'Updated location.' });
-
-						const embed = this.controlPanelThreadMessage.embeds[0];
-						const embed_ = new EmbedBuilder(embed.data).setFields({ name: 'Location', value: this.location });
-
-						await this.controlPanelThreadMessage.edit({ embeds: [embed_.toJSON()] });
-
-						timedDelete(collectedInteraction, 5000);
-						await message.delete().catch(() => undefined);
-					}
-				} else if (collectedInteraction.customId === 'reveal') {
-					if (!this.location) {
-						await collectedInteraction.editReply('Set a location before revealing.');
-						timedDelete(collectedInteraction, 5000);
-						return;
-					}
-
-					if (this.locationRevealed) {
-						await collectedInteraction.editReply('Location has already been revealed');
-						timedDelete(collectedInteraction, 5000);
-						return;
-					}
-
-					const embed = this.message.embeds[0].data;
-					const embed_ = new EmbedBuilder(embed).setDescription(
-						`${embed.description!}\n\n🗺️ The location for this raid is: ${inlineCode(this.location)}`
-					);
-					await this.message.edit({ embeds: [embed_.toJSON()] });
-
-					this.locationRevealed = true;
-					await collectedInteraction.editReply('Revealed location.');
+				if (this.locationRevealed) {
+					await collectedInteraction.editReply('Location has already been revealed');
 					timedDelete(collectedInteraction, 5000);
-				} else if (collectedInteraction.customId === 'abort') {
-					await this.abort();
-
-					await collectedInteraction.editReply('Aborted afk check.');
-					timedDelete(collectedInteraction, 5000);
-				} else if (collectedInteraction.customId === 'end') {
-					await this.end();
-
-					await collectedInteraction.editReply('Ended afk check.');
-					timedDelete(collectedInteraction, 5000);
+					return;
 				}
-			});
-		}
+
+				const embed = this.message.embeds[0].data;
+				const embed_ = new EmbedBuilder(embed).setDescription(
+					`${embed.description!}\n\n🗺️ The location for this raid is: ${inlineCode(this.location)}`
+				);
+				await this.message.edit({ embeds: [embed_.toJSON()] });
+
+				this.locationRevealed = true;
+				await collectedInteraction.editReply('Revealed location.');
+				timedDelete(collectedInteraction, 5000);
+			} else if (collectedInteraction.customId === 'abort') {
+				await this.abort();
+
+				await collectedInteraction.editReply('Aborted afk check.');
+				timedDelete(collectedInteraction, 5000);
+			} else if (collectedInteraction.customId === 'end') {
+				await this.end();
+
+				await collectedInteraction.editReply('Ended afk check.');
+				timedDelete(collectedInteraction, 5000);
+			}
+		});
 	}
 
 	public addReaction(emojiId: string, userId: string, state: 'pending' | 'confirmed') {
