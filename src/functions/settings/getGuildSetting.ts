@@ -1,20 +1,28 @@
 import { guilds } from '../../util/mongo';
 
-export async function getGuildSetting<K extends keyof Settings>(guildId: string, key: K) {
+export async function getGuildSetting<K extends keyof Settings>(
+	guildId: string,
+	key: K,
+	subKey?: keyof Settings['main']
+) {
 	const data = await guilds.findOne({ guild_id: guildId });
 
 	const data_ = data![key];
 
-	return {
-		categoryId: data_.category_id,
-		afkCheckChannelId: data_.afk_check_channel_id,
-		verificationChannelId: data_.verification_channel_id,
-		controlPanelChannelId: data_.control_panel_channel_id,
-		voiceChannelIds: data_.voice_channel_ids,
-		// verificationRequirements,
-		userRole: data_.user_role,
-		leaderRole: data_.leader_role,
-	};
+	if (!subKey) {
+		return {
+			categoryId: data_.category_id,
+			afkCheckChannelId: data_.afk_check_channel_id,
+			verificationChannelId: data_.verification_channel_id,
+			controlPanelChannelId: data_.control_panel_channel_id,
+			voiceChannelIds: data_.voice_channel_ids,
+			verificationRequirements: data_.verification_requirements,
+			userRole: data_.user_role,
+			leaderRole: data_.leader_role,
+		};
+	}
+
+	return data_[subKey];
 }
 
 export interface Settings {
@@ -29,7 +37,13 @@ interface CategorySettings {
 	verification_channel_id: string;
 	control_panel_channel_id: string;
 	voice_channel_ids: string[];
-	verification_requirements?: unknown[];
+	verification_requirements?: {
+		min_rank?: number;
+		min_chars?: number;
+		min_fame?: number;
+		hidden_location?: boolean;
+		verification_message?: string;
+	};
 	user_role: string;
 	leader_role: string;
 }
