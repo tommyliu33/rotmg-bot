@@ -153,7 +153,7 @@ export class Afkcheck implements IAfkcheck {
 				this.client.emojis.cache.get(dungeon.portal)?.toString() ?? ''
 			} is now starting in ${this.voiceChannel.name}`,
 			allowedMentions: { parse: ['everyone'] },
-			embeds: [embed],
+			embeds: [embed.toJSON()],
 			components: [row],
 		});
 		await messageReact(
