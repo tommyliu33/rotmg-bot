@@ -16,12 +16,7 @@ export async function haste(title: string, content: string): Promise<{ key: stri
 	);
 	req.header('content-type', 'application/json');
 
-	const res = await req.send();
-	if (!(res.statusCode! >= 200 && res.statusCode! < 300)) {
-		throw new Error(`Code '${res.statusCode!}' while creating bin`);
-	}
-
-	const { key } = await res.json<BinResponse>();
+	const { key } = await req.json<BinResponse>();
 
 	return {
 		key,
