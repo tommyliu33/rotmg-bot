@@ -138,14 +138,14 @@ export class Afkcheck implements IAfkcheck {
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(participateButton);
 
 		for (const key of dungeon.keys) {
-			const button = new ButtonBuilder().setCustomId(nanoid()).setStyle(ButtonStyle.Secondary);
 			if (this.client.emojis.cache.has(key.emoji)) {
+				const button = new ButtonBuilder().setCustomId(nanoid()).setStyle(ButtonStyle.Secondary);
 				const emoji = this.client.emojis.cache.get(key.emoji);
 				button.setEmoji({
 					id: emoji?.id,
 				});
+				row.addComponents(button);
 			}
-			row.addComponents(button);
 		}
 
 		const m = await this.textChannel.send({
