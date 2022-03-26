@@ -1,6 +1,9 @@
 import { guilds } from '../../util/mongo';
-
+import dotProp from 'dot-prop';
 import type { Settings } from './getGuildSetting';
+
+const { set } = dotProp;
+
 export async function setGuildSetting<K extends keyof Settings>(
 	guildId: string,
 	key: K,
@@ -9,8 +12,8 @@ export async function setGuildSetting<K extends keyof Settings>(
 ) {
 	const data = await guilds.findOne({ guild_id: guildId });
 	if (key in data!) {
-		data![subKey] = value;
-		await guilds.updateOne({ guild_id: guildId }, { $set: data! });
+		const data_ = set(data!, `${key}.${subKey}`, value);
+		await guilds.updateOne({ guild_id: guildId }, { $set: data_ });
 		return true;
 	}
 
