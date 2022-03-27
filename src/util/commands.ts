@@ -11,15 +11,8 @@ export async function loadCommands(directory: string) {
 		const commandMod = (await import(dir.fullPath)) as { default: Constructor<Command> };
 		const command = container.resolve(commandMod.default);
 
-		if (commands.has(command.name)) {
-			commands.set(command.name, {
-				...command,
-				options: [...commands.get(command.name)!.options!, ...command.options!],
-			});
-		} else {
-			commands.set(command.name, command);
-			logger.info(`Registered command: ${command.name}`);
-		}
+		commands.set(command.name, command);
+		logger.info(`Registered command: ${command.name}`);
 	}
 
 	return commands;
