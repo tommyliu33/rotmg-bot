@@ -30,6 +30,6 @@ async function deploy() {
 	}
 }
 
-await deploy();
+void deploy();
 
 type ApplicationCommand = Pick<APIApplicationCommand, 'name' | 'description' | 'options'>;
