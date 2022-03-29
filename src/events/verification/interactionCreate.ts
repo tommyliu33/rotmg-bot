@@ -7,6 +7,9 @@ import {
 	ActionRowBuilder,
 	ButtonStyle,
 	ComponentType,
+	ModalBuilder,
+	TextInputBuilder,
+	TextInputStyle,
 } from 'discord.js';
 
 import { codeBlock, hyperlink } from '@discordjs/builders';
@@ -25,101 +28,126 @@ export default class implements Event {
 	public event = Events.InteractionCreate;
 
 	public async run(interaction: Interaction<'cached'>) {
-		if (!interaction.isModalSubmit()) return;
+		const isButton = interaction.isButton();
+		const isModal = interaction.isModalSubmit();
 
-		logger.info(
-			`${interaction.user.tag} (${interaction.user.id}) started verification in ${interaction.guild.name} (${interaction.guildId})`
-		);
+		if (isButton || isModal) {
+			logger.info(
+				`${interaction.user.tag} (${interaction.user.id}) started verification in ${interaction.guild.name} (${interaction.guildId})`
+			);
+		}
 
-		await interaction.deferReply({ ephemeral: true });
+		// #region modal
+		if (isModal) {
+			const name = interaction.fields.getTextInputValue('name');
 
-		const name = interaction.fields.getTextInputValue('name');
-
-		const player = await scrapePlayer(name).catch(async (err: Error) => {
-			if (err.message === 'Player not found') {
-				await interaction.editReply({ content: 'Your profile was private or the player does not exist.' });
-				return undefined;
-			}
-
-			await interaction.editReply({ content: 'Unexpected error while fetching player.' });
-			return undefined;
-		});
-
-		if (player) {
-			await interaction.editReply({ content: 'Check your DMs to continue.' });
-
-			//const code = nanoid(12);
-			const code = 'xXwZCabm3M8eeIs';
-
-			const doneKey = nanoid();
-			const cancelKey = nanoid();
-
-			const doneButton = new ButtonBuilder().setCustomId(doneKey).setLabel('Done').setStyle(ButtonStyle.Primary);
-			const cancelButton = new ButtonBuilder().setCustomId(cancelKey).setLabel('Cancel').setStyle(ButtonStyle.Danger);
-
-			const dmChannel = await interaction.user.createDM();
-			const embed = new EmbedBuilder()
-				.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() ?? '' })
-				.setDescription(
-					`Add the following code to any line of your ${hyperlink('Realmeye profile', profileUrl(name))} description
-				
-				${codeBlock('fix', code)}
-				Click 'Done' to continue or 'Cancel' to cancel.
-				`
-				);
-
-			const m = await dmChannel.send({
-				embeds: [embed],
-				components: [new ActionRowBuilder<ButtonBuilder>().addComponents(doneButton, cancelButton)],
-			});
-			messageCountdown(m, 50_000 * 6, 30_000);
-
-			const collectedInteraction = await m
-				.awaitMessageComponent({
-					filter: (i) => i.user.id === interaction.user.id,
-					componentType: ComponentType.Button,
-					time: 60_000 * 5,
-				})
-				.catch(async () => {
-					await m.edit({ components: [] });
+			const player = await scrapePlayer(name).catch(async (err: Error) => {
+				if (err.message === 'Player not found') {
+					await interaction.editReply({ content: 'Your profile was private or the player does not exist.' });
 					return undefined;
-				});
+				}
 
-			if (collectedInteraction?.customId === doneKey) {
-				await collectedInteraction.deferReply();
-				const player = await scrapePlayer(name).catch(async (err: Error) => {
-					if (err.message === 'Player not found') {
-						await interaction.editReply({ content: 'Your profile was private or the player does not exist.' });
+				await interaction.editReply({ content: 'Unexpected error while fetching player.' });
+				return undefined;
+			});
+
+			if (player) {
+				await interaction.editReply({ content: 'Check your DMs to continue.' });
+
+				//const code = nanoid(12);
+				const code = 'xXwZCabm3M8eeIs';
+
+				const doneKey = nanoid();
+				const cancelKey = nanoid();
+
+				const doneButton = new ButtonBuilder().setCustomId(doneKey).setLabel('Done').setStyle(ButtonStyle.Primary);
+				const cancelButton = new ButtonBuilder().setCustomId(cancelKey).setLabel('Cancel').setStyle(ButtonStyle.Danger);
+
+				const dmChannel = await interaction.user.createDM();
+				const embed = new EmbedBuilder()
+					.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() ?? '' })
+					.setDescription(
+						`Add the following code to any line of your ${hyperlink('Realmeye profile', profileUrl(name))} description
+					
+					${codeBlock('fix', code)}
+					Click 'Done' to continue or 'Cancel' to cancel.
+					`
+					);
+
+				const m = await dmChannel.send({
+					embeds: [embed],
+					components: [new ActionRowBuilder<ButtonBuilder>().addComponents(doneButton, cancelButton)],
+				});
+				messageCountdown(m, 50_000 * 6, 30_000);
+
+				const collectedInteraction = await m
+					.awaitMessageComponent({
+						filter: (i) => i.user.id === interaction.user.id,
+						componentType: ComponentType.Button,
+						time: 60_000 * 5,
+					})
+					.catch(async () => {
+						await m.edit({ components: [] });
 						return undefined;
+					});
+
+				if (collectedInteraction?.customId === doneKey) {
+					await collectedInteraction.deferReply();
+					const player = await scrapePlayer(name).catch(async (err: Error) => {
+						if (err.message === 'Player not found') {
+							await interaction.editReply({ content: 'Your profile was private or the player does not exist.' });
+							return undefined;
+						}
+
+						return undefined;
+					});
+
+					if (!player) {
+						await collectedInteraction.editReply('Could not fetch your Realmeye profile, try again.');
+						return;
 					}
 
-					return undefined;
-				});
+					if (!player.description?.includes(code)) {
+						await collectedInteraction.editReply('Code not found in description.');
+						return;
+					}
 
-				if (!player) {
-					await collectedInteraction.editReply('Could not fetch your Realmeye profile, try again.');
-					return;
+					const settings = await getGuildSetting(interaction.guildId, 'main');
+					const roleId = settings.userRole;
+
+					try {
+						await interaction.member.roles.add(roleId);
+						await interaction.member.setNickname(player.name!);
+					} catch {}
+
+					await collectedInteraction.editReply(
+						'You are now verified! If you did not receive the role or a nickname, please contact a staff member.'
+					);
+				} else if (collectedInteraction?.customId === cancelKey) {
+					await collectedInteraction.update({ content: ' ', embeds: [], components: [] });
 				}
-
-				if (!player.description?.includes(code)) {
-					await collectedInteraction.editReply('Code not found in description.');
-					return;
-				}
-
-				const settings = await getGuildSetting(interaction.guildId, 'main');
-				const roleId = settings.userRole;
-
-				try {
-					await interaction.member.roles.add(roleId);
-					await interaction.member.setNickname(player.name!);
-				} catch {}
-
-				await collectedInteraction.editReply(
-					'You are now verified! If you did not receive the role or a nickname, please contact a staff member.'
-				);
-			} else if (collectedInteraction?.customId === cancelKey) {
-				await collectedInteraction.update({ content: ' ', embeds: [], components: [] });
 			}
 		}
+		// #endregion
+
+		// #region button
+		if (isButton && interaction.customId === 'main_verification') {
+			// pr isnt merged yet
+			const modal = new ModalBuilder()
+				.setTitle(`${interaction.guild.name} Verification`)
+				.setCustomId('verification_modal');
+
+			const nameForm = new TextInputBuilder()
+				.setCustomId('name')
+				.setLabel('What is your ingame name?')
+				.setStyle(TextInputStyle.Short);
+
+			await interaction.showModal(
+				modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(nameForm))
+			);
+
+			// TODO: finish handling user input
+		}
+		// #endregion
 	}
 }
