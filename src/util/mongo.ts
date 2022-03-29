@@ -6,6 +6,8 @@ const db = client.db('rotmg');
 
 export const guilds = db.collection<GuildDocument>('guilds');
 
-await client.connect();
+(async () => {
+	await client.connect();
+})();
 
 type GuildDocument = Settings & Document & { guild_id: string };
