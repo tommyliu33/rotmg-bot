@@ -61,6 +61,11 @@ export default class implements Command {
 					return undefined;
 				});
 
+				if (!player) {
+					await interaction.editReply({ embeds: [embed.setDescription('No player found.')] });
+					return;
+				}
+
 				if (player) {
 					if (player.description) embed.setDescription(Util.escapeMarkdown(player.description));
 
@@ -68,6 +73,10 @@ export default class implements Command {
 						{
 							name: 'Characters',
 							value: player.characters?.length.toString() ?? '0',
+						},
+						{
+							name: 'Fame',
+							value: player.characters?.reduce((fame, char) => char.fame + fame, 0).toString() ?? '0',
 						},
 					];
 					embed.addFields(...fields).setAuthor({

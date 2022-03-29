@@ -51,6 +51,7 @@ export default class implements Event {
 				return undefined;
 			});
 
+			// TODO: streamline verification to one function
 			if (player) {
 				await interaction.editReply({ content: 'Check your DMs to continue.' });
 
