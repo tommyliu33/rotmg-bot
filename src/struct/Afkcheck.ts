@@ -294,17 +294,22 @@ export class Afkcheck implements IAfkcheck {
 		});
 	}
 
-	public addReaction(emojiId: string, userId: string, state: 'pending' | 'confirmed') {
+	public addReaction(emojiId: string, userId: string, state: ReactionState) {
 		this.reactions.get(emojiId)![state].add(userId);
 	}
 
-	public removeReaction(emojiId: string, userId: string, state: 'pending' | 'confirmed') {
+	public removeReaction(emojiId: string, userId: string, state: ReactionState) {
 		this.reactions.get(emojiId)![state].delete(userId);
 	}
 
-	public getReaction(emojiId: string, state: 'pending' | 'confirmed') {
+	public getReaction(emojiId: string, state: ReactionState) {
 		return this.reactions.get(emojiId)![state];
+	}
+
+	public userReacted(emojiId: string, userId: string, state: ReactionState) {
+		return this.reactions.get(emojiId)![state].has(userId);
 	}
 }
 
 export interface IAfkcheck extends IHeadcount {}
+type ReactionState = 'pending' | 'confirmed';

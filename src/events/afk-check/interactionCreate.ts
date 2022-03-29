@@ -61,7 +61,7 @@ export default class implements Event {
 		const emojiId = emojiRule.emoji;
 		const userId = interaction.user.id;
 
-		if (raid.getReaction(emojiId, 'confirmed').has(userId)) {
+		if (raid.userReacted(emojiId, userId, 'confirmed')) {
 			await interaction.editReply('You already confirmed your reaction.');
 			return;
 		}
