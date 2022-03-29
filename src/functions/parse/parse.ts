@@ -20,11 +20,6 @@ export async function parse(url: string): Promise<OCRApiResponse> {
 	const req = await fetch(API(process.env.OCR_SPACE_API_KEY!, url));
 	req.header('user-agent', UA);
 
-	const res = await req.send();
-	if (!(res.statusCode! >= 200 && res.statusCode! < 300)) {
-		throw new Error(`Received code '${res.statusCode!}' during request`);
-	}
-
 	return req.json<OCRApiResponse>();
 }
 
