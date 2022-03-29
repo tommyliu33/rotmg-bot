@@ -34,6 +34,8 @@ interface CategorySettings {
 		min_fame?: number;
 		hidden_location?: boolean;
 		verification_message?: string;
+		verification_message_id?: string;
+		verification_button_id?: string;
 	};
 	user_role: string;
 	leader_role: string;

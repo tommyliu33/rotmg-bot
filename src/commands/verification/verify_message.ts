@@ -161,9 +161,20 @@ export default class implements Command {
 			return;
 		}
 
+		const verifyKey = 'main_verification';
+		const verifyButton = new ButtonBuilder().setCustomId(verifyKey).setStyle(ButtonStyle.Primary).setLabel('Verify');
+
 		const m = await channel.send({
 			embeds: [embed.setDescription(verificationRequirements.verification_message).toJSON()],
+			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton)],
 		});
+
+		await setGuildSetting(interaction.guildId, section as 'main', 'verification_requirements', {
+			...verificationRequirements,
+			verification_message_id: m.id,
+			verification_button_id: verifyKey,
+		});
+
 		await interaction.editReply(`Done. See it here:\n${m.url}`);
 	}
 }
