@@ -8,7 +8,6 @@ import { Client } from 'discord.js';
 import { GatewayIntentBits } from 'discord-api-types/v10';
 import { RaidManager } from './struct/RaidManager';
 
-import { resolve } from 'node:path';
 import { loadCommands } from './util/commands';
 import { loadEvents } from './util/events';
 
@@ -32,10 +31,10 @@ const start = async () => {
 	container.register(kClient, { useValue: client });
 	container.register(kRaids, { useValue: manager });
 
-	const commands = await loadCommands(resolve('./commands'));
+	const commands = await loadCommands('./commands');
 	container.register(kCommands, { useValue: commands });
 
-	await loadEvents(resolve('./events'));
+	await loadEvents('./events');
 
 	await client.login();
 };
