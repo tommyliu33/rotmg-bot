@@ -61,11 +61,6 @@ export default class implements Command {
 					return undefined;
 				});
 
-				if (!player) {
-					await interaction.editReply({ embeds: [embed.setDescription('No player found.')] });
-					return;
-				}
-
 				if (player) {
 					if (player.description) embed.setDescription(Util.escapeMarkdown(player.description));
 
@@ -135,9 +130,6 @@ export default class implements Command {
 						name: guild.name ?? guildName,
 						url: guild.realmEyeUrl,
 					});
-
-					if (guild.members?.findIndex((member) => member.name === 'Private'))
-						embed.setFooter({ text: 'Private profiles may be excluded' });
 
 					const viewKey = nanoid();
 					const viewTopButton = new ButtonBuilder()
