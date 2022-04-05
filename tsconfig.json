@@ -11,6 +11,7 @@
 
 		/* Emit */
 		"outDir": "./dist",
+		"sourceMap": true,
 		"importHelpers": true,
 		"importsNotUsedAsValues": "error",
 

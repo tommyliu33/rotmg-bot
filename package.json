@@ -7,8 +7,8 @@
 		"prepare": "husky install",
 		"lint": "eslint src --ext ts .",
 		"lint:fix": "eslint src --ext ts . --fix",
-		"start": "tsc && cd dist && node --es-module-specifier-resolution=node .",
-		"start:deploy": "tsc && cd dist && node --es-module-specifier-resolution=node . --deploy"
+		"start": "tsc && cd dist && node -r source-map-support/register .",
+		"start:deploy": "tsc && cd dist && node -r source-map-support/register . --deploy"
 	},
 	"dependencies": {
 		"@discordjs/builders": "^0.13.0-dev.1647259738.2297c2b",
@@ -27,6 +27,7 @@
 		"pino": "^7.1.0",
 		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
+		"source-map-support": "^0.5.21",
 		"tsyringe": "^4.6.0"
 	},
 	"devDependencies": {
