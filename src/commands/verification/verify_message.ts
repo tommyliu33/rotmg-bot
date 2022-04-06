@@ -56,6 +56,12 @@ export default class implements Command {
 					],
 					required: true,
 				},
+				{
+					type: 5,
+					name: 'button',
+					description: 'Whether the user should click the button to start verification for that section',
+					required: false,
+				},
 			],
 		},
 	];
@@ -64,6 +70,7 @@ export default class implements Command {
 		const reply = await interaction.deferReply({ fetchReply: true });
 
 		const section = interaction.options.getString('section', true);
+		const button = interaction.options.getBoolean('button', false) ?? false;
 		const { verificationRequirements, verificationChannelId } = await getGuildSetting(
 			interaction.guildId,
 			section as 'main' | 'veteran'
@@ -164,9 +171,14 @@ export default class implements Command {
 		const verifyKey = 'main_verification';
 		const verifyButton = new ButtonBuilder().setCustomId(verifyKey).setStyle(ButtonStyle.Primary).setLabel('Verify');
 
+		const opts: { components: any[] } = { components: [] };
+		if (button) {
+			opts['components'] = [new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton)];
+		}
+
 		const m = await channel.send({
 			embeds: [embed.setDescription(verificationRequirements.verification_message).toJSON()],
-			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton)],
+			...opts,
 		});
 
 		await interaction.editReply(`Done. See it here:\n${m.url}`);
