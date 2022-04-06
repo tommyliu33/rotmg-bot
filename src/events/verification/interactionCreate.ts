@@ -1,4 +1,4 @@
-import type { Event } from '../../struct/Event';
+import type { Event } from '#struct/Event';
 import {
 	Events,
 	Interaction,
@@ -83,7 +83,7 @@ export default class implements Event {
 		// 			})
 		// 			.setDescription(
 		// 				`Add the following code to any line of your ${hyperlink('Realmeye profile', profileUrl(name))} description
-					
+
 		// 			${codeBlock('fix', code)}
 		// 			Click 'Done' to continue or 'Cancel' to cancel.
 		// 			`
