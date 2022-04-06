@@ -1,12 +1,13 @@
-import { UnsafeModalBuilder, UnsafeTextInputBuilder } from '@discordjs/builders';
+import { UnsafeModalBuilder, UnsafeTextInputBuilder, UnsafeEmbedBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, Events, Interaction, TextInputStyle } from 'discord.js';
 
 // TODO: refactor settings to use tsconfig paths
 import { getGuildSetting } from '../../../functions/settings/getGuildSetting';
 
 import type { Event } from '#struct/Event';
-
-const profileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
+import { checkEligibility } from '../../../functions/verification/checkEligibility';
+import { VerificationType, verifyMember } from '../../../functions/verification/verifyMember';
+import { stripIndent } from 'common-tags';
 
 export default class implements Event {
 	public name = 'Guild interaction verification handling';
@@ -44,8 +45,32 @@ export default class implements Event {
 				interaction.customId === 'veteran_verification' &&
 				interaction.channelId === veteranSettings.verificationChannelId
 			) {
-				await interaction.deferReply();
-				// await handleVerification(interaction, VerificationType.Veteran);
+				await interaction.deferReply({ ephemeral: true });
+				const status = await checkEligibility(interaction.member, VerificationType.Veteran);
+				if (typeof status === 'object') {
+					const embed = new UnsafeEmbedBuilder();
+
+					for (const dungeon of status) {
+						embed.addFields({
+							name: dungeon.dungeon,
+							value: stripIndent`
+							required completions: ${dungeon.required}
+							current completions: ${dungeon.current}
+							difference: ${dungeon.required - dungeon.current}`,
+						});
+					}
+
+					await interaction.editReply({ content: 'you do not meet the requirements', embeds: [embed.toJSON()] });
+				} else if (typeof status === 'boolean') {
+					if (status) {
+						await verifyMember(interaction.member, {
+							roleId: veteranSettings.userRole,
+							type: VerificationType.Veteran,
+						});
+					} else {
+						await interaction.editReply('veteran verification failed');
+					}
+				}
 			}
 		}
 	}
