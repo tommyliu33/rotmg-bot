@@ -31,9 +31,10 @@ const client = new Client({
 });
 
 const commands = new Map<string, Command>();
+const manager = new RaidManager();
 
 container.register(kClient, { useValue: client });
-container.register(kRaids, { useValue: new RaidManager() });
+container.register(kRaids, { useValue: manager });
 
 for await (const dir of readdirp('./commands', { fileFilter: '*.js' })) {
 	const commandMod = (await import(dir.fullPath)) as { default: Constructor<Command> };

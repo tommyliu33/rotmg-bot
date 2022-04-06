@@ -52,5 +52,8 @@
 	"engines": {
 		"node": ">=v16.9.x"
 	},
-	"type": "module"
+	"type": "module",
+	"imports": {
+		"#struct/*": "./dist/lib/struct/*.js"
+	}
 }
