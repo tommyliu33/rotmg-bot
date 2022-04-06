@@ -4,9 +4,9 @@ import { logger } from './logger';
 import { container } from 'tsyringe';
 import { kClient } from '../tokens';
 
-import type { Client } from 'discord.js';
+import type { Client, ClientEvents } from 'discord.js';
 import type { Constructor } from '@sapphire/utilities';
-import type { Event } from '../struct/Event';
+import type { Event } from '#struct/Event';
 
 export async function loadEvents(directory: string) {
 	const client = container.resolve<Client<true>>(kClient);
@@ -16,8 +16,7 @@ export async function loadEvents(directory: string) {
 		const eventMod = (await import(dir.fullPath)) as { default: Constructor<Event> };
 		const event = container.resolve(eventMod.default);
 
-		// @ts-expect-error
-		client.on(event.event, async (...args: unknown[]) => event.run(...args));
+		client.on(event.event as keyof ClientEvents, async (...args: unknown[]) => event.run(...args));
 		logger.info(`Registered event: ${event.name}`);
 	}
 }
