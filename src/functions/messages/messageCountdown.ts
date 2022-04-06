@@ -1,4 +1,4 @@
-import { setInterval } from 'node:timers';
+import { clearInterval, setInterval } from 'node:timers';
 
 import type { Message } from 'discord.js';
 import { EmbedBuilder } from '@discordjs/builders';
