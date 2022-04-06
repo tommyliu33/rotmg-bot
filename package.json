@@ -1,6 +1,6 @@
 {
 	"name": "rotmg-bot",
-	"version": "1.0.0",
+	"version": "1.0.0-dev",
 	"main": "index.js",
 	"license": "UNLICENSED",
 	"scripts": {
