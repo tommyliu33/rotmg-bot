@@ -7,10 +7,11 @@ import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, Util } fr
 import { inlineCode, hyperlink } from '@discordjs/builders';
 import { ButtonStyle } from 'discord-api-types/v10';
 
-import { nanoid } from 'nanoid';
-
 import { cutText } from '@sapphire/utilities';
 import { FAME_EMOJI_ID } from '../../constants';
+import { paginate } from '../../functions/paginate';
+
+import { stripIndents } from 'common-tags';
 
 export default class implements Command {
 	public name = 'realmeye';
@@ -66,12 +67,17 @@ export default class implements Command {
 
 					const fields = [
 						{
-							name: 'Characters',
-							value: player.characters?.length.toString() ?? '0',
+							name: 'Experience',
+							value:
+								player.characters?.reduce((exp, char) => char?.exp ?? 0 + exp, 0).toString() ??
+								player.exp?.toString() ??
+								'0',
+							inline: true,
 						},
 						{
 							name: 'Fame',
 							value: player.characters?.reduce((fame, char) => char.fame + fame, 0).toString() ?? '0',
+							inline: true,
 						},
 					];
 					embed.addFields(...fields).setAuthor({
@@ -79,9 +85,67 @@ export default class implements Command {
 						url: player.realmEyeUrl,
 					});
 
-					await interaction.editReply({ embeds: [embed] });
-				}
+					const viewCharacters = new ButtonBuilder()
+						.setCustomId('view_characters')
+						.setStyle(ButtonStyle.Primary)
+						.setLabel('View Characters');
 
+					await interaction.editReply({
+						embeds: [embed],
+						components: [new ActionRowBuilder<ButtonBuilder>().addComponents(viewCharacters)],
+					});
+
+					const collectedInteraction = await m
+						.awaitMessageComponent({
+							componentType: ComponentType.Button,
+						})
+						.catch(async () => {
+							await interaction.editReply({ components: [] });
+							return undefined;
+						});
+
+					if (collectedInteraction?.customId === 'view_characters') {
+						const embeds = [];
+						if (player?.characters) {
+							for (let i = 0; i < player.characters.length; ++i) {
+								const character = player.characters[i];
+								const embed = new EmbedBuilder()
+									.setAuthor({
+										name: player.name ?? playerName,
+										url: player.realmEyeUrl,
+									})
+									.setDescription(
+										stripIndents`
+								${inlineCode('Class')} ${character.class}
+								${inlineCode('Experience')} ${character.exp ?? 0}
+								${inlineCode('Fame')} ${character.fame ?? 0}
+							
+								${inlineCode('Weapon')} ${hyperlink(
+											character.equipment?.weapon?.name ?? 'n/a',
+											character.equipment?.weapon?.realmEyeUrl ?? 'https://realmeye.com'
+										)}
+								${inlineCode('Ability')} ${hyperlink(
+											character.equipment?.ability?.name ?? 'n/a',
+											character.equipment?.ability?.realmEyeUrl ?? 'https://realmeye.com'
+										)}
+								${inlineCode('Armor')} ${hyperlink(
+											character.equipment?.armor?.name ?? 'n/a',
+											character.equipment?.armor?.realmEyeUrl ?? 'https://realmeye.com'
+										)}
+								${inlineCode('Ring')} ${hyperlink(
+											character.equipment?.ring?.name ?? 'n/a',
+											character.equipment?.ring?.realmEyeUrl ?? 'https://realmeye.com'
+										)}
+								`
+									)
+									.setFooter({ text: `Character ${i + 1}/${player.characters.length}` });
+								embeds.push(embed);
+							}
+						}
+
+						await paginate(collectedInteraction, embeds);
+					}
+				}
 				break;
 			case 'guild':
 				const guildName = interaction.options.getString('guild', true);
@@ -129,13 +193,14 @@ export default class implements Command {
 					embed.addFields(...fields).setAuthor({
 						name: guild.name ?? guildName,
 						url: guild.realmEyeUrl,
+						iconURL: 'https://www.realmeye.com/s/a/img/eye-big.png',
 					});
 
-					const viewKey = nanoid();
 					const viewTopButton = new ButtonBuilder()
-						.setCustomId(viewKey)
+						.setCustomId('view')
 						.setStyle(ButtonStyle.Primary)
 						.setLabel('View Top Members');
+
 					await interaction.editReply({
 						embeds: [embed],
 						components: [new ActionRowBuilder<ButtonBuilder>().addComponents(viewTopButton)],
@@ -148,19 +213,18 @@ export default class implements Command {
 							time: 50_000 * 6,
 						})
 						.catch(async () => {
-							await m.edit({
-								components: [new ActionRowBuilder<ButtonBuilder>().addComponents(viewTopButton.setDisabled(true))],
-							});
+							await m.edit({ components: [] });
 							return undefined;
 						});
 
-					if (collectedInteraction?.customId === viewKey) {
+					if (collectedInteraction?.customId === 'view') {
 						const top = guild.members!.sort((a, b) => b.fame! - a.fame!).slice(0, 10);
 
 						const embed_ = new EmbedBuilder()
 							.setAuthor({
 								name: `${guild.name ?? guildName} Top Public Characters`,
 								url: guild.realmEyeUrl,
+								iconURL: 'https://www.realmeye.com/s/a/img/eye-big.png',
 							})
 							.setDescription(
 								top
