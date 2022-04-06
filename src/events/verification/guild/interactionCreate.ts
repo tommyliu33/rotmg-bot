@@ -47,6 +47,7 @@ export default class implements Event {
 			) {
 				await interaction.deferReply({ ephemeral: true });
 				const status = await checkEligibility(interaction.member, VerificationType.Veteran);
+
 				if (typeof status === 'object') {
 					const embed = new UnsafeEmbedBuilder();
 
@@ -67,6 +68,7 @@ export default class implements Event {
 							roleId: veteranSettings.userRole,
 							type: VerificationType.Veteran,
 						});
+						await interaction.editReply('you are now veteran verified');
 					} else {
 						await interaction.editReply('veteran verification failed');
 					}
