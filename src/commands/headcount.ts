@@ -1,12 +1,12 @@
-import type { Command } from '../struct/Command';
+import type { Command } from '#struct/Command';
+import type { RaidManager } from '#struct/RaidManager';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';
 import { kRaids } from '../tokens';
-import type { RaidManager } from '../struct/RaidManager';
 
 import { guilds } from '../util/mongo';
-import { Headcount } from '../struct/Headcount';
+import { Headcount } from '#struct/Headcount';
 
 @injectable()
 export default class implements Command {

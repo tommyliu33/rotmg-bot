@@ -1,12 +1,17 @@
 import { Collection } from '@discordjs/collection';
-import type { Afkcheck } from './Afkcheck';
-import type { Headcount } from './Headcount';
-
 import { readFileSync } from 'node:fs';
 import { parse } from '@ltd/j-toml';
 
-import { logger } from '../util/logger';
-import * as constants from '../constants';
+import { logger } from '../../util/logger';
+import * as constants from '../../constants';
+
+import type { Afkcheck } from '#struct/Afkcheck';
+import type { Headcount } from '#struct/Headcount';
+
+const resolveEmoji = (emoji: string) => {
+	if (emoji in constants) return Reflect.get(constants, emoji);
+	return emoji;
+};
 
 export class RaidManager {
 	public afkchecks: Collection<string, Afkcheck>;
@@ -27,18 +32,15 @@ export class RaidManager {
 		const file_ = parse(file, 1.0, '\n');
 
 		for (const [key, dungeon] of Object.entries(file_)) {
-			if (key !== 'o3') continue;
 			const dungeon_ = dungeon as unknown as Dungeon;
 
 			const keys = dungeon_.keys.map((key) => ({
-				emoji: key.emoji in constants ? this.resolveEmojiFromConstants(key.emoji) : key.emoji,
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				emoji: resolveEmoji(key.emoji),
 				max: Number(key.max) ?? 0,
 			}));
 
 			const main = dungeon_.main.map((key) => ({
-				emoji: this.resolveEmojiFromConstants(key.emoji),
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				emoji: resolveEmoji(key.emoji),
 				max: Number(key.max) ?? 0,
 			}));
 
@@ -46,11 +48,6 @@ export class RaidManager {
 		}
 
 		logger.info('Cached dungeon data');
-	}
-
-	private resolveEmojiFromConstants(emojiName: string) {
-		if (emojiName in constants) return Reflect.get(constants, emojiName) as string;
-		return '';
 	}
 }
 

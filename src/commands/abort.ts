@@ -1,9 +1,9 @@
-import type { Command } from '../struct/Command';
+import type { Command } from '#struct/Command';
+import type { RaidManager } from '#struct/RaidManager';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-import { injectable, inject } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import { kRaids } from '../tokens';
-import type { RaidManager } from '../struct/RaidManager';
 
 @injectable()
 export default class implements Command {

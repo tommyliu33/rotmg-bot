@@ -12,7 +12,7 @@ import type { IHeadcount } from './Headcount';
 import type { Dungeon, RaidManager } from './RaidManager';
 
 import { container } from 'tsyringe';
-import { kClient, kRaids } from '../tokens';
+import { kClient, kRaids } from '../../tokens';
 
 import {
 	InteractionCollector,
@@ -26,12 +26,12 @@ import {
 import { inlineCode } from '@discordjs/builders';
 import { nanoid } from 'nanoid';
 
-import { collectMessage } from '../functions/collectMessage';
-import { getGuildSetting, Settings } from '../functions/settings/getGuildSetting';
-import { inVeteranSection } from '../util/inVeteranSection';
+import { collectMessage } from '../../functions/collectMessage';
+import { getGuildSetting, Settings } from '../../functions/settings/getGuildSetting';
+import { inVeteranSection } from '../../util/inVeteranSection';
 
 import { setTimeout } from 'node:timers';
-import { messageReact } from '../functions/messages/messageReact';
+import { messageReact } from '../../functions/messages/messageReact';
 
 import {
 	participateButton,
@@ -39,7 +39,7 @@ import {
 	revealLocationButton,
 	abortAfkButton,
 	endAfkButton,
-} from '../constants';
+} from '../../constants';
 
 function timedDelete(interaction: Interaction, deleteAfter: number) {
 	if (!interaction.isRepliable()) return;

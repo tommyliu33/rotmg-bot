@@ -5,7 +5,7 @@ import { logger } from './logger';
 
 import { container } from 'tsyringe';
 import { kCommands } from '../tokens';
-import type { Command } from '../struct/Command';
+import type { Command } from '#struct/Command';
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
 const commands = container.resolve<Map<string, Command>>(kCommands);

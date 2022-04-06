@@ -1,4 +1,4 @@
-import type { Command } from '../../struct/Command';
+import type { Command } from '#struct/Command';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
 import { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } from 'discord.js';

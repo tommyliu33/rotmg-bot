@@ -1,4 +1,4 @@
-import type { Command } from '../../struct/Command';
+import type { Command } from '#struct/Command';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 import { getGuildSetting } from '../../functions/settings/getGuildSetting';

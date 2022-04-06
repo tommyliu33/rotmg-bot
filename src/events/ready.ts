@@ -1,4 +1,4 @@
-import type { Event } from '../struct/Event';
+import type { Event } from '#struct/Event';
 import { type Client, Events } from 'discord.js';
 
 import { logger } from '../util/logger';

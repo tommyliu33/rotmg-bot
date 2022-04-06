@@ -1,13 +1,21 @@
 {
 	"compilerOptions": {
+		/* Projects */
+		"incremental": true,
+		"composite": true,
+
 		/* Language and Environment */
 		"target": "ES2020",
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
 
 		/* Modules */
-		"module": "CommonJS",
+		"module": "ESNext",
 		"moduleResolution": "node",
+		"baseUrl": ".",
+		"paths": {
+			"#struct/*": ["src/lib/struct/*"]
+		},
 
 		/* Emit */
 		"outDir": "./dist",
@@ -29,9 +37,6 @@
 		"allowUnreachableCode": false,
 
 		/* Completeness */
-		"skipLibCheck": true,
-
-		/* Projects */
-		"incremental": true
+		"skipLibCheck": true
 	}
 }

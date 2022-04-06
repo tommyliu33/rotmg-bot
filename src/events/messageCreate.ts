@@ -1,4 +1,5 @@
-import type { Event } from '../struct/Event';
+import type { Event } from '#struct/Event';
+
 import { Events, Message } from 'discord.js';
 import { MessageType } from 'discord-api-types/v10';
 
