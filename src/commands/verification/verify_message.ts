@@ -168,7 +168,7 @@ export default class implements Command {
 			return;
 		}
 
-		const verifyKey = 'main_verification';
+		const verifyKey = section === 'veteran' ? 'veteran_verification' : 'main_verification';
 		const verifyButton = new ButtonBuilder().setCustomId(verifyKey).setStyle(ButtonStyle.Primary).setLabel('Verify');
 
 		const opts: { components: any[] } = { components: [] };
