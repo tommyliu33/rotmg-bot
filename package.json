@@ -18,6 +18,7 @@
 		"@sapphire/type": "^2.1.2",
 		"@sapphire/utilities": "^3.3.0",
 		"@toommyliu/realmeye-scraper": "github:toommyliu/realmeye-scraper",
+		"common-tags": "^1.8.2",
 		"discord-api-types": "^0.29.0",
 		"discord.js": "^14.0.0-dev.1648515273-ac4bc3a",
 		"dotenv": "^10.0.0",
@@ -33,6 +34,7 @@
 	"devDependencies": {
 		"@commitlint/cli": "^15.0.0",
 		"@commitlint/config-angular": "^15.0.0",
+		"@types/common-tags": "^1.8.1",
 		"@types/node": "^16.7.10",
 		"@typescript-eslint/eslint-plugin": "^5.5.0",
 		"@typescript-eslint/parser": "^5.5.0",
