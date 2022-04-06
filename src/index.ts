@@ -13,30 +13,25 @@ import { loadEvents } from './util/events';
 
 import './util/mongo';
 
-const start = async () => {
-	const client = new Client({
-		intents: [
-			GatewayIntentBits.Guilds,
-			GatewayIntentBits.GuildMembers,
-			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.GuildVoiceStates,
-			GatewayIntentBits.GuildMessageReactions,
-			GatewayIntentBits.DirectMessages,
-			GatewayIntentBits.DirectMessageReactions,
-			GatewayIntentBits.MessageContent,
-		],
-	});
-	const manager = new RaidManager();
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.DirectMessages,
+		GatewayIntentBits.DirectMessageReactions,
+		GatewayIntentBits.MessageContent,
+	],
+});
+const manager = new RaidManager();
 
-	container.register(kClient, { useValue: client });
-	container.register(kRaids, { useValue: manager });
+container.register(kClient, { useValue: client });
+container.register(kRaids, { useValue: manager });
 
-	const commands = await loadCommands('./commands');
-	container.register(kCommands, { useValue: commands });
+const commands = await loadCommands('./commands');
+container.register(kCommands, { useValue: commands });
 
-	await loadEvents('./events');
-
-	await client.login();
-};
-
-void start();
+await loadEvents('./events');
+await client.login();
