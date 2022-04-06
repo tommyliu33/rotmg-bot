@@ -23,26 +23,32 @@ export async function paginate(interaction: Interaction, embeds: EmbedBuilder[])
 	});
 
 	const collector = m.createMessageComponentCollector({
-		filter: (i) => ['backward', 'forward'].includes(i.customId) && i.user.id === interaction.user.id,
-		time: 60000 * 5,
+		time: 60_000 * 5,
 	});
 
 	collector.on('collect', async (collectedInteraction) => {
 		if (!collectedInteraction.isButton()) return;
-
-		// TODO: fix
-		await collectedInteraction.deferUpdate();
-		if (collectedInteraction.customId === 'back') {
-			page - 1 < embeds.length ? (page = 0) : --page;
-		} else if (collectedInteraction.customId === 'forward') {
-			page + 1 > embeds.length ? (page = 0) : ++page;
+		if (collectedInteraction.user.id !== interaction.user.id) {
+			await collectedInteraction.reply({ content: "This button wasn't meant for you.", ephemeral: true });
+			return;
 		}
 
-		await collectedInteraction.editReply({
-			embeds: [embeds[page]],
-			components: [row],
-		});
-		collector.resetTimer();
+		await collectedInteraction.deferUpdate();
+
+		if (collectedInteraction.customId === 'forward') {
+			if (page > embeds.length - 1) page = 0;
+			else ++page;
+		} else if (collectedInteraction.customId === 'back') {
+			if (page < 0) page = embeds.length - 1;
+			else --page;
+		}
+
+		await collectedInteraction
+			.editReply({
+				embeds: [embeds[page]],
+				components: [row],
+			})
+			.catch(() => {});
 	});
 
 	collector.on('end', async () => {
