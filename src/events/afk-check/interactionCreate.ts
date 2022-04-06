@@ -1,6 +1,6 @@
-import type { Event } from '../../struct/Event';
+import type { Event } from '#struct/Event';
 import type { Client, GuildEmoji, Interaction } from 'discord.js';
-import type { RaidManager } from '../../struct/RaidManager';
+import type { RaidManager } from '#struct/RaidManager';
 
 import { Events, ComponentType, ButtonBuilder, ButtonStyle, ButtonComponent, ActionRowBuilder } from 'discord.js';
 
