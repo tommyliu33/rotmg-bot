@@ -169,12 +169,6 @@ export default class implements Command {
 			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton)],
 		});
 
-		await setGuildSetting(interaction.guildId, section as 'main', 'verification_requirements', {
-			...verificationRequirements,
-			verification_message_id: m.id,
-			verification_button_id: verifyKey,
-		});
-
 		await interaction.editReply(`Done. See it here:\n${m.url}`);
 	}
 }
