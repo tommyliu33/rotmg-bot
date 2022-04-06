@@ -90,9 +90,14 @@ export default class implements Command {
 						.setStyle(ButtonStyle.Primary)
 						.setLabel('View Characters');
 
+					const extraOptions: { components: any[] } = { components: [] };
+					if (player.characters?.length) {
+						extraOptions['components'] = [new ActionRowBuilder<ButtonBuilder>().addComponents(viewCharacters)];
+					}
+
 					await interaction.editReply({
 						embeds: [embed],
-						components: [new ActionRowBuilder<ButtonBuilder>().addComponents(viewCharacters)],
+						...extraOptions,
 					});
 
 					const collectedInteraction = await m
@@ -106,7 +111,7 @@ export default class implements Command {
 
 					if (collectedInteraction?.customId === 'view_characters') {
 						const embeds = [];
-						if (player?.characters) {
+						if (player?.characters?.length) {
 							for (let i = 0; i < player.characters.length; ++i) {
 								const character = player.characters[i];
 								const embed = new EmbedBuilder()
@@ -122,19 +127,19 @@ export default class implements Command {
 							
 								${inlineCode('Weapon')} ${hyperlink(
 											character.equipment?.weapon?.name ?? 'n/a',
-											character.equipment?.weapon?.realmEyeUrl ?? 'https://realmeye.com'
+											character.equipment?.weapon?.realmEyeUrl ?? ''
 										)}
 								${inlineCode('Ability')} ${hyperlink(
 											character.equipment?.ability?.name ?? 'n/a',
-											character.equipment?.ability?.realmEyeUrl ?? 'https://realmeye.com'
+											character.equipment?.ability?.realmEyeUrl ?? ''
 										)}
 								${inlineCode('Armor')} ${hyperlink(
 											character.equipment?.armor?.name ?? 'n/a',
-											character.equipment?.armor?.realmEyeUrl ?? 'https://realmeye.com'
+											character.equipment?.armor?.realmEyeUrl ?? ''
 										)}
 								${inlineCode('Ring')} ${hyperlink(
 											character.equipment?.ring?.name ?? 'n/a',
-											character.equipment?.ring?.realmEyeUrl ?? 'https://realmeye.com'
+											character.equipment?.ring?.realmEyeUrl ?? ''
 										)}
 								`
 									)
@@ -145,7 +150,7 @@ export default class implements Command {
 
 						await paginate(collectedInteraction, embeds);
 					}
-				}
+				} 
 				break;
 			case 'guild':
 				const guildName = interaction.options.getString('guild', true);
