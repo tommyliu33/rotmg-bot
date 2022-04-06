@@ -3,10 +3,10 @@ import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'disco
 
 import { injectable, inject } from 'tsyringe';
 import { kRaids } from '../tokens';
-import type { RaidManager } from '../struct/RaidManager';
+import type { RaidManager } from '#struct/RaidManager';
+import { Afkcheck } from '#struct/Afkcheck';
 
 import { guilds } from '../util/mongo';
-import { Afkcheck } from '../struct/Afkcheck';
 
 @injectable()
 export default class implements Command {
