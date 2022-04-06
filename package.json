@@ -54,6 +54,7 @@
 	},
 	"type": "module",
 	"imports": {
-		"#struct/*": "./dist/lib/struct/*.js"
+		"#struct/*": "./dist/lib/struct/*.js",
+		"#constants/*": "./dist/lib/util/constants/*.js"
 	}
 }
