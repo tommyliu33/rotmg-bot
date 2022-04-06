@@ -1,4 +1,4 @@
-import type { Command } from '../struct/Command';
+import type { Command } from '#struct/Command';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';

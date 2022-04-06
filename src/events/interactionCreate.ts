@@ -6,7 +6,7 @@ import { kCommands } from '../tokens';
 
 import { logger } from '../util/logger';
 
-import type { Command } from '../struct/Command';
+import type { Command } from '#struct/Command';
 
 @injectable()
 export default class implements Event {

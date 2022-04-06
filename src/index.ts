@@ -6,7 +6,7 @@ import { kClient, kRaids, kCommands } from './tokens';
 
 import { Client } from 'discord.js';
 import { GatewayIntentBits } from 'discord-api-types/v10';
-import { RaidManager } from './struct/RaidManager';
+import { RaidManager } from '#struct/RaidManager';
 
 import { loadCommands } from './util/commands';
 import { loadEvents } from './util/events';

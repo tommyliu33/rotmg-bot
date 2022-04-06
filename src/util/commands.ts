@@ -1,7 +1,8 @@
 import readdirp from 'readdirp';
 import { logger } from './logger';
 import { container } from 'tsyringe';
-import type { Command } from '../struct/Command';
+
+import type { Command } from '#struct/Command';
 
 export async function loadCommands(directory: string) {
 	const commands = new Map<string, Command>();
