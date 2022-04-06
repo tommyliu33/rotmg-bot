@@ -2,16 +2,20 @@ import 'reflect-metadata';
 import 'dotenv/config';
 
 import { container } from 'tsyringe';
-import { kClient, kRaids, kCommands } from './tokens';
+import { kClient, kCommands, kRaids } from './tokens';
 
-import { Client } from 'discord.js';
-import { GatewayIntentBits } from 'discord-api-types/v10';
 import { RaidManager } from '#struct/RaidManager';
+import { GatewayIntentBits } from 'discord-api-types/v10';
+import { Client, ClientEvents } from 'discord.js';
 
-import { loadCommands } from './util/commands';
-import { loadEvents } from './util/events';
+import readdirp from 'readdirp';
+
+import { logger } from './util/logger';
 
 import './util/mongo';
+
+import type { Command } from '#struct/Command';
+import type { Event } from '#struct/Event';
 
 const client = new Client({
 	intents: [
@@ -25,13 +29,29 @@ const client = new Client({
 		GatewayIntentBits.MessageContent,
 	],
 });
-const manager = new RaidManager();
+
+const commands = new Map<string, Command>();
 
 container.register(kClient, { useValue: client });
-container.register(kRaids, { useValue: manager });
+container.register(kRaids, { useValue: new RaidManager() });
 
-const commands = await loadCommands('./commands');
+for await (const dir of readdirp('./commands', { fileFilter: '*.js' })) {
+	const commandMod = (await import(dir.fullPath)) as { default: Constructor<Command> };
+	const command = container.resolve(commandMod.default);
+
+	commands.set(command.name, command);
+	logger.info(`Registered command: ${command.name}`);
+}
 container.register(kCommands, { useValue: commands });
 
-await loadEvents('./events');
+for await (const dir of readdirp('./events', { fileFilter: '*.js' })) {
+	const eventMod = (await import(dir.fullPath)) as { default: Constructor<Event> };
+	const event = container.resolve(eventMod.default);
+
+	client.on(event.event as keyof ClientEvents, async (...args: unknown[]) => event.run(...args));
+	logger.info(`Registered event: ${event.name}`);
+}
+
 await client.login();
+
+type Constructor<T> = new (...args: any[]) => T;
