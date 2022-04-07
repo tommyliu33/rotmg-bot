@@ -21,7 +21,7 @@ export interface Settings {
 	veteran: CategorySettings;
 }
 
-// TODO: implement as type, if veteran then this property exists
+// TODO: add generic support
 interface CategorySettings {
 	category_id: string;
 	afk_check_channel_id: string;
@@ -36,6 +36,7 @@ interface CategorySettings {
 		verification_message?: string;
 		verification_message_id?: string;
 		verification_button_id?: string;
+		dungeon_completions?: number[];
 	};
 	user_role: string;
 	leader_role: string;

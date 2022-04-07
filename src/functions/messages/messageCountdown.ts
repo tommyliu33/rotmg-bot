@@ -1,7 +1,7 @@
-import { setInterval } from 'node:timers';
+import { clearInterval, setInterval } from 'node:timers';
 
-import type { Message } from 'discord.js';
 import { EmbedBuilder } from '@discordjs/builders';
+import type { Message } from 'discord.js';
 
 const timeString = (ms: number) => {
 	const minutes = Math.floor(ms / 60000);

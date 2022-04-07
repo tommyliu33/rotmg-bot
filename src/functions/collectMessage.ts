@@ -1,7 +1,7 @@
+import { mergeDefault } from '@sapphire/utilities';
 import type { Message, MessageCollectorOptions, TextBasedChannel } from 'discord.js';
 
 import { MessageCollector } from 'discord.js';
-import { mergeDefault } from '@sapphire/utilities';
 
 export function collectMessage(options: MessageCollectorOptions & { channel: TextBasedChannel }): Promise<Message> {
 	return new Promise((resolve, reject) => {

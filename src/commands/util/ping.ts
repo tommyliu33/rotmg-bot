@@ -1,5 +1,5 @@
-import type { Command } from '#struct/Command';
 import type { ChatInputCommandInteraction } from 'discord.js';
+import type { Command } from '#struct/Command';
 
 export default class implements Command {
 	public name = 'ping';

@@ -14,7 +14,8 @@
 		"moduleResolution": "node",
 		"baseUrl": ".",
 		"paths": {
-			"#struct/*": ["src/lib/struct/*"]
+			"#struct/*": ["src/lib/struct/*"],
+			"#constants/*": ["src/lib/util/constants/*"]
 		},
 
 		/* Emit */

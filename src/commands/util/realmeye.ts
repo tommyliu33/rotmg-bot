@@ -1,17 +1,16 @@
-import type { Command } from '#struct/Command';
+import { inlineCode, hyperlink } from '@discordjs/builders';
+import { cutText } from '@sapphire/utilities';
+import { scrapePlayer, scrapeGuild } from '@toommyliu/realmeye-scraper';
+import { stripIndents } from 'common-tags';
+import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-import { scrapePlayer, scrapeGuild } from '@toommyliu/realmeye-scraper';
-
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, Util } from 'discord.js';
-import { inlineCode, hyperlink } from '@discordjs/builders';
-import { ButtonStyle } from 'discord-api-types/v10';
 
-import { cutText } from '@sapphire/utilities';
 import { FAME_EMOJI_ID } from '../../constants';
 import { paginate } from '../../functions/paginate';
 
-import { stripIndents } from 'common-tags';
+import type { Command } from '#struct/Command';
 
 export default class implements Command {
 	public name = 'realmeye';
@@ -69,7 +68,7 @@ export default class implements Command {
 						{
 							name: 'Experience',
 							value:
-								player.characters?.reduce((exp, char) => char?.exp ?? 0 + exp, 0).toString() ??
+								player.characters?.reduce((exp, char) => char.exp ?? 0 + exp, 0).toString() ??
 								player.exp?.toString() ??
 								'0',
 							inline: true,
@@ -92,7 +91,7 @@ export default class implements Command {
 
 					const extraOptions: { components: any[] } = { components: [] };
 					if (player.characters?.length) {
-						extraOptions['components'] = [new ActionRowBuilder<ButtonBuilder>().addComponents(viewCharacters)];
+						extraOptions.components = [new ActionRowBuilder<ButtonBuilder>().addComponents(viewCharacters)];
 					}
 
 					await interaction.editReply({
@@ -111,7 +110,7 @@ export default class implements Command {
 
 					if (collectedInteraction?.customId === 'view_characters') {
 						const embeds = [];
-						if (player?.characters?.length) {
+						if (player.characters?.length) {
 							for (let i = 0; i < player.characters.length; ++i) {
 								const character = player.characters[i];
 								const embed = new EmbedBuilder()
@@ -123,7 +122,7 @@ export default class implements Command {
 										stripIndents`
 								${inlineCode('Class')} ${character.class}
 								${inlineCode('Experience')} ${character.exp ?? 0}
-								${inlineCode('Fame')} ${character.fame ?? 0}
+								${inlineCode('Fame')} ${character.fame}
 							
 								${inlineCode('Weapon')} ${hyperlink(
 											character.equipment?.weapon?.name ?? 'n/a',
@@ -150,7 +149,7 @@ export default class implements Command {
 
 						await paginate(collectedInteraction, embeds);
 					}
-				} 
+				}
 				break;
 			case 'guild':
 				const guildName = interaction.options.getString('guild', true);

@@ -1,9 +1,9 @@
-import type { Command } from '#struct/Command';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 import { EmbedBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 import { nanoid } from 'nanoid';
+import type { Command } from '#struct/Command';
 
 export default class implements Command {
 	public name = 'warn';

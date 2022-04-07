@@ -1,5 +1,5 @@
-import type { AutocompleteInteraction, ChatInputCommandInteraction, Awaitable } from 'discord.js';
 import type { APIApplicationCommandOption } from 'discord-api-types/v10';
+import type { AutocompleteInteraction, ChatInputCommandInteraction, Awaitable } from 'discord.js';
 
 export interface Command {
 	name: string;

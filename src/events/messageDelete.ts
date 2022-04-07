@@ -1,5 +1,5 @@
-import type { Event } from '#struct/Event';
 import { Events, Message } from 'discord.js';
+import type { Event } from '#struct/Event';
 
 export const messageCache = new Set<string>();
 

@@ -8,7 +8,7 @@
 		"lint": "eslint src --ext ts .",
 		"lint:fix": "eslint src --ext ts . --fix",
 		"start": "tsup && cd dist && node -r source-map-support/register -r tsconfig-paths/register --experimental-specifier-resolution=node .",
-		"start:deploy": "tsup && cd dist && node -r source-map-support/register -r tsconfig-paths/register --experimental-specifier-resolution=node --deploy ."
+		"start:deploy": "tsup && cd dist && node -r source-map-support/register -r tsconfig-paths/register --experimental-specifier-resolution=node . --deploy"
 	},
 	"dependencies": {
 		"@discordjs/builders": "^0.13.0-dev.1647259738.2297c2b",
@@ -38,9 +38,10 @@
 		"@types/node": "^16.7.10",
 		"@typescript-eslint/eslint-plugin": "^5.5.0",
 		"@typescript-eslint/parser": "^5.5.0",
-		"eslint": "^8.3.0",
+		"eslint": "^8.12.0",
 		"eslint-config-marine": "^9.0.6",
 		"eslint-config-prettier": "^8.3.0",
+		"eslint-plugin-import": "^2.26.0",
 		"eslint-plugin-prettier": "^4.0.0",
 		"husky": "^7.0.0",
 		"lint-staged": "^12.3.7",

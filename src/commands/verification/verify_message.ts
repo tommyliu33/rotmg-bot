@@ -1,12 +1,12 @@
-import type { Command } from '#struct/Command';
+import { EmbedBuilder, inlineCode, ButtonBuilder, ActionRowBuilder } from '@discordjs/builders';
+import { toTitleCase } from '@sapphire/utilities';
+import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
+import { ComponentType } from 'discord.js';
 import { getGuildSetting } from '../../functions/settings/getGuildSetting';
 import { setGuildSetting } from '../../functions/settings/setGuildSetting';
-import { toTitleCase } from '@sapphire/utilities';
-import { ComponentType } from 'discord.js';
-import { EmbedBuilder, inlineCode, ButtonBuilder, ActionRowBuilder } from '@discordjs/builders';
-import { ButtonStyle } from 'discord-api-types/v10';
+import type { Command } from '#struct/Command';
 
 export default class implements Command {
 	public name = 'verify_message';
@@ -56,6 +56,12 @@ export default class implements Command {
 					],
 					required: true,
 				},
+				{
+					type: 5,
+					name: 'button',
+					description: 'Whether the user should click the button to start verification for that section',
+					required: false,
+				},
 			],
 		},
 	];
@@ -64,6 +70,7 @@ export default class implements Command {
 		const reply = await interaction.deferReply({ fetchReply: true });
 
 		const section = interaction.options.getString('section', true);
+		const button = interaction.options.getBoolean('button', false) ?? false;
 		const { verificationRequirements, verificationChannelId } = await getGuildSetting(
 			interaction.guildId,
 			section as 'main' | 'veteran'
@@ -161,18 +168,17 @@ export default class implements Command {
 			return;
 		}
 
-		const verifyKey = 'main_verification';
+		const verifyKey = section === 'veteran' ? 'veteran_verification' : 'main_verification';
 		const verifyButton = new ButtonBuilder().setCustomId(verifyKey).setStyle(ButtonStyle.Primary).setLabel('Verify');
+
+		const opts: { components: any[] } = { components: [] };
+		if (button) {
+			opts.components = [new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton)];
+		}
 
 		const m = await channel.send({
 			embeds: [embed.setDescription(verificationRequirements.verification_message).toJSON()],
-			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton)],
-		});
-
-		await setGuildSetting(interaction.guildId, section as 'main', 'verification_requirements', {
-			...verificationRequirements,
-			verification_message_id: m.id,
-			verification_button_id: verifyKey,
+			...opts,
 		});
 
 		await interaction.editReply(`Done. See it here:\n${m.url}`);

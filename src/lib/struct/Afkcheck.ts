@@ -1,3 +1,5 @@
+import { setTimeout } from 'node:timers';
+import { inlineCode } from '@discordjs/builders';
 import type {
 	Client,
 	Interaction,
@@ -8,12 +10,6 @@ import type {
 	ThreadChannel,
 	VoiceChannel,
 } from 'discord.js';
-import type { IHeadcount } from './Headcount';
-import type { Dungeon, RaidManager } from './RaidManager';
-
-import { container } from 'tsyringe';
-import { kClient, kRaids } from '../../tokens';
-
 import {
 	InteractionCollector,
 	EmbedBuilder,
@@ -23,15 +19,10 @@ import {
 	ButtonStyle,
 	ComponentType,
 } from 'discord.js';
-import { inlineCode } from '@discordjs/builders';
 import { nanoid } from 'nanoid';
-
-import { collectMessage } from '../../functions/collectMessage';
-import { getGuildSetting, Settings } from '../../functions/settings/getGuildSetting';
-import { inVeteranSection } from '../../util/inVeteranSection';
-
-import { setTimeout } from 'node:timers';
-import { messageReact } from '../../functions/messages/messageReact';
+import { container } from 'tsyringe';
+import type { IHeadcount } from './Headcount';
+import type { Dungeon, RaidManager } from './RaidManager';
 
 import {
 	participateButton,
@@ -40,6 +31,15 @@ import {
 	abortAfkButton,
 	endAfkButton,
 } from '../../constants';
+import { collectMessage } from '../../functions/collectMessage';
+import { messageReact } from '../../functions/messages/messageReact';
+import { getGuildSetting, Settings } from '../../functions/settings/getGuildSetting';
+import { kClient, kRaids } from '../../tokens';
+
+
+import { inVeteranSection } from '../../util/inVeteranSection';
+
+
 
 function timedDelete(interaction: Interaction, deleteAfter: number) {
 	if (!interaction.isRepliable()) return;
