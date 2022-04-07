@@ -1,12 +1,12 @@
-import type { Event } from '#struct/Event';
 import { type Client, Events } from 'discord.js';
 
+import { injectable, inject } from 'tsyringe';
+import { BASE_GUILD_DOC } from '../constants';
+import { kClient } from '../tokens';
 import { logger } from '../util/logger';
 import { guilds } from '../util/mongo';
 
-import { injectable, inject } from 'tsyringe';
-import { kClient } from '../tokens';
-import { BASE_GUILD_DOC } from '../constants';
+import type { Event } from '#struct/Event';
 
 @injectable()
 export default class implements Event {

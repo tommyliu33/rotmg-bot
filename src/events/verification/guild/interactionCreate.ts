@@ -1,13 +1,13 @@
 import { UnsafeModalBuilder, UnsafeTextInputBuilder, UnsafeEmbedBuilder } from '@discordjs/builders';
+import { stripIndent } from 'common-tags';
 import { ActionRowBuilder, Events, Interaction, TextInputStyle } from 'discord.js';
 
 // TODO: refactor settings to use tsconfig paths
 import { getGuildSetting } from '../../../functions/settings/getGuildSetting';
 
-import type { Event } from '#struct/Event';
 import { checkEligibility } from '../../../functions/verification/checkEligibility';
 import { VerificationType, verifyMember } from '../../../functions/verification/verifyMember';
-import { stripIndent } from 'common-tags';
+import type { Event } from '#struct/Event';
 
 export default class implements Event {
 	public name = 'Guild interaction verification handling';

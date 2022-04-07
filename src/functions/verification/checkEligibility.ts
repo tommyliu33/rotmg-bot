@@ -1,6 +1,6 @@
 import { scrapePlayer } from '@toommyliu/realmeye-scraper';
-import { VerificationType } from './verifyMember';
 import type { GuildMember } from 'discord.js';
+import { VerificationType } from './verifyMember';
 import { getGuildSetting } from '../settings/getGuildSetting';
 
 const dungeonNames = ['Oryx Sanctuary', 'The Void', 'Cultist Hideout', 'The Nest', 'The Shatters', 'Fungal Cavern'];

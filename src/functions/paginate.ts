@@ -48,7 +48,7 @@ export async function paginate(interaction: Interaction, embeds: EmbedBuilder[])
 				embeds: [embeds[page]],
 				components: [row],
 			})
-			.catch(() => {});
+			.catch(() => undefined);
 	});
 
 	collector.on('end', async () => {

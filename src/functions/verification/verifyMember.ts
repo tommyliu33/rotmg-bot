@@ -1,5 +1,5 @@
-import { getGuildSetting } from '../settings/getGuildSetting';
 import type { GuildMember } from 'discord.js';
+import { getGuildSetting } from '../settings/getGuildSetting';
 
 export async function verifyMember(member: GuildMember, info: VerificationInfo) {
 	const { guild } = member;

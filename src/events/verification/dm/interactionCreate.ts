@@ -1,4 +1,3 @@
-import { cancelButton, doneButton } from '#constants/buttons';
 import { codeBlock, hyperlink, UnsafeEmbedBuilder } from '@discordjs/builders';
 import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 import { stripIndents } from 'common-tags';
@@ -6,6 +5,7 @@ import { ActionRowBuilder, ComponentType, Events, Interaction } from 'discord.js
 import { nanoid } from 'nanoid';
 import { getGuildSetting } from '../../../functions/settings/getGuildSetting';
 import { VerificationType, verifyMember } from '../../../functions/verification/verifyMember';
+import { cancelButton, doneButton } from '#constants/buttons';
 
 import type { Event } from '#struct/Event';
 
@@ -18,7 +18,6 @@ export default class implements Event {
 	public async run(interaction: Interaction<'cached'>) {
 		if (!interaction.isModalSubmit()) return;
 		const mainSettings = await getGuildSetting(interaction.guildId, 'main');
-		const veteranSettings = await getGuildSetting(interaction.guildId, 'veteran');
 
 		if (interaction.channelId === mainSettings.verificationChannelId) {
 			await interaction.reply({ content: 'Please check your DMs to continue.', ephemeral: true });
@@ -77,7 +76,7 @@ export default class implements Event {
 				});
 
 				if (!player) return;
-				if (!player?.description!.includes(code)) {
+				if (!player.description!.includes(code)) {
 					await collectedInteraction.editReply('The code was not found in your profile description.');
 					return;
 				}

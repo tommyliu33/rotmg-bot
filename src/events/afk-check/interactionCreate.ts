@@ -1,11 +1,11 @@
-import type { Event } from '#struct/Event';
 import type { Client, GuildEmoji, Interaction } from 'discord.js';
-import type { RaidManager } from '#struct/RaidManager';
 
 import { Events, ComponentType, ButtonBuilder, ButtonStyle, ButtonComponent, ActionRowBuilder } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';
 import { kClient, kRaids } from '../../tokens';
+import type { Event } from '#struct/Event';
+import type { RaidManager } from '#struct/RaidManager';
 
 @injectable()
 export default class implements Event {

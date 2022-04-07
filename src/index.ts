@@ -1,14 +1,13 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 
-import { container } from 'tsyringe';
-import { kClient, kCommands, kRaids } from './tokens';
 
-import { RaidManager } from '#struct/RaidManager';
 import { GatewayIntentBits } from 'discord-api-types/v10';
 import { Client, ClientEvents } from 'discord.js';
 
 import readdirp from 'readdirp';
+import { container } from 'tsyringe';
+import { kClient, kCommands, kRaids } from './tokens';
 
 import { logger } from './util/logger';
 
@@ -16,6 +15,7 @@ import './util/mongo';
 
 import type { Command } from '#struct/Command';
 import type { Event } from '#struct/Event';
+import { RaidManager } from '#struct/RaidManager';
 
 const client = new Client({
 	intents: [

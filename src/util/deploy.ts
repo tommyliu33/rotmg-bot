@@ -1,9 +1,9 @@
 import { REST } from '@discordjs/rest';
 import { Routes, APIApplicationCommand } from 'discord-api-types/v10';
 
+import { container } from 'tsyringe';
 import { logger } from './logger';
 
-import { container } from 'tsyringe';
 import { kCommands } from '../tokens';
 import type { Command } from '#struct/Command';
 

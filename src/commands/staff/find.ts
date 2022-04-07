@@ -1,9 +1,9 @@
-import type { Command } from '#struct/Command';
+import { memberNicknameMention, inlineCode, time } from '@discordjs/builders';
+import { chunk } from '@sapphire/utilities';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
 import { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } from 'discord.js';
-import { memberNicknameMention, inlineCode, time } from '@discordjs/builders';
-import { chunk } from '@sapphire/utilities';
+import type { Command } from '#struct/Command';
 
 const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
 

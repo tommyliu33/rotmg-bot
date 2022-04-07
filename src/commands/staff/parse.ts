@@ -1,15 +1,15 @@
-import type { Command } from '#struct/Command';
+import { codeBlock, hyperlink } from '@discordjs/builders';
+import { Stopwatch } from '@sapphire/stopwatch';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
-import { codeBlock, hyperlink } from '@discordjs/builders';
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ComponentType } from 'discord.js';
 
-import { parse } from '../../functions/parse/parse';
-import { Stopwatch } from '@sapphire/stopwatch';
-
-import { haste } from '../../util/haste';
 import { nanoid } from 'nanoid';
 import { paginate } from '../../functions/paginate';
+import { parse } from '../../functions/parse/parse';
+
+import { haste } from '../../util/haste';
+import type { Command } from '#struct/Command';
 
 const clean = (str: string) => str.replace(/[^A-Za-z]/g, '').toLowerCase();
 

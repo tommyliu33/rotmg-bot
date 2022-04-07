@@ -1,6 +1,6 @@
-import { guilds } from '../../util/mongo';
 import dotProp from 'dot-prop';
 import type { Settings } from './getGuildSetting';
+import { guilds } from '../../util/mongo';
 
 const { set } = dotProp;
 

@@ -1,15 +1,15 @@
-import { Collection } from '@discordjs/collection';
 import { readFileSync } from 'node:fs';
+import { Collection } from '@discordjs/collection';
 import { parse } from '@ltd/j-toml';
 
-import { logger } from '../../util/logger';
 import * as constants from '../../constants';
+import { logger } from '../../util/logger';
 
 import type { Afkcheck } from '#struct/Afkcheck';
 import type { Headcount } from '#struct/Headcount';
 
 const resolveEmoji = (emoji: string) => {
-	if (emoji in constants) return Reflect.get(constants, emoji);
+	if (emoji in constants) return Reflect.get(constants, emoji) as string;
 	return emoji;
 };
 
@@ -36,11 +36,13 @@ export class RaidManager {
 
 			const keys = dungeon_.keys.map((key) => ({
 				emoji: resolveEmoji(key.emoji),
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				max: Number(key.max) ?? 0,
 			}));
 
 			const main = dungeon_.main.map((key) => ({
 				emoji: resolveEmoji(key.emoji),
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				max: Number(key.max) ?? 0,
 			}));
 
