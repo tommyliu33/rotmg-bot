@@ -7,8 +7,8 @@
 		"prepare": "husky install",
 		"lint": "eslint src --ext ts .",
 		"lint:fix": "eslint src --ext ts . --fix",
-		"start": "tsup && cd dist && node -r source-map-support/register -r tsconfig-paths/register --experimental-specifier-resolution=node .",
-		"start:deploy": "tsup && cd dist && node -r source-map-support/register -r tsconfig-paths/register --experimental-specifier-resolution=node . --deploy"
+		"start": "tsup && cd dist && node -r source-map-support/register --experimental-specifier-resolution=node .",
+		"start:deploy": "tsup && cd dist && node -r source-map-support/register --experimental-specifier-resolution=node . --deploy"
 	},
 	"dependencies": {
 		"@discordjs/builders": "^0.13.0-dev.1649160523-402514f",
