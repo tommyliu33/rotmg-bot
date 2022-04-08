@@ -1,24 +1,13 @@
-import { inlineCode } from '@discordjs/builders';
 import type { Client, Guild, GuildMember, Message, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
-import {
-	InteractionCollector,
-	EmbedBuilder,
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	ComponentType,
-} from 'discord.js';
-import { nanoid } from 'nanoid';
+import { ActionRowBuilder, ButtonBuilder, ComponentType, EmbedBuilder, InteractionCollector } from 'discord.js';
 import { container } from 'tsyringe';
 import type { Dungeon, RaidManager } from './RaidManager';
-
 import { messageReact } from '../../functions/messages/messageReact';
 import { getGuildSetting } from '../../functions/settings/getGuildSetting';
 import { kClient, kRaids } from '../../tokens';
-
-import { participateButton, abortButton, endButton } from '#constants/buttons';
-import { isVeteranSection, generateActionRows, random, generateButtonsFromEmojis } from '#util/util';
+import { abortButton, endButton, participateButton } from '#constants/buttons';
 import { HEADCOUNT } from '#util/messages';
+import { generateActionRows, generateButtonsFromEmojis, isVeteranSection, random } from '#util/util';
 
 export class Headcount implements IHeadcount {
 	public client = container.resolve<Client<true>>(kClient);
