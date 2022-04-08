@@ -130,8 +130,6 @@ export class Headcount implements IHeadcount {
 		this.manager.headcounts.set(`${this.guildId}-${this.memberId}`, this);
 
 		await this.createControlPanelThread();
-
-		console.log(this);
 	}
 
 	public async end() {
@@ -168,7 +166,7 @@ export class Headcount implements IHeadcount {
 
 	private async createControlPanelThread() {
 		const controlPanel = await this.guild.channels.fetch(this.channelIds['control-panel']!);
-		if (!controlPanel?.isText()) return;
+		if (!controlPanel?.isText()) return console.log('not text', controlPanel);
 
 		this.channels['control-panel'] = controlPanel;
 		this.channelIds['control-panel'] = controlPanel.id;
@@ -201,12 +199,16 @@ export class Headcount implements IHeadcount {
 			}
 
 			await interaction.deferReply();
-			if (interaction.customId === 'abort') {
-				await this.abort();
-				await interaction.editReply('Aborted headcount.');
-			} else if (interaction.customId === 'end') {
-				await this.end();
-				await interaction.editReply('Ended headcount.');
+
+			switch (interaction.customId) {
+				case 'abort':
+					await this.abort();
+					await interaction.editReply('✅ Aborted your headcount.');
+					break;
+				case 'end':
+					await this.end();
+					await interaction.editReply('✅ Ended your headcount.');
+					break;
 			}
 		});
 	}
