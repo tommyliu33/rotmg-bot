@@ -19,6 +19,25 @@ export class Headcount implements IHeadcount {
 	public textChannel!: TextChannel;
 	public voiceChannel!: VoiceChannel;
 
+	public declare channels: {
+		'afk-check'?: TextChannel;
+		'voice-channel'?: VoiceChannel;
+		'control-panel'?: TextChannel;
+		'control-panel-thread'?: ThreadChannel;
+	};
+
+	public declare channelIds: {
+		'text-channel'?: string;
+		'voice-channel'?: string;
+		'control-panel'?: string;
+		'control-panel-thread'?: string;
+	};
+
+	public declare messageIds: {
+		'afk-check': string;
+		'control-panel-thread': string;
+	};
+
 	public controlPanelChannel!: TextChannel;
 	public controlPanelChannelId!: string;
 	public controlPanelThreadChannel!: ThreadChannel;
@@ -33,6 +52,20 @@ export class Headcount implements IHeadcount {
 	public constructor(data: Omit<IHeadcount, 'messageId'>) {
 		this.guild = this.client.guilds.cache.get(data.guildId)!;
 
+		this.channels = {};
+
+		this.messageIds = {
+			'afk-check': '',
+			'control-panel-thread': '',
+		};
+
+		this.channelIds = {
+			'text-channel': data.textChannelId,
+			'voice-channel': data.voiceChannelId,
+			'control-panel': '',
+			'control-panel-thread': '',
+		};
+
 		this.dungeon = data.dungeon;
 
 		this.guildId = data.guildId;
@@ -45,11 +78,13 @@ export class Headcount implements IHeadcount {
 		const key = (await isVeteranSection(this.guildId, this.textChannelId)) ? 'veteran' : 'main';
 
 		const { controlPanelChannelId } = await getGuildSetting(this.guildId, key);
+		this.channelIds['control-panel'] = controlPanelChannelId;
 		this.controlPanelChannelId = controlPanelChannelId;
 
 		this.member = this.guild.members.cache.get(this.memberId)!;
-		this.textChannel = (await this.guild.channels.fetch(this.textChannelId)) as TextChannel;
-		this.voiceChannel = (await this.guild.channels.fetch(this.voiceChannelId)) as VoiceChannel;
+
+		this.channels['afk-check'] = (await this.guild.channels.fetch(this.channelIds['text-channel']!)) as TextChannel;
+		this.channels['voice-channel'] = (await this.guild.channels.fetch(this.voiceChannelId)) as VoiceChannel;
 
 		const embed = new EmbedBuilder()
 			.setColor(this.dungeon.color)
@@ -68,13 +103,13 @@ export class Headcount implements IHeadcount {
 				Otherwise, react to class/item choices that you are bringing`
 			);
 
-		const components = generateActionRows([participateButton, ...generateButtonsFromEmojis(this.dungeon.keys)]);
+		const components = generateActionRows(participateButton, ...generateButtonsFromEmojis(this.dungeon.keys));
 
-		const m = await this.textChannel.send({
+		const m = await this.channels['afk-check'].send({
 			content: HEADCOUNT(
 				this.dungeon.name,
 				this.client.emojis.cache.get(this.dungeon.portal)?.toString() ?? '',
-				this.voiceChannel.name
+				this.channels['voice-channel'].name
 			),
 			allowedMentions: {
 				parse: ['everyone'],
@@ -82,6 +117,7 @@ export class Headcount implements IHeadcount {
 			embeds: [embed],
 			components,
 		});
+		this.messageIds['afk-check'] = m.id;
 
 		this.message = m;
 		this.messageId = m.id;
@@ -94,6 +130,8 @@ export class Headcount implements IHeadcount {
 		this.manager.headcounts.set(`${this.guildId}-${this.memberId}`, this);
 
 		await this.createControlPanelThread();
+
+		console.log(this);
 	}
 
 	public async end() {
@@ -108,11 +146,9 @@ export class Headcount implements IHeadcount {
 		});
 		await this.message.reactions.removeAll().catch(() => undefined);
 
-		const messages = await this.controlPanelThreadChannel.messages.fetchPinned().catch(() => undefined);
-		const embedMessage = messages?.find((msg) => msg.embeds.length > 0 && msg.author.id === this.client.user.id);
-		if (!embedMessage) return;
+		const msg = this.channels['control-panel-thread']!.messages.cache.get(this.messageIds['control-panel-thread']);
+		await msg?.edit({ components: [] });
 
-		await embedMessage.edit({ components: [] });
 		this.manager.headcounts.delete(`${this.guildId}-${this.memberId}`);
 	}
 
@@ -127,16 +163,23 @@ export class Headcount implements IHeadcount {
 			embeds: [embed.toJSON()],
 		});
 		await this.message.reactions.removeAll().catch(() => undefined);
-		await this.controlPanelThreadChannel.setArchived(true);
+		await this.channels['control-panel-thread']!.setArchived(true);
 	}
 
 	private async createControlPanelThread() {
-		const controlPanel = await this.guild.channels.fetch(this.controlPanelChannelId).catch(() => undefined);
-		if (!controlPanel?.isText()) return;
+		const controlPanel = await this.guild.channels.fetch(this.channelIds['control-panel']!).catch((e) => {
+			console.log(e);
+			return undefined;
+		});
+		if (!controlPanel?.isText()) return console.log('not text', controlPanel);
 
-		this.controlPanelThreadChannel = await controlPanel.threads.create({
+		this.channels['control-panel'] = controlPanel;
+		this.channelIds['control-panel'] = controlPanel.id;
+
+		this.channels['control-panel-thread'] = await this.channels['control-panel'].threads.create({
 			name: `${this.member.displayName}'s ${this.dungeon.name} Headcount`,
 		});
+		this.channelIds['control-panel-thread'] = this.channels['control-panel-thread'].id;
 
 		const embed = new EmbedBuilder()
 			.setAuthor({
@@ -145,12 +188,11 @@ export class Headcount implements IHeadcount {
 			})
 			.setDescription('🛑 - Abort headcount\n❌ - End headcount');
 
-		const m = await this.controlPanelThreadChannel.send({
+		const m = await this.channels['control-panel-thread']!.send({
 			embeds: [embed.toJSON()],
-			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(abortButton, endButton)],
+			components: generateActionRows(abortButton, endButton),
 		});
-
-		await m.pin().catch(() => undefined);
+		this.messageIds['control-panel-thread'] = m.id;
 
 		const collector = new InteractionCollector(this.client, {
 			channel: this.controlPanelThreadChannel,
