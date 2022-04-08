@@ -40,7 +40,7 @@ export function generateButtonsFromEmojis(emojis: EmojiReaction[]): ButtonBuilde
 }
 
 // Copyright © 2020 The Sapphire Community and its contributors
-export function generateActionRows<Component extends MessageActionRowComponentBuilder>(components: Component[]) {
+export function generateActionRows<Component extends MessageActionRowComponentBuilder>(...components: Component[]) {
 	const chunks = chunk(components, 5);
 	const rows = chunks.map((chunk) => new ActionRowBuilder<Component>().addComponents(...chunk));
 
