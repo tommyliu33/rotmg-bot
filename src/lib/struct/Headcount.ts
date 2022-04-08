@@ -12,14 +12,13 @@ import { nanoid } from 'nanoid';
 import { container } from 'tsyringe';
 import type { Dungeon, RaidManager } from './RaidManager';
 
-import { participateButton, abortAfkButton, endAfkButton } from '../../constants';
 import { messageReact } from '../../functions/messages/messageReact';
-import { getGuildSetting, Settings } from '../../functions/settings/getGuildSetting';
+import { getGuildSetting } from '../../functions/settings/getGuildSetting';
 import { kClient, kRaids } from '../../tokens';
 
-
-import { inVeteranSection } from '../../util/inVeteranSection';
-
+import { participateButton, abortButton, endButton } from '#constants/buttons';
+import { isVeteranSection, generateActionRows, random, generateButtonsFromEmojis } from '#util/util';
+import { HEADCOUNT } from '#util/messages';
 
 export class Headcount implements IHeadcount {
 	public client = container.resolve<Client<true>>(kClient);
@@ -54,13 +53,10 @@ export class Headcount implements IHeadcount {
 	}
 
 	public async start() {
-		let key: keyof Settings = 'main';
-		if (await inVeteranSection(this.guildId, this.textChannelId)) {
-			key = 'veteran';
-		}
+		const key = (await isVeteranSection(this.guildId, this.textChannelId)) ? 'veteran' : 'main';
 
-		const settings = await getGuildSetting(this.guildId, key);
-		this.controlPanelChannelId = settings.controlPanelChannelId;
+		const { controlPanelChannelId } = await getGuildSetting(this.guildId, key);
+		this.controlPanelChannelId = controlPanelChannelId;
 
 		this.member = this.guild.members.cache.get(this.memberId)!;
 		this.textChannel = (await this.guild.channels.fetch(this.textChannelId)) as TextChannel;
@@ -68,7 +64,7 @@ export class Headcount implements IHeadcount {
 
 		const embed = new EmbedBuilder()
 			.setColor(this.dungeon.color)
-			.setThumbnail(this.dungeon.images[Math.floor(Math.random() * this.dungeon.images.length)])
+			.setThumbnail(random(this.dungeon.images))
 			.setAuthor({
 				name: `Headcount started by ${this.member.displayName}`,
 				iconURL: this.member.displayAvatarURL({ forceStatic: false }),
@@ -83,30 +79,21 @@ export class Headcount implements IHeadcount {
 				Otherwise, react to class/item choices that you are bringing`
 			);
 
-		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(participateButton);
-
-		for (const key of this.dungeon.keys) {
-			const button = new ButtonBuilder().setCustomId(nanoid()).setStyle(ButtonStyle.Secondary);
-			if (this.client.emojis.cache.has(key.emoji)) {
-				const emoji = this.client.emojis.cache.get(key.emoji);
-				button.setEmoji({
-					id: emoji?.id,
-					name: emoji!.name!,
-				});
-			}
-			row.addComponents(button);
-		}
+		const components = generateActionRows([participateButton, ...generateButtonsFromEmojis(this.dungeon.keys)]);
 
 		const m = await this.textChannel.send({
-			content: `@here ${inlineCode(this.dungeon.name)} ${
-				this.client.emojis.cache.get(this.dungeon.portal)?.toString() ?? ''
-			} Headcount for ${this.voiceChannel.name}`,
+			content: HEADCOUNT(
+				this.dungeon.name,
+				this.client.emojis.cache.get(this.dungeon.portal)?.toString() ?? '',
+				this.voiceChannel.name
+			),
 			allowedMentions: {
 				parse: ['everyone'],
 			},
 			embeds: [embed],
-			components: [row],
+			components,
 		});
+
 		this.message = m;
 		this.messageId = m.id;
 
@@ -171,7 +158,7 @@ export class Headcount implements IHeadcount {
 
 		const m = await this.controlPanelThreadChannel.send({
 			embeds: [embed.toJSON()],
-			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(abortAfkButton, endAfkButton)],
+			components: [new ActionRowBuilder<ButtonBuilder>().addComponents(abortButton, endButton)],
 		});
 
 		await m.pin().catch(() => undefined);
