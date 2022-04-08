@@ -191,21 +191,22 @@ export class Headcount implements IHeadcount {
 		});
 		this.messageIds['control-panel-thread'] = m.id;
 
-		const collector = new InteractionCollector(this.client, {
-			channel: this.controlPanelThreadChannel,
-			componentType: ComponentType.Button,
-			filter: (i) => i.user.id === this.memberId,
-		});
-		collector.on('collect', async (collectedInteraction) => {
-			if (!collectedInteraction.isButton()) return;
+		const collector = new InteractionCollector(this.client);
+		collector.on('collect', async (interaction) => {
+			if (!interaction.isButton() || interaction.channelId !== this.channelIds['control-panel-thread']!) return;
 
-			await collectedInteraction.deferReply();
-			if (collectedInteraction.customId === 'abort') {
+			if (interaction.user.id !== this.memberId) {
+				await interaction.reply({ content: "This wasn't meant for you.", ephemeral: true });
+				return;
+			}
+
+			await interaction.deferReply();
+			if (interaction.customId === 'abort') {
 				await this.abort();
-				await collectedInteraction.editReply('Aborted headcount.');
-			} else if (collectedInteraction.customId === 'end') {
+				await interaction.editReply('Aborted headcount.');
+			} else if (interaction.customId === 'end') {
 				await this.end();
-				await collectedInteraction.editReply('Ended headcount.');
+				await interaction.editReply('Ended headcount.');
 			}
 		});
 	}
