@@ -167,10 +167,7 @@ export class Headcount implements IHeadcount {
 	}
 
 	private async createControlPanelThread() {
-		const controlPanel = await this.guild.channels.fetch(this.channelIds['control-panel']!).catch((e) => {
-			console.log(e);
-			return undefined;
-		});
+		const controlPanel = await this.guild.channels.fetch(this.channelIds['control-panel']!);
 		if (!controlPanel?.isText()) return console.log('not text', controlPanel);
 
 		this.channels['control-panel'] = controlPanel;
