@@ -10,12 +10,13 @@ import type { EmojiReaction } from '#struct/RaidManager';
 
 export async function isVeteranSection(guildId: string, what: string) {
 	const settings = await getGuildSetting(guildId, 'veteran');
+
 	if (settings.afkCheckChannelId === what) return true;
 	if (settings.controlPanelChannelId === what) return true;
 	if (settings.voiceChannelIds.includes(what)) return true;
 	if (settings.verificationChannelId === what) return true;
 
-	return true;
+	return false;
 }
 
 // #endregion
