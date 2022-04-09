@@ -44,4 +44,8 @@ export const endButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCu
 // #region Verification
 export const doneButton = new ButtonBuilder().setCustomId(DONE_ID).setLabel('Done').setStyle(ButtonStyle.Primary);
 export const cancelButton = new ButtonBuilder().setCustomId(CANCEL_ID).setLabel('Cancel').setStyle(ButtonStyle.Danger);
+
+export const headCountButtons = [abortButton, endButton];
+export const afkCheckButtons = [changeLocationButton, revealLocationButton, abortButton, endButton];
+
 // #endregion

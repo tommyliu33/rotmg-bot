@@ -1,151 +1,172 @@
+import { hyperlink } from '@discordjs/builders';
+import { stripIndents } from 'common-tags';
 import type { Client, Guild, GuildMember, Message, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
-import { ActionRowBuilder, ButtonBuilder, ComponentType, EmbedBuilder, InteractionCollector } from 'discord.js';
+import { EmbedBuilder, InteractionCollector } from 'discord.js';
 import { container } from 'tsyringe';
 import type { Dungeon, RaidManager } from './RaidManager';
 import { messageReact } from '../../functions/messages/messageReact';
 import { getGuildSetting } from '../../functions/settings/getGuildSetting';
 import { kClient, kRaids } from '../../tokens';
-import { abortButton, endButton, participateButton } from '#constants/buttons';
-import { HEADCOUNT } from '#util/messages';
+import { afkCheckButtons, headCountButtons, participateButton } from '#constants/buttons';
+import { RAID_MESSAGE } from '#util/messages';
 import { generateActionRows, generateButtonsFromEmojis, isVeteranSection, random } from '#util/util';
 
-export class Headcount implements IHeadcount {
-	public client = container.resolve<Client<true>>(kClient);
-	public manager = container.resolve<RaidManager>(kRaids);
+const mappedButtonEmojis = {
+	'📝': '📝 Change location',
+	'🗺️': '🗺️ Reveal location',
+	'🛑': '🛑 Abort',
+	'❌': '❌ End',
+};
 
-	public guild!: Guild;
-	public member!: GuildMember;
-	public message!: Message;
-	public textChannel!: TextChannel;
-	public voiceChannel!: VoiceChannel;
+const listButtonsFromType = (type: 'Raid' | 'Headcount') => {
+	if (type === 'Raid') {
+		return afkCheckButtons.map((button) => Reflect.get(mappedButtonEmojis, button.data.emoji!.name!) as string);
+	}
 
-	public declare channels: {
-		'afk-check'?: TextChannel;
-		'voice-channel'?: VoiceChannel;
-		'control-panel'?: TextChannel;
-		'control-panel-thread'?: ThreadChannel;
-	};
+	return headCountButtons.map((button) => Reflect.get(mappedButtonEmojis, button.data.emoji!.name!) as string);
+};
 
-	public declare channelIds: {
-		'text-channel'?: string;
-		'voice-channel'?: string;
-		'control-panel'?: string;
-		'control-panel-thread'?: string;
-	};
+export class Headcount implements RaidBase {
+	private readonly client = container.resolve<Client<true>>(kClient);
+	private readonly manager = container.resolve<RaidManager>(kRaids);
 
-	public declare messageIds: {
-		'afk-check': string;
-		'control-panel-thread': string;
-	};
+	private readonly guild!: Guild;
+	private readonly member!: GuildMember;
+	private readonly mainMessage!: Message;
+	private readonly textChannel!: TextChannel;
+	private readonly voiceChannel!: VoiceChannel;
+	private readonly controlPanel!: TextChannel;
+	private readonly controlPanelThread!: ThreadChannel;
 
-	public controlPanelChannel!: TextChannel;
-	public controlPanelChannelId!: string;
-	public controlPanelThreadChannel!: ThreadChannel;
+	public textChannelId: string;
+	public voiceChannelId: string;
+	public controlPanelId!: string;
+	public controlPanelThreadId!: string;
+
+	public mainMessageId!: string;
+	public controlPanelThreadMessageId!: string;
 
 	public guildId: string;
 	public memberId: string;
 	public messageId!: string;
-	public textChannelId: string;
-	public voiceChannelId: string;
 	public dungeon: Dungeon;
 
-	public constructor(data: Omit<IHeadcount, 'messageId'>) {
-		this.guild = this.client.guilds.cache.get(data.guildId)!;
+	public type: 'Headcount' | 'Raid';
 
-		this.channels = {};
+	public constructor(raid: Omit<RaidBase, 'messageId'>) {
+		const { guildId, dungeon, memberId, textChannelId, voiceChannelId } = raid;
 
-		this.messageIds = {
-			'afk-check': '',
-			'control-panel-thread': '',
-		};
+		Object.defineProperty(this, 'guild', { value: this.client.guilds.cache.get(guildId) });
 
-		this.channelIds = {
-			'text-channel': data.textChannelId,
-			'voice-channel': data.voiceChannelId,
-			'control-panel': '',
-			'control-panel-thread': '',
-		};
+		this.dungeon = dungeon;
+		this.guildId = guildId;
+		this.memberId = memberId;
+		this.textChannelId = textChannelId;
+		this.voiceChannelId = voiceChannelId;
 
-		this.dungeon = data.dungeon;
-
-		this.guildId = data.guildId;
-		this.memberId = data.memberId;
-		this.textChannelId = data.textChannelId;
-		this.voiceChannelId = data.voiceChannelId;
+		this.type = 'location' in this ? 'Raid' : 'Headcount';
 	}
 
-	public async start() {
+	public async begin() {
 		const key = (await isVeteranSection(this.guildId, this.textChannelId)) ? 'veteran' : 'main';
-
 		const { controlPanelChannelId } = await getGuildSetting(this.guildId, key);
-		this.channelIds['control-panel'] = controlPanelChannelId;
-		this.controlPanelChannelId = controlPanelChannelId;
 
-		this.member = this.guild.members.cache.get(this.memberId)!;
+		this.controlPanelId = controlPanelChannelId;
 
-		this.channels['afk-check'] = (await this.guild.channels.fetch(this.channelIds['text-channel']!)) as TextChannel;
-		this.channels['voice-channel'] = (await this.guild.channels.fetch(this.voiceChannelId)) as VoiceChannel;
+		const member = await this.guild.members.fetch(this.memberId);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (member) Object.defineProperty(this, 'member', { value: member });
 
+		const textChannel = await this.guild.channels.fetch(this.textChannelId);
+		if (textChannel?.isText()) Object.defineProperty(this, 'textChannel', { value: textChannel });
+
+		const voiceChannel = await this.guild.channels.fetch(this.voiceChannelId);
+		if (voiceChannel?.isVoice()) Object.defineProperty(this, 'voiceChannel', { value: voiceChannel });
+
+		const controlPanel = await this.guild.channels.fetch(this.controlPanelId);
+		if (controlPanel?.isText()) {
+			Object.defineProperty(this, 'controlPanel', { value: controlPanel });
+
+			await controlPanel.threads
+				.create({
+					name: `${this.member.displayName}'s ${this.dungeon.name} ${this.type}`,
+				})
+				.then(async (channel) => {
+					this.controlPanelThreadId = channel.id;
+					Object.defineProperty(this, 'controlPanelThread', { value: channel });
+
+					await this.notify();
+					await this.setupControlPanel().then(() => {
+						const thing = this.type === 'Raid' ? 'afkchecks' : 'headcounts';
+						// TODO: find better way to update raid cache
+						// @ts-expect-error
+						this.manager[thing].set(`${this.guildId}-${this.memberId}`, this);
+					});
+				});
+		}
+	}
+
+	public async notify() {
+		const { dungeon } = this;
 		const embed = new EmbedBuilder()
-			.setColor(this.dungeon.color)
-			.setThumbnail(random(this.dungeon.images))
+			.setColor(dungeon.color)
+			.setThumbnail(random(dungeon.images))
 			.setAuthor({
-				name: `Headcount started by ${this.member.displayName}`,
-				iconURL: this.member.displayAvatarURL({ forceStatic: false }),
+				name: `${dungeon.name} started by ${this.member.displayName}`,
+				iconURL: this.member.displayAvatarURL(),
 			})
 			.setDescription(
 				`If you want to participate in this raid, click 🤚
 				
-				If you have a key (${this.dungeon.keys
+				If you have a key (${dungeon.keys
 					.map((key) => this.client.emojis.cache.get(key.emoji)?.toString() ?? '')
-					.join('')}) and are willing to pop, react to the corresponding button
+					.join('')}) and are willing to pop, click to the corresponding button
 				
-				Otherwise, react to class/item choices that you are bringing`
-			);
+				Otherwise, react to the class/item choices that you are bringing`
+			)
+			.setTimestamp();
 
 		const components = generateActionRows(participateButton, ...generateButtonsFromEmojis(this.dungeon.keys));
 
-		const m = await this.channels['afk-check'].send({
-			content: HEADCOUNT(
-				this.dungeon.name,
-				this.client.emojis.cache.get(this.dungeon.portal)?.toString() ?? '',
-				this.channels['voice-channel'].name
-			),
-			allowedMentions: {
-				parse: ['everyone'],
-			},
-			embeds: [embed],
-			components,
-		});
-		this.messageIds['afk-check'] = m.id;
+		await this.textChannel
+			.send({
+				content: RAID_MESSAGE(
+					dungeon.name,
+					this.client.emojis.cache.get(dungeon.portal)?.toString() ?? '',
+					this.voiceChannel.name,
+					this.type === 'Raid'
+				),
+				allowedMentions: { parse: ['everyone'] },
+				embeds: [embed.toJSON()],
+				components: components,
+			})
+			.then(async (m) => {
+				await messageReact(
+					m,
+					dungeon.main.map((emoji) => emoji.emoji)
+				);
 
-		this.message = m;
-		this.messageId = m.id;
-
-		await messageReact(
-			m,
-			this.dungeon.main.map((emoji) => emoji.emoji)
-		);
-
-		this.manager.headcounts.set(`${this.guildId}-${this.memberId}`, this);
-
-		await this.createControlPanelThread();
+				Object.defineProperty(this, 'mainMessage', { value: m });
+				this.mainMessageId = m.id;
+			});
 	}
 
 	public async end() {
 		const embed = new EmbedBuilder()
 			.setDescription(`This ${this.dungeon.name} headcount was ended by the raid leader.`)
-			.setColor(0xfee75c);
+			.setColor('Yellow');
 
-		await this.message.edit({
-			content: ' ',
-			components: [],
-			embeds: [embed.toJSON()],
-		});
-		await this.message.reactions.removeAll().catch(() => undefined);
+		try {
+			await this.mainMessage.edit({
+				content: ' ',
+				components: [],
+				embeds: [embed.toJSON()],
+			});
+			await this.mainMessage.reactions.removeAll();
 
-		const msg = this.channels['control-panel-thread']!.messages.cache.get(this.messageIds['control-panel-thread']);
-		await msg?.edit({ components: [] });
+			const msg = this.controlPanelThread.messages.cache.get(this.controlPanelThreadMessageId);
+			await msg?.edit({ components: [] });
+		} catch {}
 
 		this.manager.headcounts.delete(`${this.guildId}-${this.memberId}`);
 	}
@@ -153,45 +174,53 @@ export class Headcount implements IHeadcount {
 	public async abort() {
 		const embed = new EmbedBuilder()
 			.setDescription(`This ${this.dungeon.name} headcount was aborted by the raid leader.`)
-			.setColor(0xed4245);
+			.setColor('DarkRed');
 
-		await this.message.edit({
+		await this.mainMessage.edit({
 			content: ' ',
 			components: [],
 			embeds: [embed.toJSON()],
 		});
-		await this.message.reactions.removeAll().catch(() => undefined);
-		await this.channels['control-panel-thread']!.setArchived(true);
+
+		await this.mainMessage.reactions.removeAll().catch(() => undefined);
+		await this.controlPanelThread.setArchived(true);
 	}
 
-	private async createControlPanelThread() {
-		const controlPanel = await this.guild.channels.fetch(this.channelIds['control-panel']!);
-		if (!controlPanel?.isText()) return console.log('not text', controlPanel);
-
-		this.channels['control-panel'] = controlPanel;
-		this.channelIds['control-panel'] = controlPanel.id;
-
-		this.channels['control-panel-thread'] = await this.channels['control-panel'].threads.create({
-			name: `${this.member.displayName}'s ${this.dungeon.name} Headcount`,
-		});
-		this.channelIds['control-panel-thread'] = this.channels['control-panel-thread'].id;
-
+	private async setupControlPanel() {
 		const embed = new EmbedBuilder()
-			.setAuthor({
-				name: this.member.displayName,
-				iconURL: this.member.displayAvatarURL(),
-			})
-			.setDescription('🛑 - Abort headcount\n❌ - End headcount');
+			.setAuthor({ name: this.member.displayName, iconURL: this.member.displayAvatarURL() })
+			.setDescription(
+				stripIndents`
+			
+				This is your control panel to manage your raid found ${hyperlink('here', this.mainMessage.url)}
+				
+				For any available action, click the corresponding button below
+				
+				${listButtonsFromType(this.type).join('\n')}
+		`
+			)
+			.setTimestamp()
+			.setColor(this.dungeon.color);
 
-		const m = await this.channels['control-panel-thread']!.send({
-			embeds: [embed.toJSON()],
-			components: generateActionRows(abortButton, endButton),
-		});
-		this.messageIds['control-panel-thread'] = m.id;
+		const buttons = this.type === 'Headcount' ? headCountButtons : afkCheckButtons;
+		await this.controlPanelThread
+			.send({
+				embeds: [embed.toJSON()],
+				components: generateActionRows(...buttons),
+			})
+			.then((msg) => {
+				Object.defineProperty(this, 'controlPanelThreadMessage', { value: msg });
+				this.controlPanelThreadMessageId = msg.id;
+			});
 
 		const collector = new InteractionCollector(this.client);
 		collector.on('collect', async (interaction) => {
-			if (!interaction.isButton() || interaction.channelId !== this.channelIds['control-panel-thread']!) return;
+			if (
+				!interaction.isButton() ||
+				interaction.channelId !== this.controlPanelThread.id ||
+				interaction.message.id !== this.controlPanelThreadMessageId
+			)
+				return;
 
 			if (interaction.user.id !== this.memberId) {
 				await interaction.reply({ content: "This wasn't meant for you.", ephemeral: true });
@@ -210,6 +239,8 @@ export class Headcount implements IHeadcount {
 					await interaction.editReply('✅ Ended your headcount.');
 					break;
 			}
+
+			await collector.stop();
 		});
 	}
 }
@@ -225,3 +256,5 @@ export interface IHeadcount {
 
 	dungeon: Dungeon;
 }
+
+export interface RaidBase extends IHeadcount {}
