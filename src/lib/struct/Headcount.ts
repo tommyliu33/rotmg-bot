@@ -1,13 +1,23 @@
-import { hyperlink } from '@discordjs/builders';
+import { hyperlink, inlineCode } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 import type { Client, Guild, GuildMember, Message, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
 import { EmbedBuilder, InteractionCollector } from 'discord.js';
 import { container } from 'tsyringe';
+import { Afkcheck } from './Afkcheck';
 import type { Dungeon, RaidManager } from './RaidManager';
 import { messageReact } from '../../functions/messages/messageReact';
 import { getGuildSetting } from '../../functions/settings/getGuildSetting';
 import { kClient, kRaids } from '../../tokens';
-import { afkCheckButtons, headCountButtons, participateButton } from '#constants/buttons';
+import {
+	ABORT_ID,
+	afkCheckButtons,
+	CHANGE_LOCATION_ID,
+	END_ID,
+	headCountButtons,
+	participateButton,
+	REVEAL_LOCATION_ID,
+} from '#constants/buttons';
+import { collectMessage } from '#functions/collectMessage';
 import { RAID_MESSAGE } from '#util/messages';
 import { generateActionRows, generateButtonsFromEmojis, isVeteranSection, random } from '#util/util';
 
@@ -153,7 +163,7 @@ export class Headcount implements RaidBase {
 
 	public async end() {
 		const embed = new EmbedBuilder()
-			.setDescription(`This ${this.dungeon.name} headcount was ended by the raid leader.`)
+			.setDescription(`This ${this.dungeon.name} ${this.type} was ended by the raid leader.`)
 			.setColor('Yellow');
 
 		try {
@@ -173,7 +183,7 @@ export class Headcount implements RaidBase {
 
 	public async abort() {
 		const embed = new EmbedBuilder()
-			.setDescription(`This ${this.dungeon.name} headcount was aborted by the raid leader.`)
+			.setDescription(`This ${this.dungeon.name} ${this.type} was aborted by the raid leader.`)
 			.setColor('DarkRed');
 
 		await this.mainMessage.edit({
@@ -230,18 +240,67 @@ export class Headcount implements RaidBase {
 			await interaction.deferReply();
 
 			switch (interaction.customId) {
-				case 'abort':
+				case ABORT_ID:
 					await this.abort();
 					await interaction.editReply('✅ Aborted your headcount.');
 					break;
-				case 'end':
+				case END_ID:
 					await this.end();
 					await interaction.editReply('✅ Ended your headcount.');
 					break;
-			}
+				case CHANGE_LOCATION_ID:
+					await interaction.editReply('Enter a new location for this raid.');
 
-			await collector.stop();
+					const msg = await collectMessage({
+						filter: (m) => m.author.id === this.memberId,
+						channel: this.controlPanelThread,
+					}).catch(async () => {
+						await interaction.editReply('You failed to enter a new location.');
+						return undefined;
+					});
+
+					if (msg?.content && this.isAfkCheck()) {
+						this.location = msg.content;
+
+						await interaction.editReply('✅Updated location.');
+
+						// update control panel embed
+						const msg_ = this.controlPanelThread.messages.cache.get(this.controlPanelThreadMessageId)!;
+						const embed = msg_.embeds[0];
+						const embed_ = new EmbedBuilder(embed.data).setFields({ name: 'Location', value: this.location });
+
+						await msg_.edit({ embeds: [embed_.toJSON()] });
+						await msg.delete().catch(() => undefined);
+					}
+					break;
+				case REVEAL_LOCATION_ID:
+					if (this.isAfkCheck()) {
+						if (!this.location) {
+							await interaction.editReply('Set a location before revealing.');
+							return;
+						}
+
+						if (this.locationRevealed) {
+							await interaction.editReply('Location has already been revealed.');
+							return;
+						}
+
+						const embed = this.mainMessage.embeds[0];
+						const embed_ = new EmbedBuilder(embed.data).setDescription(
+							`${embed.description!}\n\n🗺️ The location for this raid is: ${inlineCode(this.location)}`
+						);
+						await this.mainMessage.edit({ embeds: [embed_.toJSON()] });
+
+						this.locationRevealed = true;
+						await interaction.editReply('Revealed location.');
+					}
+					break;
+			}
 		});
+	}
+
+	public isAfkCheck(): this is Afkcheck {
+		return this.type === 'Raid';
 	}
 }
 

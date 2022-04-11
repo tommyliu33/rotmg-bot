@@ -60,7 +60,7 @@ export default class implements Command {
 		});
 
 		await interaction.deleteReply();
-		await afkcheck.start();
+		await afkcheck.begin();
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
