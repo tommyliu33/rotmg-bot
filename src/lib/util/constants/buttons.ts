@@ -1,13 +1,13 @@
 import { ButtonBuilder } from '@discordjs/builders';
 import { ButtonStyle } from 'discord.js';
 
-const PARTICIPATE_ID = 'participate' as const;
-const CHANGE_LOCATION_ID = 'change_location' as const;
-const REVEAL_LOCATION_ID = 'reveal_location' as const;
-const ABORT_ID = 'abort' as const;
-const END_ID = 'end' as const;
-const DONE_ID = 'done' as const;
-const CANCEL_ID = 'cancel' as const;
+export const PARTICIPATE_ID = 'participate' as const;
+export const CHANGE_LOCATION_ID = 'change_location' as const;
+export const REVEAL_LOCATION_ID = 'reveal_location' as const;
+export const ABORT_ID = 'abort' as const;
+export const END_ID = 'end' as const;
+export const DONE_ID = 'done' as const;
+export const CANCEL_ID = 'cancel' as const;
 
 // #region Afk / control panel
 export const participateButton = new ButtonBuilder()
