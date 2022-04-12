@@ -1,7 +1,16 @@
 import { hyperlink, inlineCode } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
-import type { Client, Guild, GuildMember, Message, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
-import { EmbedBuilder, InteractionCollector } from 'discord.js';
+import {
+	Client,
+	EmbedBuilder,
+	Guild,
+	GuildMember,
+	InteractionCollector,
+	Message,
+	TextChannel,
+	ThreadChannel,
+	VoiceChannel,
+} from 'discord.js';
 import { container } from 'tsyringe';
 import { Afkcheck } from './Afkcheck';
 import type { Headcount } from './Headcount';
