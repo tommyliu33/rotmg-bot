@@ -65,7 +65,7 @@ export interface Dungeon {
 	images: string[];
 }
 
-interface EmojiReaction {
+export interface EmojiReaction {
 	emoji: string;
 	max: number;
 }

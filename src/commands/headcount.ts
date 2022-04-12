@@ -59,7 +59,8 @@ export default class implements Command {
 			voiceChannelId,
 		});
 
-		await headcount.start();
+		await headcount.begin();
+
 		await interaction.deleteReply();
 	}
 
