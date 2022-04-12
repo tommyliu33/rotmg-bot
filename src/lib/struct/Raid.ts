@@ -5,7 +5,6 @@ import {
 	EmbedBuilder,
 	Guild,
 	GuildMember,
-	InteractionCollector,
 	Message,
 	TextChannel,
 	ThreadChannel,
@@ -232,7 +231,7 @@ export class Raid implements RaidBase {
 			.setColor(this.dungeon.color);
 
 		const buttons = this.isAfkCheck() ? afkCheckButtons : headCountButtons;
-		await this.controlPanelThread
+		const m = await this.controlPanelThread
 			.send({
 				embeds: [embed.toJSON()],
 				components: generateActionRows(...buttons),
@@ -240,9 +239,11 @@ export class Raid implements RaidBase {
 			.then((msg) => {
 				Object.defineProperty(this, 'controlPanelThreadMessage', { value: msg });
 				this.controlPanelThreadMessageId = msg.id;
+
+				return msg;
 			});
 
-		const collector = new InteractionCollector(this.client);
+		const collector = m.createMessageComponentCollector();
 		collector.on('collect', async (interaction) => {
 			if (
 				!interaction.isButton() ||
