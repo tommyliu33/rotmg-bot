@@ -6,6 +6,7 @@ export const CHANGE_LOCATION_ID = 'change_location' as const;
 export const REVEAL_LOCATION_ID = 'reveal_location' as const;
 export const ABORT_ID = 'abort' as const;
 export const END_ID = 'end' as const;
+export const FINISH_ID = 'finish' as const;
 export const DONE_ID = 'done' as const;
 export const CANCEL_ID = 'cancel' as const;
 
@@ -39,6 +40,10 @@ export const endButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCu
 	name: '❌',
 });
 
+export const finishButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId(FINISH_ID).setEmoji({
+	name: '✅',
+});
+
 // #endregion
 
 // #region Verification
@@ -46,6 +51,6 @@ export const doneButton = new ButtonBuilder().setCustomId(DONE_ID).setLabel('Don
 export const cancelButton = new ButtonBuilder().setCustomId(CANCEL_ID).setLabel('Cancel').setStyle(ButtonStyle.Danger);
 
 export const headCountButtons = [abortButton, endButton];
-export const afkCheckButtons = [changeLocationButton, revealLocationButton, abortButton, endButton];
+export const afkCheckButtons = [changeLocationButton, revealLocationButton, abortButton, endButton, finishButton];
 
 // #endregion

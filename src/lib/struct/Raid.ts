@@ -12,6 +12,7 @@ import {
 	afkCheckButtons,
 	CHANGE_LOCATION_ID,
 	END_ID,
+	FINISH_ID,
 	headCountButtons,
 	participateButton,
 	REVEAL_LOCATION_ID,
@@ -32,6 +33,7 @@ const mappedButtonEmojis = {
 	'🗺️': '🗺️ Reveal location',
 	'🛑': '🛑 Abort',
 	'❌': '❌ End',
+	'✅': '✅ Finish (mark this raid as done)',
 };
 
 const listButtonsFromType = (type: RaidType) => {
@@ -302,6 +304,13 @@ export class Raid implements RaidBase {
 						this.locationRevealed = true;
 						await interaction.editReply('Revealed location.');
 					}
+					break;
+				case FINISH_ID:
+					if (this.isAfkCheck()) {
+						this.delete();
+						await interaction.editReply('Done.');
+					}
+
 					break;
 			}
 		});
