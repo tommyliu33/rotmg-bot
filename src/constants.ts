@@ -1,27 +1,4 @@
-import { ButtonBuilder, ButtonStyle } from 'discord.js';
 import { ObjectId } from 'mongodb';
-
-// #region Buttons
-export const participateButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('participate').setEmoji({
-	name: '🤚',
-});
-
-export const changeLocationButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('change').setEmoji({
-	name: '📝',
-});
-
-export const revealLocationButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('reveal').setEmoji({
-	name: '🗺️',
-});
-
-export const abortAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('abort').setEmoji({
-	name: '🛑',
-});
-
-export const endAfkButton = new ButtonBuilder().setStyle(ButtonStyle.Primary).setCustomId('end').setEmoji({
-	name: '❌',
-});
-// #endregion
 
 // #region Database
 
