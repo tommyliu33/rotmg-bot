@@ -6,7 +6,7 @@ export class Afkcheck extends Raid {
 	public locationRevealed: boolean;
 	public reactions: Collection<string, ReactionStateUsers>;
 
-	public constructor(data: Omit<RaidBase, 'messageId'>) {
+	public constructor(data: Omit<RaidBase, 'mainMessageId'>) {
 		super(data);
 
 		this.isAfkCheck = () => true;

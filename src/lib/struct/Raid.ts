@@ -77,7 +77,7 @@ export class Raid implements RaidBase {
 	public dungeon: Dungeon;
 	public type: RaidType;
 
-	public constructor(raid: Omit<RaidBase, 'messageId'>) {
+	public constructor(raid: Omit<RaidBase, 'mainMessageId'>) {
 		const { guildId, dungeon, memberId, textChannelId, voiceChannelId } = raid;
 
 		Object.defineProperty(this, 'guild', { value: this.client.guilds.cache.get(guildId) });
