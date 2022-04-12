@@ -3,7 +3,7 @@ import { stripIndents } from 'common-tags';
 import type { Client, Guild, GuildMember, Message, TextChannel, ThreadChannel, VoiceChannel } from 'discord.js';
 import { EmbedBuilder, InteractionCollector } from 'discord.js';
 import { container } from 'tsyringe';
-import { Afkcheck } from './Afkcheck';
+import type { Afkcheck } from './Afkcheck';
 import type { Dungeon, RaidManager } from './RaidManager';
 import { messageReact } from '../../functions/messages/messageReact';
 import { getGuildSetting } from '../../functions/settings/getGuildSetting';
