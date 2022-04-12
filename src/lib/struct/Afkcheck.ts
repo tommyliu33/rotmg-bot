@@ -1,7 +1,7 @@
 import { Collection } from 'discord.js';
-import { Headcount, type RaidBase } from './Headcount';
+import { Raid, type RaidBase } from './Raid';
 
-export class Afkcheck extends Headcount {
+export class Afkcheck extends Raid {
 	public declare location: string;
 	public locationRevealed: boolean;
 	public reactions: Collection<string, ReactionStateUsers>;
@@ -9,7 +9,7 @@ export class Afkcheck extends Headcount {
 	public constructor(data: Omit<RaidBase, 'messageId'>) {
 		super(data);
 
-		this.type = 'Raid';
+		this.isAfkCheck = () => true;
 
 		this.location = '';
 		this.locationRevealed = false;
