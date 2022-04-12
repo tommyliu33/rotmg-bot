@@ -6,14 +6,15 @@ import { Client, ClientEvents } from 'discord.js';
 
 import readdirp from 'readdirp';
 import { container } from 'tsyringe';
-import { kClient, kCommands, kRaids } from './tokens';
+import { kClient, kCommands, kDatabase, kRaids } from './tokens';
 
 import { logger } from './util/logger';
 
-import './util/mongo';
+// import './util/mongo';
 
 import type { Command } from '#struct/Command';
 import type { Event } from '#struct/Event';
+import { Database } from '#struct/Database';
 import { RaidManager } from '#struct/RaidManager';
 
 const client = new Client({
@@ -34,6 +35,11 @@ const manager = new RaidManager();
 
 container.register(kClient, { useValue: client });
 container.register(kRaids, { useValue: manager });
+
+const db = container.resolve<Database>(Database);
+await db.start();
+
+container.register<Database>(kDatabase, { useValue: db });
 
 for await (const dir of readdirp('./commands', { fileFilter: '*.js' })) {
 	const commandMod = (await import(dir.fullPath)) as { default: Constructor<Command> };
