@@ -11,7 +11,8 @@ async function isImage(url: string): Promise<boolean> {
 	const res = await req.send();
 	const contentType = res.headers['content-type'] as string;
 
-	return contentType.split('/')[0] === 'image';
+	const [mediaType, ext] = contentType.split('/');
+	return mediaType === 'image' && ['png', 'jpeg'].includes(ext);
 }
 
 export async function parse(url: string): Promise<OCRApiResponse> {
