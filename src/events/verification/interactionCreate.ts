@@ -1,22 +1,19 @@
 import {
+	codeBlock,
+	hyperlink,
+	UnsafeEmbedBuilder,
 	UnsafeModalBuilder,
 	UnsafeTextInputBuilder,
-	UnsafeEmbedBuilder,
-	hyperlink,
-	codeBlock,
 } from '@discordjs/builders';
+import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 import { stripIndents } from 'common-tags';
-import { ActionRowBuilder, ComponentType, Events, GuildMember, Interaction, TextInputStyle, User } from 'discord.js';
-
-// TODO: refactor settings to use tsconfig paths
+import { ActionRowBuilder, ComponentType, Events, GuildMember, Interaction, TextInputStyle } from 'discord.js';
+import { nanoid } from 'nanoid';
 import { getGuildSetting } from '#functions/settings/getGuildSetting';
-
 import { checkEligibility } from '#functions/verification/checkEligibility';
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
 import type { Event } from '#struct/Event';
-import { doneButton, cancelButton } from '#util/constants/buttons';
-import { scrapePlayer } from '@toommyliu/realmeye-scraper';
-import { nanoid } from 'nanoid';
+import { cancelButton, doneButton } from '#util/constants/buttons';
 import { generateActionRows } from '#util/util';
 
 const profileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
