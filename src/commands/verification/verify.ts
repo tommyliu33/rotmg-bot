@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import type { Command } from '#struct/Command';
 
-
 export default class implements Command {
 	public name = 'verify';
 	public description = 'verify yourself';

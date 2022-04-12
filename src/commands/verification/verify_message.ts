@@ -1,8 +1,7 @@
-import { EmbedBuilder, inlineCode, ButtonBuilder, ActionRowBuilder } from '@discordjs/builders';
+import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, inlineCode } from '@discordjs/builders';
 import { toTitleCase } from '@sapphire/utilities';
 import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
-
 import { ComponentType } from 'discord.js';
 import { getGuildSetting } from '../../functions/settings/getGuildSetting';
 import { setGuildSetting } from '../../functions/settings/setGuildSetting';
