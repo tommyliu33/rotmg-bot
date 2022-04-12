@@ -11,12 +11,10 @@ export default class implements Command {
 		const modal = new ModalBuilder()
 			.setTitle(`${interaction.guild.name} Verification`)
 			.setCustomId('verification_modal');
-
 		const nameForm = new TextInputBuilder()
 			.setCustomId('name')
 			.setLabel('What is your ingame name?')
 			.setStyle(TextInputStyle.Short);
-
 		await interaction.showModal(modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(nameForm)));
 	}
 }
