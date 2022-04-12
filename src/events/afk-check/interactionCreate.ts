@@ -21,7 +21,7 @@ export default class implements Event {
 		if (!interaction.isButton()) return;
 
 		const raidKey = this.manager.afkchecks.findKey(
-			(raid) => raid.textChannelId === interaction.channelId && raid.messageId === interaction.message.id
+			(raid) => raid.textChannelId === interaction.channelId && raid.mainMessageId === interaction.message.id
 		);
 		if (!raidKey) return;
 
