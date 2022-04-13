@@ -33,7 +33,7 @@ export default class implements Event {
 		const row = rows.find((row) => row.components.find((button) => button instanceof ButtonComponent));
 
 		let index = -1;
-		let reactedEmoji: GuildEmoji;
+		let reactedEmoji: GuildEmoji | undefined;
 
 		for (let i = 0; i < row!.components.length; ++i) {
 			const component = row!.components[i];
@@ -47,11 +47,10 @@ export default class implements Event {
 			}
 		}
 
-		// @ts-expect-error
-		if (!reactedEmoji) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		if (!reactedEmoji) return;
 
 		const { dungeon, reactions } = raid;
-		const emojiRule = dungeon.keys.find((key) => key.emoji === reactedEmoji.id);
+		const emojiRule = dungeon.keys.find((key) => key.emoji === reactedEmoji?.id);
 		if (!emojiRule) return;
 
 		if (!reactions.has(emojiRule.emoji)) {
