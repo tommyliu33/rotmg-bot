@@ -13,17 +13,15 @@ import { generateActionRows } from '#util/util';
 
 const clean = (str: string) => str.replace(/[^A-Za-z]/g, '').toLowerCase();
 
-function getNames(array: string[]) {
+function getNames(arr: string[]) {
 	const names: string[] = [];
 
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
-	for (let i = 0; i < array.length; ++i) {
-		if (array[i].includes('|')) {
-			const split = array[i].split('|');
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	for (const name of arr) {
+		if (name.includes('|')) {
+			const split = name.split('|');
 			names.push(...getNames(split).map((name) => clean(name)));
 		} else {
-			names.push(clean(array[i]));
+			names.push(clean(name));
 		}
 	}
 
