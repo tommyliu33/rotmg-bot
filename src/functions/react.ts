@@ -1,7 +1,7 @@
 import { setTimeout } from 'node:timers';
 import type { Message } from 'discord.js';
 
-export async function react(message: Message, emoji: string | string[]) {
+export async function react(message: Message, emoji: string | string[]): Promise<void> {
 	if (typeof emoji === 'string') {
 		await message.react(emoji).catch(() => undefined);
 		return;
