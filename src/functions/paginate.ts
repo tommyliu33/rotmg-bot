@@ -1,5 +1,7 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import type { Interaction, EmbedBuilder } from 'discord.js';
+import type { EmbedBuilder, Interaction } from 'discord.js';
+
+import { ButtonBuilder, ButtonStyle } from 'discord.js';
+import { generateActionRows } from '#util/util';
 
 const forwardButton = new ButtonBuilder().setCustomId('forward').setStyle(ButtonStyle.Success).setEmoji({
 	name: '▶️',
@@ -14,12 +16,11 @@ export async function paginate(interaction: Interaction, embeds: EmbedBuilder[])
 
 	let page = 0;
 
-	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(backButton, forwardButton);
 	if (!interaction.deferred) await interaction.deferReply();
 
 	const m = await interaction.editReply({
 		embeds: [embeds[page]],
-		components: [row],
+		components: generateActionRows(backButton, forwardButton),
 	});
 
 	const collector = m.createMessageComponentCollector({
@@ -36,17 +37,14 @@ export async function paginate(interaction: Interaction, embeds: EmbedBuilder[])
 		await collectedInteraction.deferUpdate();
 
 		if (collectedInteraction.customId === 'forward') {
-			if (page > embeds.length - 1) page = 0;
-			else ++page;
+			page > embeds.length - 1 ? (page = 0) : ++page;
 		} else if (collectedInteraction.customId === 'back') {
-			if (page < 0) page = embeds.length - 1;
-			else --page;
+			page < 0 ? (page = embeds.length - 1) : --page;
 		}
 
 		await collectedInteraction
 			.editReply({
 				embeds: [embeds[page]],
-				components: [row],
 			})
 			.catch(() => undefined);
 	});
