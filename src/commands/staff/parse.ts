@@ -5,8 +5,8 @@ import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ComponentType } from 'discord.js';
 
 import { nanoid } from 'nanoid';
-import { paginate } from '../../functions/paginate';
-import { parse } from '../../functions/parse/parse';
+import { paginate } from '#functions/paginate';
+import { parse } from '#functions/parse/parse';
 
 import type { Command } from '#struct/Command';
 import { generateActionRows } from '#util/util';
