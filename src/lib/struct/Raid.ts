@@ -26,7 +26,6 @@ import {
 	participateButton,
 	REVEAL_LOCATION_ID,
 } from '#constants/buttons';
-import { collectMessage } from '#functions/collectMessage';
 import { react } from '#functions/react';
 import { RAID_MESSAGE } from '#util/messages';
 import { generateActionRows, generateButtonsFromEmojis, isVeteranSection, random } from '#util/util';
@@ -272,13 +271,15 @@ export class Raid implements RaidBase {
 				case CHANGE_LOCATION_ID:
 					await interaction.editReply('Enter a new location for this raid.');
 
-					const msg = await collectMessage({
-						filter: (m) => m.author.id === this.memberId,
-						channel: this.controlPanelThread,
-					}).catch(async () => {
-						await interaction.editReply('You failed to enter a new location.');
-						return undefined;
-					});
+					const msg = await m.channel
+						.awaitMessages({
+							filter: (m) => m.author.id === this.memberId,
+						})
+						.then((coll) => coll.first())
+						.catch(async () => {
+							await interaction.editReply('You failed to enter a new location.');
+							return undefined;
+						});
 
 					if (msg?.content && this.isAfkCheck()) {
 						this.location = msg.content;
