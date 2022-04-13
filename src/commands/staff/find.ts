@@ -1,19 +1,11 @@
 import { memberNicknameMention, inlineCode, time } from '@discordjs/builders';
-import { chunk } from '@sapphire/utilities';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
-import { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } from 'discord.js';
+import { EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import type { Command } from '#struct/Command';
+import { generateActionRows } from '#util/util';
 
 const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
-
-// Copyright © 2020 The Sapphire Community and its contributors
-function chunkButtons(buttons: ButtonBuilder[]) {
-	const chunks = chunk(buttons, 5);
-	const rows = chunks.map((chunk) => new ActionRowBuilder<ButtonBuilder>().addComponents(...chunk));
-
-	return rows;
-}
 
 function generateMemberInformation(member: GuildMember) {
 	const embed = new EmbedBuilder().setThumbnail(member.displayAvatarURL()).setDescription(`
@@ -41,11 +33,19 @@ export default class implements Command {
 			description: 'Name to lookup',
 			required: true,
 		},
+		{
+			type: 5,
+			name: 'hide',
+			description: 'Hide command output',
+			required: false,
+		},
 	];
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
-		const m = await interaction.deferReply({ fetchReply: true });
 		const name = interaction.options.getString('name', true);
+		const hide = Boolean(interaction.options.getString('hide', false) ?? false);
+
+		const m = await interaction.deferReply({ ephemeral: hide, fetchReply: true });
 
 		const members = await interaction.guild.members.fetch().catch(async () => {
 			await interaction.editReply('Failed to fetch server members.');
@@ -94,8 +94,7 @@ export default class implements Command {
 			embed.data.description += `\n${inlineCode((i + 1).toString())}. ${member.toString()} - ${member.id}`;
 		}
 
-		const buttons_ = chunkButtons(buttons);
-		await interaction.editReply({ embeds: [embed.toJSON()], components: buttons_ });
+		await interaction.editReply({ embeds: [embed.toJSON()], components: generateActionRows(...buttons) });
 
 		const collectedInteraction = await m
 			.awaitMessageComponent({
@@ -109,8 +108,8 @@ export default class implements Command {
 			});
 
 		if (collectedInteraction?.customId) {
-			const emojiIndex = Number(collectedInteraction.customId);
-			const member = members_.at(emojiIndex)!;
+			const index = Number(collectedInteraction.customId);
+			const member = members_.at(index)!;
 
 			const embed = generateMemberInformation(member);
 			await collectedInteraction.update({ embeds: [embed.toJSON()], components: [] });
