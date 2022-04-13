@@ -9,25 +9,30 @@ import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ComponentType, Events, GuildMember, Interaction, TextInputStyle } from 'discord.js';
 import { nanoid } from 'nanoid';
-import { getGuildSetting } from '#functions/settings/getGuildSetting';
+
+import { injectable, inject } from 'tsyringe';
+import { kDatabase } from '../../tokens';
 import { checkEligibility } from '#functions/verification/checkEligibility';
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
+import { Database } from '#struct/Database';
 import type { Event } from '#struct/Event';
 import { cancelButton, doneButton } from '#util/constants/buttons';
 import { generateActionRows } from '#util/util';
-
 const profileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
 
+@injectable()
 export default class implements Event {
 	public name = 'Guild interaction verification handling';
 	public event = Events.InteractionCreate;
+
+	public constructor(@inject(kDatabase) public readonly db: Database) {}
 
 	public async run(interaction: Interaction) {
 		if (!interaction.inCachedGuild()) return;
 
 		if (interaction.isButton()) {
-			const mainSettings = await getGuildSetting(interaction.guildId, 'main');
-			const veteranSettings = await getGuildSetting(interaction.guildId, 'veteran');
+			const mainSettings = await this.db.getSection(interaction.guildId, 'main');
+			const veteranSettings = await this.db.getSection(interaction.guildId, 'veteran');
 
 			if (
 				interaction.customId === 'main_verification' &&
@@ -101,7 +106,7 @@ export default class implements Event {
 	}
 
 	private async link(member: GuildMember, name: string) {
-		const { userRole } = await getGuildSetting(member.guild.id, 'main');
+		const { userRole } = await this.db.getSection(member.guild.id, 'main');
 		const channel = member.user.dmChannel!;
 
 		const code = nanoid(12);

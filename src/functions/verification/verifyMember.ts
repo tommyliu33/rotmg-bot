@@ -1,10 +1,14 @@
 import type { GuildMember } from 'discord.js';
-import { getGuildSetting } from '../settings/getGuildSetting';
+import { container } from 'tsyringe';
+import { kDatabase } from '../../tokens';
+import type { Database } from '#struct/Database';
 
 export async function verifyMember(member: GuildMember, info: VerificationInfo) {
 	const { guild } = member;
 
-	const { userRole } = await getGuildSetting(guild.id, info.type);
+	const db = container.resolve<Database>(kDatabase);
+
+	const { userRole } = await db.getSection(guild.id, info.type);
 
 	try {
 		await member.roles.add(userRole);

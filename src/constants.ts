@@ -1,31 +1,3 @@
-import { ObjectId } from 'mongodb';
-
-// #region Database
-
-export const BASE_GUILD_DOC = (guildId: string) => ({
-	_id: new ObjectId(),
-	guild_id: guildId,
-	main: {
-		category_id: '',
-		afk_check_channel_id: '',
-		verification_channel_id: '',
-		control_panel_channel_id: '',
-		voice_channel_ids: [],
-		user_role: '',
-		leader_role: '',
-	},
-	veteran: {
-		category_id: '',
-		afk_check_channel_id: '',
-		verification_channel_id: '',
-		control_panel_channel_id: '',
-		voice_channel_ids: [],
-		user_role: '',
-		leader_role: '',
-	},
-});
-// #endregion
-
 // #region Emojis
 
 export const WARRIOR_EMOJI_ID = '930900284413194240' as const;

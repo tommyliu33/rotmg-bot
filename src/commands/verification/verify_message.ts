@@ -3,10 +3,12 @@ import { toTitleCase } from '@sapphire/utilities';
 import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { ComponentType } from 'discord.js';
-import { getGuildSetting } from '../../functions/settings/getGuildSetting';
-import { setGuildSetting } from '../../functions/settings/setGuildSetting';
+import { injectable, inject } from 'tsyringe';
+import { kDatabase } from '../../tokens';
 import type { Command } from '#struct/Command';
+import { Database } from '#struct/Database';
 
+@injectable()
 export default class implements Command {
 	public name = 'verify_message';
 	public description = "Sends the section's verification requirements";
@@ -65,15 +67,15 @@ export default class implements Command {
 		},
 	];
 
+	public constructor(@inject(kDatabase) public readonly db: Database) {}
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const reply = await interaction.deferReply({ fetchReply: true });
 
-		const section = interaction.options.getString('section', true);
+		const section = interaction.options.getString('section', true) as 'main' | 'veteran';
 		const button = interaction.options.getBoolean('button', false) ?? false;
-		const { verificationRequirements, verificationChannelId } = await getGuildSetting(
-			interaction.guildId,
-			section as 'main' | 'veteran'
-		);
+
+		const { verificationRequirements, verificationChannelId } = await this.db.getSection(interaction.guildId, section);
 
 		const embed = new EmbedBuilder().setTitle(
 			`${inlineCode(interaction.guild.name)} ${toTitleCase(section)} Section Verification`
@@ -137,10 +139,7 @@ export default class implements Command {
 				});
 
 			if (collectedInteraction?.customId === yesKey) {
-				await setGuildSetting(interaction.guildId, section as 'main', 'verification_requirements', {
-					...verificationRequirements,
-					verification_message: content,
-				});
+				await this.db.updateSection(interaction.guildId, section as 'main', 'verification_requirements', content);
 
 				await collectedInteraction.editReply({
 					content: `Updated the ${inlineCode(toTitleCase(section))} verification message.`,
@@ -162,7 +161,7 @@ export default class implements Command {
 		});
 
 		if (!channel?.isText()) return;
-		if (!verificationRequirements?.verification_message) {
+		if (!verificationRequirements.verificationMessage) {
 			await interaction.editReply('There is no set verification message to display.');
 			return;
 		}
@@ -176,7 +175,7 @@ export default class implements Command {
 		}
 
 		const m = await channel.send({
-			embeds: [embed.setDescription(verificationRequirements.verification_message).toJSON()],
+			embeds: [embed.setDescription(verificationRequirements.verificationMessage).toJSON()],
 			...opts,
 		});
 

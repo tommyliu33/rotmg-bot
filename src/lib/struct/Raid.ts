@@ -12,9 +12,10 @@ import {
 } from 'discord.js';
 import { container } from 'tsyringe';
 import { Afkcheck } from './Afkcheck';
+import type { Database } from './Database';
 import type { Headcount } from './Headcount';
 import type { Dungeon, RaidManager } from './RaidManager';
-import { kClient, kRaids } from '../../tokens';
+import { kClient, kDatabase, kRaids } from '../../tokens';
 import {
 	ABORT_ID,
 	afkCheckButtons,
@@ -27,7 +28,6 @@ import {
 } from '#constants/buttons';
 import { collectMessage } from '#functions/collectMessage';
 import { react } from '#functions/react';
-import { getGuildSetting } from '#functions/settings/getGuildSetting';
 import { RAID_MESSAGE } from '#util/messages';
 import { generateActionRows, generateButtonsFromEmojis, isVeteranSection, random } from '#util/util';
 
@@ -55,6 +55,7 @@ const listButtonsFromType = (type: RaidType) => {
 export class Raid implements RaidBase {
 	private readonly client = container.resolve<Client<true>>(kClient);
 	private readonly manager = container.resolve<RaidManager>(kRaids);
+	private readonly db = container.resolve<Database>(kDatabase);
 
 	private readonly guild!: Guild;
 	private readonly member!: GuildMember;
@@ -93,7 +94,7 @@ export class Raid implements RaidBase {
 
 	public async begin() {
 		const key = (await isVeteranSection(this.guildId, this.textChannelId)) ? 'veteran' : 'main';
-		const { controlPanelChannelId } = await getGuildSetting(this.guildId, key);
+		const { controlPanelChannelId } = await this.db.getSection(this.guildId, key);
 
 		this.controlPanelId = controlPanelChannelId;
 

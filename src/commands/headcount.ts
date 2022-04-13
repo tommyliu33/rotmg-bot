@@ -1,10 +1,8 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
-
 import { injectable, inject } from 'tsyringe';
-import { kRaids } from '../tokens';
-
-import { guilds } from '../util/mongo';
+import { kDatabase, kRaids } from '../tokens';
 import type { Command } from '#struct/Command';
+import type { Database } from '#struct/Database';
 import { Headcount } from '#struct/Headcount';
 import type { RaidManager } from '#struct/RaidManager';
 
@@ -37,7 +35,10 @@ export default class implements Command {
 		},
 	];
 
-	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
+	public constructor(
+		@inject(kRaids) public readonly manager: RaidManager,
+		@inject(kDatabase) public readonly db: Database
+	) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
@@ -65,13 +66,13 @@ export default class implements Command {
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
-		const guild = await guilds.findOne({ guild_id: interaction.guildId });
+		const guild = await this.db.getSections(interaction.guildId);
 
 		const { channel } = interaction;
 		const parentId = channel?.parentId;
 
-		const section = parentId === guild?.main.category_id ? 'main' : 'veteran';
-		const channelIds = guild![section].voice_channel_ids;
+		const section = parentId === guild?.main.categoryId ? 'main' : 'veteran';
+		const channelIds = guild![section].voiceChannelIds as unknown as string[];
 
 		const response = [];
 		for (const id of channelIds) {

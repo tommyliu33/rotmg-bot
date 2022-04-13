@@ -1,8 +1,10 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-
-import { getGuildSetting } from '../../functions/settings/getGuildSetting';
+import { inject, injectable } from 'tsyringe';
+import { kDatabase } from '../../tokens';
 import type { Command } from '#struct/Command';
+import { Database } from '#struct/Database';
 
+@injectable()
 export default class implements Command {
 	public name = 'manual_verify';
 	public description = 'Manually verify a member';
@@ -21,10 +23,12 @@ export default class implements Command {
 		},
 	];
 
+	public constructor(@inject(kDatabase) public readonly db: Database) {}
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 
-		const { userRole } = await getGuildSetting(interaction.guildId, 'main');
+		const { userRole } = await this.db.getSection(interaction.guildId, 'main');
 
 		if (!userRole) {
 			await interaction.editReply('There is no set role in the database.');

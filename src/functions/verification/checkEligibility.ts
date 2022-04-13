@@ -1,7 +1,9 @@
 import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 import type { GuildMember } from 'discord.js';
+import { container } from 'tsyringe';
 import { VerificationType } from './verifyMember';
-import { getGuildSetting } from '../settings/getGuildSetting';
+import { kDatabase } from '../../tokens';
+import type { Database } from '#struct/Database';
 
 const dungeonNames = ['Oryx Sanctuary', 'The Void', 'Cultist Hideout', 'The Nest', 'The Shatters', 'Fungal Cavern'];
 
@@ -15,13 +17,17 @@ export async function checkEligibility(member: GuildMember, type: VerificationTy
 
 		const dungeonCompletions = [];
 
-		const reqs = await getGuildSetting(member.guild.id, 'veteran');
-		if (reqs.verificationRequirements?.dungeon_completions) {
+		const db = container.resolve<Database>(kDatabase);
+		const reqs = await db.getSection(member.guild.id, 'veteran');
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (reqs.verificationRequirements.dungeonCompletions) {
 			// start at 1, skipping o3s
 			for (let i = 1; i < dungeonNames.length; ++i) {
 				const dungeon = dungeonNames[i];
 				const current = player.dungeonCompletions[dungeon];
-				const required = reqs.verificationRequirements.dungeon_completions[i];
+				// TODO: refactor for { dungeonName: completion }
+				// @ts-expect-error
+				const required = reqs.verificationRequirements.dungeonCompletions[i];
 				if (required - current > 0)
 					dungeonCompletions.push({
 						dungeon,
