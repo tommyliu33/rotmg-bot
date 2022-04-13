@@ -3,11 +3,10 @@ import { container } from 'tsyringe';
 import { kDatabase } from '../../tokens';
 import type { Database } from '#struct/Database';
 
-export async function verifyMember(member: GuildMember, info: VerificationInfo) {
-	const { guild } = member;
-
+export async function verifyMember(member: GuildMember, info: VerificationInfo): Promise<void> {
 	const db = container.resolve<Database>(kDatabase);
 
+	const { guild } = member;
 	const { userRole } = await db.getSection(guild.id, info.type);
 
 	try {

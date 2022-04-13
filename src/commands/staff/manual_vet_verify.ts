@@ -1,6 +1,7 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { inject, injectable } from 'tsyringe';
 import { kDatabase } from '../../tokens';
+import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
 import type { Command } from '#struct/Command';
 import { Database } from '#struct/Database';
 
@@ -42,10 +43,10 @@ export default class implements Command {
 				await interaction.editReply('I cannot add the role to this user.');
 				return;
 			}
-
-			try {
-				await member.roles.add(role);
-			} catch {}
+			await verifyMember(member, {
+				roleId: role.id,
+				type: VerificationType.Veteran,
+			});
 
 			await interaction.editReply('Done. If they did not receive the role, please add it manually.');
 		}
