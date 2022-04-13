@@ -10,8 +10,6 @@ import { kClient, kCommands, kDatabase, kRaids } from './tokens';
 
 import { logger } from './util/logger';
 
-// import './util/mongo';
-
 import type { Command } from '#struct/Command';
 import { Database } from '#struct/Database';
 import type { Event } from '#struct/Event';
