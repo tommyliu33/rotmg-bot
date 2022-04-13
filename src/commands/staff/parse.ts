@@ -1,4 +1,4 @@
-import { codeBlock, hyperlink } from '@discordjs/builders';
+import { codeBlock } from '@discordjs/builders';
 import { Stopwatch } from '@sapphire/stopwatch';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
@@ -8,8 +8,8 @@ import { nanoid } from 'nanoid';
 import { paginate } from '../../functions/paginate';
 import { parse } from '../../functions/parse/parse';
 
-import { haste } from '../../util/haste';
 import type { Command } from '#struct/Command';
+import { generateActionRows } from '#util/util';
 
 const clean = (str: string) => str.replace(/[^A-Za-z]/g, '').toLowerCase();
 
@@ -60,6 +60,8 @@ export default class implements Command {
 
 		const url = attachment.url || attachment.proxyURL;
 		const res = await parse(url).catch(async (err: Error) => {
+			console.log(err);
+
 			if (err.message === 'Not an image') {
 				await interaction.editReply({ content: 'Attachment was not an image.' });
 				return undefined;
@@ -85,102 +87,84 @@ export default class implements Command {
 			const embed = new EmbedBuilder().setFooter({ text: `Took ${timer.toString()}` }).setImage(url);
 
 			if (text) {
-				embed.setTitle('Parsed screenshot results').setColor(0x34495e);
+				embed.setTitle('Parsed screenshot results').setColor('Green').setDescription(codeBlock(cleanedText));
 
-				const res = await haste('Raw screenshot content', text).catch(() => undefined);
-
-				if (typeof res === 'object' && 'url' in res) {
-					embed.setDescription(hyperlink('View raw', res.url));
-				}
-
-				embed.setDescription(`${embed.data.description!}\n${codeBlock(cleanedText)}`);
-			} else {
-				embed.setTitle('Failed to parse screenshot').setColor(0xed4245);
-			}
-
-			const options = {
-				content: ' ',
-				embeds: [embed],
-				components: [],
-			};
-
-			const crashersKey = nanoid();
-			const crashersButton = new ButtonBuilder()
-				.setStyle(ButtonStyle.Primary)
-				.setCustomId(crashersKey)
-				.setLabel('View crashers')
-				.setEmoji({
-					name: '🕵️',
-				});
-
-			if (voiceChannel?.isVoice()) {
-				// @ts-expect-error
-				options.components = [new ActionRowBuilder<ButtonBuilder>().addComponents(crashersButton)];
-			}
-
-			await interaction.editReply(options);
-
-			const collectedInteraction = await m
-				.awaitMessageComponent({
-					componentType: ComponentType.Button,
-					filter: (i) => i.user.id === interaction.user.id,
-					time: 60000 * 5,
-				})
-				.catch(async () => {
-					await m.edit({
-						components: [new ActionRowBuilder<ButtonBuilder>().addComponents(crashersButton.setDisabled(true))],
+				const crashersKey = nanoid();
+				const crashersButton = new ButtonBuilder()
+					.setStyle(ButtonStyle.Primary)
+					.setCustomId(crashersKey)
+					.setLabel('View crashers')
+					.setEmoji({
+						name: '🕵️',
 					});
-					return undefined;
+				await interaction.editReply({
+					content: null,
+					embeds: [embed],
+					components: voiceChannel?.isVoice() ? generateActionRows(crashersButton) : [],
 				});
 
-			if (collectedInteraction?.customId === crashersKey && voiceChannel?.isVoice()) {
-				await collectedInteraction.deferReply({ ephemeral: true });
+				const collectedInteraction = await m
+					.awaitMessageComponent({
+						componentType: ComponentType.Button,
+						filter: (i) => i.user.id === interaction.user.id,
+						time: 60000 * 5,
+					})
+					.catch(async () => {
+						await m.edit({
+							components: [new ActionRowBuilder<ButtonBuilder>().addComponents(crashersButton.setDisabled(true))],
+						});
+						return undefined;
+					});
 
-				const filter = (m: GuildMember) => m.id !== interaction.user.id || !m.user.bot;
+				if (collectedInteraction?.customId === crashersKey && voiceChannel?.isVoice()) {
+					await collectedInteraction.deferReply({ ephemeral: true });
 
-				const guildMembers = interaction.guild.members.cache
-					.filter((m) => m.id !== interaction.user.id || !m.user.bot)
-					.map((member) => member.displayName);
-				const guildMemberNames = getNames(guildMembers);
+					const filter = (m: GuildMember) => m.id !== interaction.user.id || !m.user.bot;
 
-				const voiceChannelMembers = voiceChannel.members.filter(filter).map((member) => member.displayName);
-				const voiceChannelMemberNames = getNames(voiceChannelMembers);
+					const guildMembers = interaction.guild.members.cache.filter(filter).map((member) => member.displayName);
+					const guildMemberNames = getNames(guildMembers);
 
-				const embeds: EmbedBuilder[] = [];
+					const voiceChannelMembers = voiceChannel.members.filter(filter).map((member) => member.displayName);
+					const voiceChannelMemberNames = getNames(voiceChannelMembers);
 
-				// eslint-disable-next-line @typescript-eslint/prefer-includes
-				if (guildMemberNames.length && cleanedText.indexOf(':') !== -1) {
-					const names = cleanedText.split(': ')[1];
-					const split = names.split(', ');
+					const embeds: EmbedBuilder[] = [];
 
-					const inScreenshotButNotInVoiceChannel = split.filter((name) => !voiceChannelMemberNames.includes(name));
-					if (inScreenshotButNotInVoiceChannel.length) {
-						embeds.push(
-							new EmbedBuilder()
-								.setTitle('Players found in screenshot, but not in voice channel (Possible alts)')
-								.setDescription(codeBlock(inScreenshotButNotInVoiceChannel.join('\n')))
-								.setFooter({ text: 'Not 100% accurate!' })
-						);
+					if (guildMemberNames.length && cleanedText.includes(':')) {
+						const names = cleanedText.split(': ')[1];
+						const split = names.split(', ');
+
+						const inScreenshotButNotInVoiceChannel = split.filter((name) => !voiceChannelMemberNames.includes(name));
+						if (inScreenshotButNotInVoiceChannel.length) {
+							embeds.push(
+								new EmbedBuilder()
+									.setTitle('Players found in screenshot, but not in voice channel (Possible alts)')
+									.setDescription(codeBlock(inScreenshotButNotInVoiceChannel.join('\n')))
+									.setFooter({ text: 'Not 100% accurate!' })
+							);
+						}
 					}
+
+					if (voiceChannelMemberNames.length && cleanedText.includes(':')) {
+						const names = cleanedText.split(': ')[1];
+						const split = names.split(', ');
+
+						const inVoiceChannelButNotInScreenshot = voiceChannelMemberNames.filter((name) => !split.includes(name));
+						if (inVoiceChannelButNotInScreenshot.length) {
+							embeds.push(
+								new EmbedBuilder()
+									.setTitle('Players in voice channel, but not found in screenshot (Possible alts)')
+									.setDescription(codeBlock(inVoiceChannelButNotInScreenshot.join('\n')))
+									.setFooter({ text: 'Not 100% accurate!' })
+							);
+						}
+					}
+
+					await paginate(collectedInteraction, embeds);
+					return;
 				}
 
-				// eslint-disable-next-line @typescript-eslint/prefer-includes
-				if (voiceChannelMemberNames.length && cleanedText.indexOf(':') !== -1) {
-					const names = cleanedText.split(': ')[1];
-					const split = names.split(', ');
-
-					const inVoiceChannelButNotInScreenshot = voiceChannelMemberNames.filter((name) => !split.includes(name));
-					if (inVoiceChannelButNotInScreenshot.length) {
-						embeds.push(
-							new EmbedBuilder()
-								.setTitle('Players in voice channel, but not found in screenshot (Possible alts)')
-								.setDescription(codeBlock(inVoiceChannelButNotInScreenshot.join('\n')))
-								.setFooter({ text: 'Not 100% accurate!' })
-						);
-					}
-				}
-
-				await paginate(collectedInteraction, embeds);
+				embed.setTitle('Failed to parse screenshot').setColor('DarkRed');
+				await interaction.editReply({ embeds: [embed] });
 			}
 		}
 	}
