@@ -43,7 +43,7 @@ export default class implements Command {
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const name = interaction.options.getString('name', true);
-		const hide = Boolean(interaction.options.getString('hide', false) ?? false);
+		const hide = interaction.options.getBoolean('hide', false) ?? false;
 
 		const m = await interaction.deferReply({ ephemeral: hide, fetchReply: true });
 
