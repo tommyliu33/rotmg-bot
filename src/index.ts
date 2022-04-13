@@ -13,8 +13,8 @@ import { logger } from './util/logger';
 // import './util/mongo';
 
 import type { Command } from '#struct/Command';
-import type { Event } from '#struct/Event';
 import { Database } from '#struct/Database';
+import type { Event } from '#struct/Event';
 import { RaidManager } from '#struct/RaidManager';
 
 const client = new Client({
