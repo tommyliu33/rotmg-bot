@@ -58,8 +58,6 @@ export default class implements Command {
 
 		const url = attachment.url || attachment.proxyURL;
 		const res = await parse(url).catch(async (err: Error) => {
-			console.log(err);
-
 			if (err.message === 'Not an image') {
 				await interaction.editReply({ content: 'Attachment was not an image.' });
 				return undefined;
