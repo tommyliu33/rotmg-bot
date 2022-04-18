@@ -36,9 +36,9 @@ export default class implements Event {
 
 			if (
 				interaction.customId === 'main_verification' &&
-				interaction.channelId === mainSettings.verificationChannelId
+				interaction.channelId === mainSettings.verification_channel_id
 			) {
-				if (interaction.member.roles.cache.has(mainSettings.userRole)) {
+				if (interaction.member.roles.cache.has(mainSettings.user_role)) {
 					await interaction.reply({ content: 'It seems you are already verified.', ephemeral: true });
 					return;
 				}
@@ -57,7 +57,7 @@ export default class implements Event {
 				);
 			} else if (
 				interaction.customId === 'veteran_verification' &&
-				interaction.channelId === veteranSettings.verificationChannelId
+				interaction.channelId === veteranSettings.verification_channel_id
 			) {
 				await interaction.deferReply({ ephemeral: true });
 				const status = await checkEligibility(interaction.member, VerificationType.Veteran);
@@ -79,7 +79,7 @@ export default class implements Event {
 				} else if (typeof status === 'boolean') {
 					if (status) {
 						await verifyMember(interaction.member, {
-							roleId: veteranSettings.userRole,
+							roleId: veteranSettings.user_role,
 							type: VerificationType.Veteran,
 						});
 						await interaction.editReply('you are now veteran verified');
@@ -106,7 +106,7 @@ export default class implements Event {
 	}
 
 	private async link(member: GuildMember, name: string) {
-		const { userRole } = await this.db.getSection(member.guild.id, 'main');
+		const { user_role } = await this.db.getSection(member.guild.id, 'main');
 		const channel = member.user.dmChannel!;
 
 		const code = nanoid(12);
@@ -158,7 +158,7 @@ export default class implements Event {
 			}
 
 			await verifyMember(member, {
-				roleId: userRole,
+				roleId: user_role,
 				nickname: name,
 				type: VerificationType.Main,
 			});

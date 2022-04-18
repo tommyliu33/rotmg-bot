@@ -12,10 +12,10 @@ export async function isVeteranSection(guildId: string, what: string) {
 	const db = container.resolve<Database>(kDatabase);
 	const settings = await db.getSection(guildId, 'veteran');
 
-	if (settings.statusChannelId === what) return true;
-	if (settings.controlPanelChannelId === what) return true;
-	if ((settings.voiceChannelIds as unknown as string[]).includes(what)) return true;
-	if (settings.verificationChannelId === what) return true;
+	if (settings.status_channel_id === what) return true;
+	if (settings.control_panel_channel_id === what) return true;
+	if ((settings.voice_channel_ids as unknown as string[]).includes(what)) return true;
+	if (settings.verification_channel_id === what) return true;
 
 	return false;
 }
@@ -55,14 +55,4 @@ export function generateActionRows<Component extends MessageActionRowComponentBu
 export function random<T>(arr: T[]): T {
 	return arr[Math.floor(Math.random() * arr.length)];
 }
-
-export type CamelCase<S extends string> = S extends `${infer P1}_${infer P2}${infer P3}`
-	? `${Lowercase<P1>}${Uppercase<P2>}${CamelCase<P3>}`
-	: Lowercase<S>;
-
-export type CamelCaseKeys<T> = {
-	/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-types */
-	[K in keyof T as CamelCase<string & K>]: T[K] extends {} ? CamelCaseKeys<T[K]> : T[K];
-	/* eslint-enable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-types */
-};
 // #endregion

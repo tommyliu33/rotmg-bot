@@ -7,10 +7,10 @@ export async function verifyMember(member: GuildMember, info: VerificationInfo):
 	const db = container.resolve<Database>(kDatabase);
 
 	const { guild } = member;
-	const { userRole } = await db.getSection(guild.id, info.type);
+	const { user_role } = await db.getSection(guild.id, info.type);
 
 	try {
-		await member.roles.add(userRole);
+		await member.roles.add(user_role);
 		if (info.nickname) await member.setNickname(info.nickname);
 	} catch {}
 }

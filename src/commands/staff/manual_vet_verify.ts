@@ -23,18 +23,18 @@ export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 
-		const { userRole } = await this.db.getSection(interaction.guildId, 'veteran');
+		const { user_role } = await this.db.getSection(interaction.guildId, 'veteran');
 
-		if (!userRole) {
+		if (!user_role) {
 			await interaction.editReply('There is no set role in the database.');
 			return;
 		}
 
 		const member = interaction.options.getMember('member');
-		const role = await interaction.guild.roles.fetch(userRole).catch(() => undefined);
+		const role = await interaction.guild.roles.fetch(user_role).catch(() => undefined);
 
 		if (!role) {
-			await interaction.editReply(`Could not find role in the server (${userRole}).`);
+			await interaction.editReply(`Could not find role in the server (${user_role}).`);
 			return;
 		}
 
