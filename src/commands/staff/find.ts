@@ -1,4 +1,4 @@
-import { memberNicknameMention, inlineCode, time } from '@discordjs/builders';
+import { userMention, inlineCode, time } from '@discordjs/builders';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
 import { EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
@@ -9,7 +9,7 @@ const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'
 
 function generateMemberInformation(member: GuildMember) {
 	const embed = new EmbedBuilder().setThumbnail(member.displayAvatarURL()).setDescription(`
-	${inlineCode('Member')} ${memberNicknameMention(member.id)} (${member.id})
+	${inlineCode('Member')} ${userMention(member.id)} (${member.id})
 	${inlineCode('Roles')} ${member.roles.cache
 		.filter((role) => role.id !== member.guild.id)
 		.sort((a, b) => b.position - a.position)
