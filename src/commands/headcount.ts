@@ -5,6 +5,7 @@ import type { Command } from '#struct/Command';
 import type { Database } from '#struct/Database';
 import { Headcount } from '#struct/Headcount';
 import type { RaidManager } from '#struct/RaidManager';
+import { isVeteranSection } from '#util/util';
 
 @injectable()
 export default class implements Command {
@@ -66,13 +67,10 @@ export default class implements Command {
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
-		const guild = await this.db.getSections(interaction.guildId);
+		const isVet = await isVeteranSection(interaction.guildId, interaction.channelId);
 
-		const { channel } = interaction;
-		const parentId = channel?.parentId;
-
-		const section = parentId === guild?.main.categoryId ? 'main' : 'veteran';
-		const channelIds = guild![section].voiceChannelIds as unknown as string[];
+		const guild = await this.db.getSection(interaction.guildId, isVet ? 'veteran' : 'main');
+		const channelIds = guild.voice_channel_ids;
 
 		const response = [];
 		for (const id of channelIds) {

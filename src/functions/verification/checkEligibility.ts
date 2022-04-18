@@ -20,14 +20,14 @@ export async function checkEligibility(member: GuildMember, type: VerificationTy
 		const db = container.resolve<Database>(kDatabase);
 		const reqs = await db.getSection(member.guild.id, 'veteran');
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (reqs.verificationRequirements.dungeonCompletions) {
+		if (reqs.verification_requirements.dungeon_completions) {
 			// start at 1, skipping o3s
 			for (let i = 1; i < dungeonNames.length; ++i) {
 				const dungeon = dungeonNames[i];
 				const current = player.dungeonCompletions[dungeon];
 				// TODO: refactor for { dungeonName: completion }
 				// @ts-expect-error
-				const required = reqs.verificationRequirements.dungeonCompletions[i];
+				const required = reqs.verification_requirements.dungeon_completions[i] as number;
 				if (required - current > 0)
 					dungeonCompletions.push({
 						dungeon,

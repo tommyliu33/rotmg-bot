@@ -93,9 +93,9 @@ export class Raid implements RaidBase {
 
 	public async begin() {
 		const key = (await isVeteranSection(this.guildId, this.textChannelId)) ? 'veteran' : 'main';
-		const { controlPanelChannelId } = await this.db.getSection(this.guildId, key);
+		const { control_panel_channel_id } = await this.db.getSection(this.guildId, key);
 
-		this.controlPanelId = controlPanelChannelId;
+		this.controlPanelId = control_panel_channel_id;
 
 		const member = await this.guild.members.fetch(this.memberId);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
