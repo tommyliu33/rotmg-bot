@@ -18,6 +18,11 @@ export async function paginate(interaction: Interaction, embeds: EmbedBuilder[])
 
 	if (!interaction.deferred) await interaction.deferReply();
 
+	if (embeds.length === 1) {
+		await interaction.editReply({ embeds: [embeds[page]] });
+		return;
+	}
+
 	const m = await interaction.editReply({
 		embeds: [embeds[page]],
 		components: generateActionRows(backButton, forwardButton),
