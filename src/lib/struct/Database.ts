@@ -11,7 +11,7 @@ export class Database {
 	public constructor(@inject(kClient) private readonly client: Client) {}
 
 	public get guilds() {
-		return this.db.collection<GuildDocument>('guilds');
+		return this.db.collection<RawGuildDocument>('guilds');
 	}
 
 	public get users() {
@@ -56,19 +56,20 @@ export class Database {
 		return doc as unknown as RaidSection<typeof section>;
 	}
 
-	public async getSections(guildId: string): Promise<CamelCaseKeys<GuildDocument['sections']> | undefined> {
+	public async getSections(guildId: string): Promise<CamelCaseKeys<RawGuildDocument['sections']> | undefined> {
 		const doc = await this.getGuildDocument(guildId);
-		return camelcaseKeys(doc.sections, { deep: true }) as unknown as CamelCaseKeys<GuildDocument['sections']>;
+		return camelcaseKeys(doc.sections, { deep: true }) as unknown as CamelCaseKeys<RawGuildDocument['sections']>;
 	}
 
-	private async getGuildDocument(guildId: string): Promise<GuildDocument> {
+	private async getGuildDocument(guildId: string): Promise<RawGuildDocument> {
 		const doc = await this.guilds.findOne({ guild_id: guildId });
-		return doc as unknown as GuildDocument;
+		return doc as unknown as RawGuildDocument;
 	}
 }
 
 // #region guild
-interface GuildDocument {
+
+interface RawGuildDocument {
 	guild_id: string;
 
 	sections: {
@@ -76,6 +77,8 @@ interface GuildDocument {
 		veteran: RaidSection<'veteran'>;
 	};
 }
+
+export type GuildDocument = CamelCaseKeys<RawGuildDocument>;
 
 interface RaidSection<Veteran extends SectionType> {
 	category_id: string;
@@ -97,11 +100,15 @@ interface VerificationRequirements {
 	verification_message?: string;
 }
 
-interface VeteranVerificationRequirements extends Pick<VerificationRequirements, 'verification_message'> {
+// TODO: maybe add typeguards or drop camel case keys
+export type VerificationRequirementsCamel = CamelCaseKeys<VerificationRequirements>;
+export type VeteranVeterificationRequirements = CamelCaseKeys<VeteranVerificationRequirements>;
+
+export interface VeteranVerificationRequirements extends Pick<VerificationRequirements, 'verification_message'> {
 	dungeon_completions: Record<DungeonNames, number>;
 }
 
-type SectionType = 'main' | 'veteran';
+export type SectionType = 'main' | 'veteran';
 type DungeonNames = 'o3' | 'void' | 'shatters' | 'cult' | 'nest' | 'fungal';
 
 // #endregion
