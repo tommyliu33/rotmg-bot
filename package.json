@@ -17,7 +17,7 @@
 		"#constants/*": "./dist/lib/util/constants/*.js"
 	},
 	"dependencies": {
-		"@discordjs/builders": "^0.13.0-dev.1649505810-3c0bbac",
+		"@discordjs/builders": "^0.14.0-dev.1650413406-585169f",
 		"@discordjs/rest": "^0.3.0",
 		"@ltd/j-toml": "^1.30.0",
 		"@sapphire/stopwatch": "^1.4.1",
