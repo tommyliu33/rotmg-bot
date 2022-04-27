@@ -9,7 +9,7 @@ datasource db {
 
 model guilds {
   id      String               @id @default(auto()) @map("_id") @db.ObjectId
-  guildId String               @map("guild_id")
+  guildId String               @unique() @map("guild_id")
   main    GuildsMainRaiding    @map("main_raiding")
   veteran GuildsVeteranRaiding @map("veteran_raiding")
 }
