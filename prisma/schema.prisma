@@ -17,9 +17,9 @@ model guilds {
 type GuildsMainRaiding {
   categoryId               String                                    @map("category_id")
   controlPanelChannelId    String                                    @map("control_panel_channel_id")
-  leaderRoleId             String                                    @map("leader_role")
+  leaderRoleId             String                                    @map("leader_role_id")
   statusChannelId          String                                    @map("status_channel_id")
-  userRoleId               String                                    @map("user_role")
+  userRoleId               String                                    @map("user_role_id")
   verificationChannelId    String                                    @map("verification_channel_id")
   verificationRequirements GuildsMainRaidingVerificationRequirements @map("verification_requirements")
   voiceChannelIds          String[]                                  @map("voice_channel_ids")
@@ -36,9 +36,9 @@ type GuildsMainRaidingVerificationRequirements {
 type GuildsVeteranRaiding {
   categoryId               String                                       @map("category_id")
   controlPanelChannelId    String                                       @map("control_panel_channel_id")
-  leaderRoleId             String                                       @map("leader_role")
+  leaderRoleId             String                                       @map("leader_role_id")
   statusChannelId          String                                       @map("status_channel_id")
-  userRoleId               String                                       @map("user_role")
+  userRoleId               String                                       @map("user_role_id")
   verificationChannelId    String                                       @map("verification_channel_id")
   verificationRequirements GuildsVeteranRaidingVerificationRequirements @map("verification_requirements")
   voiceChannelIds          String[]                                     @map("voice_channel_ids")
