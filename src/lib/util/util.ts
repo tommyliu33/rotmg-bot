@@ -12,10 +12,10 @@ export async function isVeteranSection(guildId: string, what: string) {
 	const db = container.resolve<Database>(kDatabase);
 	const settings = await db.getSection(guildId, 'veteran');
 
-	if (settings.status_channel_id === what) return true;
-	if (settings.control_panel_channel_id === what) return true;
-	if ((settings.voice_channel_ids as unknown as string[]).includes(what)) return true;
-	if (settings.verification_channel_id === what) return true;
+	if (settings.statusChannelId === what) return true;
+	if (settings.controlPanelChannelId === what) return true;
+	if (settings.verificationChannelId.includes(what)) return true;
+	if (settings.verificationChannelId === what) return true;
 
 	return false;
 }

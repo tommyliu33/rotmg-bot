@@ -16,39 +16,50 @@ export default class implements Command {
 			required: true,
 			type: 6,
 		},
+		{
+			name: 'hidden',
+			description: 'Hides command output',
+			required: false,
+			type: 5,
+		},
 	];
 
 	public constructor(@inject(kDatabase) public readonly db: Database) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
-		await interaction.deferReply();
+		await interaction.deferReply({ ephemeral: interaction.options.getBoolean('hidden') ?? false });
 
-		const { user_role } = await this.db.getSection(interaction.guildId, 'veteran');
+		const { userRoleId } = await this.db.getSection(interaction.guildId, 'veteran');
 
-		if (!user_role) {
+		if (!userRoleId) {
 			await interaction.editReply('There is no set role in the database.');
 			return;
 		}
 
 		const member = interaction.options.getMember('member');
-		const role = await interaction.guild.roles.fetch(user_role).catch(() => undefined);
+		const name = interaction.options.getString('name', true);
+		const role = await interaction.guild.roles.fetch(userRoleId).catch(() => undefined);
 
 		if (!role) {
-			await interaction.editReply(`Could not find role in the server (${user_role}).`);
+			await interaction.editReply(`Could not find role in the server (it is currently set to: ${userRoleId}).`);
 			return;
 		}
 
-		if (member) {
-			if (!member.manageable) {
-				await interaction.editReply('I cannot add the role to this user.');
-				return;
-			}
+		if (member?.manageable) {
 			await verifyMember(member, {
+				nickname: name,
 				roleId: role.id,
-				type: VerificationType.Veteran,
-			});
-
-			await interaction.editReply('Done. If they did not receive the role, please add it manually.');
+				type: VerificationType.Main,
+			})
+				.then(async () => {
+					await interaction.editReply(`Successfully verified ${member.toString()}.`);
+				})
+				.catch(async (err: Error) => {
+					await interaction.editReply(err.message);
+				});
+			return;
 		}
+
+		await interaction.editReply('I cannot manage this user.');
 	}
 }

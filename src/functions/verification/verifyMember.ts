@@ -1,24 +1,21 @@
 import type { GuildMember } from 'discord.js';
-import { container } from 'tsyringe';
-import { kDatabase } from '../../tokens';
-import type { Database } from '#struct/Database';
 
 export async function verifyMember(member: GuildMember, info: VerificationInfo): Promise<void> {
-	const db = container.resolve<Database>(kDatabase);
+	await member.roles
+		.add(info.roleId)
+		.catch(() => new Error('Failed to add the role to this user. You may have to add the role manually.'));
 
-	const { guild } = member;
-	const { user_role } = await db.getSection(guild.id, info.type);
-
-	try {
-		await member.roles.add(user_role);
-		if (info.nickname) await member.setNickname(info.nickname);
-	} catch {}
+	if (info.nickname) {
+		await member
+			.setNickname(info.nickname)
+			.catch(() => new Error("Failed to update this user's nickname. You may have to update their nickname manually."));
+	}
 }
 
 export interface VerificationInfo {
-	type: VerificationType;
-	roleId: string;
 	nickname?: string;
+	roleId: string;
+	type: VerificationType;
 }
 
 export enum VerificationType {

@@ -17,8 +17,10 @@
 			"#struct/*": ["src/lib/struct/*"],
 			"#functions/*": ["src/functions/*"],
 			"#util/*": ["src/lib/util/*"],
-			"#constants/*": ["src/lib/util/constants/*"]
+			"#constants/*": ["src/lib/util/constants/*"],
+			"#entities/*": ["src/lib/entities/*"]
 		},
+		
 
 		/* Emit */
 		"outDir": "./dist",

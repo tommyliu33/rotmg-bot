@@ -70,7 +70,7 @@ export default class implements Command {
 		const isVet = await isVeteranSection(interaction.guildId, interaction.channelId);
 
 		const guild = await this.db.getSection(interaction.guildId, isVet ? 'veteran' : 'main');
-		const channelIds = guild.voice_channel_ids;
+		const channelIds = guild.voiceChannelIds;
 
 		const response = [];
 		for (const id of channelIds) {

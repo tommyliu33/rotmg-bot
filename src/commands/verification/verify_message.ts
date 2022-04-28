@@ -75,10 +75,7 @@ export default class implements Command {
 		const section = interaction.options.getString('section', true) as 'main' | 'veteran';
 		const button = interaction.options.getBoolean('button', false) ?? false;
 
-		const { verification_requirements, verification_channel_id } = await this.db.getSection(
-			interaction.guildId,
-			section
-		);
+		const { verificationRequirements, verificationChannelId } = await this.db.getSection(interaction.guildId, section);
 
 		const embed = new EmbedBuilder().setTitle(
 			`${inlineCode(interaction.guild.name)} ${toTitleCase(section)} Section Verification`
@@ -142,7 +139,7 @@ export default class implements Command {
 				});
 
 			if (collectedInteraction?.customId === yesKey) {
-				await this.db.updateSection(interaction.guildId, section as 'main', 'verification_requirements', content);
+				await this.db.updateSection(interaction.guildId, section as 'main', 'verificationRequirements', content);
 
 				await collectedInteraction.editReply({
 					content: `Updated the ${inlineCode(toTitleCase(section))} verification message.`,
@@ -158,13 +155,13 @@ export default class implements Command {
 			return;
 		}
 
-		const channel = await interaction.guild.channels.fetch(verification_channel_id).catch(async () => {
+		const channel = await interaction.guild.channels.fetch(verificationChannelId).catch(async () => {
 			await interaction.editReply('The verification channel could not be found.');
 			return undefined;
 		});
 
 		if (!channel?.isText()) return;
-		if (!verification_requirements.verification_message) {
+		if (!verificationRequirements.verificationMessage) {
 			await interaction.editReply('There is no set verification message to display.');
 			return;
 		}
@@ -180,7 +177,7 @@ export default class implements Command {
 		}
 
 		const m = await channel.send({
-			embeds: [embed.setDescription(verification_requirements.verification_message).toJSON()],
+			embeds: [embed.setDescription(verificationRequirements.verificationMessage).toJSON()],
 			...opts,
 		});
 

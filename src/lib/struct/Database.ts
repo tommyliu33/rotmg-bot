@@ -1,102 +1,79 @@
+import Prisma, { GuildsMainRaiding, GuildsVeteranRaiding } from '@prisma/client';
+
 import type { Client } from 'discord.js';
-import { MongoClient, type Db, type Document } from 'mongodb';
 import { inject, injectable } from 'tsyringe';
 import { kClient } from '../../tokens';
 
+import { logger } from '../../util/logger';
+
+const { PrismaClient } = Prisma;
+
 @injectable()
 export class Database {
-	private readonly db!: Db;
+	private readonly prismaClient: Prisma.PrismaClient | undefined;
 	public constructor(@inject(kClient) private readonly client: Client) {}
 
 	public get guilds() {
-		return this.db.collection<GuildDocument>('guilds');
-	}
-
-	public get users() {
-		return this.db.collection<UserDocument>('users');
+		if (this.prismaClient) return this.prismaClient.guilds;
+		return null;
 	}
 
 	public async start() {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (!this.db) {
-			const client = new MongoClient(process.env.CONNECTION_STRING!);
-			const db = client.db('rotmg');
+		if (this.prismaClient) return this.prismaClient;
 
-			Object.defineProperty(this, 'db', { value: db });
+		const prismaClient = new PrismaClient();
+		await prismaClient.$connect();
 
-			await client.connect();
+		Object.defineProperty(this, 'prismaClient', { value: prismaClient });
+
+		logger.info('Connected to mongo');
+	}
+
+	public async getSection<T extends SectionType>(
+		guildId: string,
+		section: T
+	): Promise<T extends 'main' ? GuildsMainRaiding : GuildsVeteranRaiding> {
+		const doc = await this.guilds?.findFirst({ where: { guildId } });
+
+		const data = doc![section];
+		if (section === 'main') {
+			// @ts-expect-error
+			return data as GuildsMainRaiding;
 		}
 
-		return this.db;
+		// @ts-expect-error
+		return data as GuildsVeteranRaiding;
 	}
 
-	public async getSection<T extends SectionType>(guildId: string, section: T) {
-		const doc = await this.getGuildDocument(guildId);
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		return doc.sections[section] || null;
-	}
+	public async updateSection<
+		T extends SectionType,
+		K extends keyof (T extends 'main' ? GuildsMainRaiding : GuildsVeteranRaiding)
+	>(guildId: string, section: T, key: K, value: unknown) {
+		await this.guilds?.update({
+			where: {
+				guildId,
+			},
+			select: {
+				[section]: true,
+			},
+			data: {
+				[section]: {
+					update: {
+						[key]: value,
+					},
+				},
+			},
+		});
 
-	public async updateSection<T extends SectionType, K extends keyof RaidSection<T>>(
-		guildId: string,
-		section: 'main' | 'veteran',
-		key: K,
-		value: unknown
-	): Promise<RaidSection<T>> {
-		const doc = await this.getGuildDocument(guildId);
-		Reflect.set(doc.sections[section], key, value);
-		return doc as unknown as RaidSection<typeof section>;
+		return value;
 	}
 
 	public async getSections(guildId: string) {
-		const doc = await this.getGuildDocument(guildId);
-		return doc;
+		const doc = await this.guilds?.findFirst({ where: { guildId } });
+		if (doc) return { main: doc.main, veteran: doc.veteran };
+
+		return null;
 	}
-
-	private async getGuildDocument(guildId: string): Promise<GuildDocument> {
-		const doc = await this.guilds.findOne({ guild_id: guildId });
-		return doc as GuildDocument;
-	}
-}
-
-// #region guild
-export interface GuildDocument {
-	guild_id: string;
-
-	sections: {
-		main: RaidSection<'main'>;
-		veteran: RaidSection<'veteran'>;
-	};
-}
-
-export interface RaidSection<Veteran extends SectionType> {
-	category_id: string;
-	status_channel_id: string;
-	control_panel_channel_id: string;
-	drag_channel_id: string;
-	voice_channel_ids: string[];
-	verification_channel_id: string;
-	verification_requirements: Veteran extends 'veteran' ? VeteranVerificationRequirements : VerificationRequirements;
-	user_role: string;
-	leader_role: string;
-}
-
-export interface VerificationRequirements {
-	min_rank?: number;
-	min_chars?: number;
-	min_fame?: number;
-	hidden_location?: boolean;
-	verification_message?: string;
-}
-
-export interface VeteranVerificationRequirements extends Pick<VerificationRequirements, 'verification_message'> {
-	dungeon_completions: Record<DungeonNames, number>;
 }
 
 export type SectionType = 'main' | 'veteran';
-export type DungeonNames = 'o3' | 'void' | 'shatters' | 'cult' | 'nest' | 'fungal';
-
-// #endregion
-
-// #region user doc
-type UserDocument = Document & { guild_id: string };
-// #endregion

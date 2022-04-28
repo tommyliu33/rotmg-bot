@@ -9,12 +9,11 @@ import { stripIndents } from 'common-tags';
 
 import { container } from 'tsyringe';
 import { kDatabase } from '../../tokens';
+import type { Database, SectionType } from '#struct/Database';
 import type {
-	Database,
-	SectionType,
-	VerificationRequirements,
-	VeteranVerificationRequirements,
-} from '#struct/Database';
+	GuildsMainRaidingVerificationRequirements,
+	GuildsVeteranRaidingVerificationRequirements,
+} from '@prisma/client';
 
 const dungeonNames = ['Oryx Sanctuary', 'The Void', 'Cultist Hideout', 'The Nest', 'The Shatters', 'Fungal Cavern'];
 
@@ -68,20 +67,21 @@ export default class implements Command {
 		const data = await db.getSection(guildId, section);
 
 		const {
-			user_role,
-			leader_role,
-			status_channel_id,
-			control_panel_channel_id,
-			verification_channel_id,
-			verification_requirements,
+			userRoleId,
+			leaderRoleId,
+			statusChannelId,
+			controlPanelChannelId,
+			verificationChannelId,
+			verificationRequirements,
+			voiceChannelIds,
 		} = data;
-		const voiceChannelIds = data.voice_channel_ids as unknown as string[];
+
 		const baseEmbed = new EmbedBuilder().setColor('Greyple').addFields(
 			{
 				name: 'Channels',
 				value: stripIndents`
-${inlineCode('Status channel')} ${status_channel_id ? channelMention(status_channel_id) : 'Not set'}
-${inlineCode('Control panel')} ${control_panel_channel_id ? channelMention(control_panel_channel_id) : 'Not set'}
+${inlineCode('Status channel')} ${statusChannelId ? channelMention(statusChannelId) : 'Not set'}
+${inlineCode('Control panel')} ${controlPanelChannelId ? channelMention(controlPanelChannelId) : 'Not set'}
 ${inlineCode('Voice channels')} ${
 					voiceChannelIds.length ? voiceChannelIds.map((id) => channelMention(id)).join(' ') : 'Not set'
 				}`,
@@ -89,38 +89,41 @@ ${inlineCode('Voice channels')} ${
 			{
 				name: 'Roles',
 				value: stripIndents`
-${inlineCode('User')} ${user_role ? roleMention(user_role) : 'Not set'}
-${inlineCode('Leader')} ${leader_role ? roleMention(leader_role) : 'Not set'}`,
+${inlineCode('User')} ${userRoleId ? roleMention(userRoleId) : 'Not set'}
+${inlineCode('Leader')} ${leaderRoleId ? roleMention(leaderRoleId) : 'Not set'}`,
 			}
 		);
 
 		if (section === 'main') {
-			const { min_rank, min_chars, min_fame, hidden_location } = verification_requirements as VerificationRequirements;
+			const { hiddenLocation, minRank, minChars, minFame } =
+				verificationRequirements as GuildsMainRaidingVerificationRequirements;
 
+			/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 			const embed = baseEmbed.addFields({
 				name: 'Verification',
 				value: stripIndents`
-	${inlineCode('Channel')} ${verification_channel_id ? channelMention(verification_channel_id) : 'Not set'}
-	${inlineCode('Min rank')} ${min_rank ?? 0}
-	${inlineCode('Min Chars')} ${min_chars ?? 0}
-	${inlineCode('Min fame')} ${min_fame ?? 0}
-	${inlineCode('Hidden location')} ${hidden_location ? 'Yes' : 'No'}
+	${inlineCode('Channel')} ${verificationChannelId ? channelMention(verificationChannelId) : 'Not set'}
+	${inlineCode('Min rank')} ${minRank ?? 0}
+	${inlineCode('Min Chars')} ${minChars ?? 0}
+	${inlineCode('Min fame')} ${minFame ?? 0}
+	${inlineCode('Hidden location')} ${hiddenLocation ? 'Yes' : 'No'}
 					`,
 			});
 			return embed;
+			/* eslint-enable @typescript-eslint/no-unnecessary-condition */
 		}
 
-		const req = verification_requirements as VeteranVerificationRequirements;
+		const req = verificationRequirements as GuildsVeteranRaidingVerificationRequirements;
 		const embed = baseEmbed.addFields({
 			name: 'Verification',
 			value: stripIndents`
-			${inlineCode('Channel')} ${verification_channel_id ? channelMention(verification_channel_id) : 'Not set'}
+			${inlineCode('Channel')} ${verificationChannelId ? channelMention(verificationChannelId) : 'Not set'}
 				${inlineCode('Dungeon completions')}
-				${dungeonNames.map((name, i) => `**${name}**: ${Reflect.get(req.dungeon_completions, i) as number}`).join('\n')}
+				${dungeonNames.map((name, i) => `**${name}**: ${req.dungeonCompletions[i].toString()}`).join('\n')}
 				`,
 		});
 
-		if (data.category_id) embed.setFooter({ text: `Category id: ${data.category_id}` });
+		if (data.categoryId) embed.setFooter({ text: `Category id: ${data.categoryId}` });
 
 		return embed;
 	}
