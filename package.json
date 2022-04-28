@@ -21,7 +21,7 @@
 		"#entities/*": "./dist/lib/entities/*.js"
 	},
 	"dependencies": {
-		"@discordjs/builders": "^0.13.0-dev.1649505810-3c0bbac",
+		"@discordjs/builders": "^0.14.0-dev.1650931748-df64d3e",
 		"@discordjs/rest": "^0.3.0",
 		"@ltd/j-toml": "^1.30.0",
 		"@prisma/client": "^3.13.0",
