@@ -29,18 +29,20 @@ export class Database {
 		logger.info('Connected to mongo');
 	}
 
-	public async getSection<T extends SectionType>(guildId: string, section: T) {
+	public async getSection<T extends SectionType>(
+		guildId: string,
+		section: T
+	): Promise<T extends 'main' ? GuildsMainRaiding : GuildsVeteranRaiding> {
 		const doc = await this.guilds?.findFirst({ where: { guildId } });
-		if (doc) {
-			const data = doc[section];
-			if (section === 'main') {
-				return data as GuildsMainRaiding;
-			}
 
-			return data as GuildsVeteranRaiding;
+		const data = doc![section];
+		if (section === 'main') {
+			// @ts-expect-error
+			return data as GuildsMainRaiding;
 		}
 
-		return null;
+		// @ts-expect-error
+		return data as GuildsVeteranRaiding;
 	}
 
 	public async updateSection<
