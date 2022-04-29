@@ -99,9 +99,7 @@ export class Raid implements RaidBase {
 
 		this.controlPanelId = controlPanelChannelId;
 
-		const member = await this.guild.members.fetch(this.memberId);
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (member) Object.defineProperty(this, 'member', { value: member });
+		Object.defineProperty(this, 'member', { value: this.guild.members.cache.get(this.memberId) });
 
 		const textChannel = await this.guild.channels.fetch(this.textChannelId);
 		if (textChannel?.isText()) Object.defineProperty(this, 'textChannel', { value: textChannel });
