@@ -27,7 +27,6 @@ import {
 	REVEAL_LOCATION_ID,
 } from '#constants/buttons';
 import { react } from '#functions/react';
-import { RAID_MESSAGE } from '#util/messages';
 import { generateActionRows, generateButtonsFromEmojis, isVeteranSection, random } from '#util/util';
 
 export enum RaidType {
@@ -50,6 +49,9 @@ const listButtonsFromType = (type: RaidType) => {
 
 	return headCountButtons.map((button) => Reflect.get(mappedButtonEmojis, button.data.emoji!.name!) as string);
 };
+
+export const RAID_MESSAGE = (dungeonName: string, dungeonEmoji: string, voiceChannel: string, isRaid: boolean) =>
+	`@here \`${dungeonName}\` ${dungeonEmoji} ${isRaid ? 'is now starting in' : 'Headcount for'} ${voiceChannel}`;
 
 export class Raid implements RaidBase {
 	private readonly client = container.resolve<Client<true>>(kClient);
