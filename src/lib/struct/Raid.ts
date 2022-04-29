@@ -82,7 +82,7 @@ export class Raid implements RaidBase {
 	public constructor(raid: Omit<RaidBase, 'mainMessageId'>) {
 		const { guildId, dungeon, memberId, textChannelId, voiceChannelId } = raid;
 
-		Object.defineProperty(this, 'guild', { value: this.client.guilds.cache.get(guildId) });
+		Reflect.defineProperty(this, 'guild', { value: this.client.guilds.cache.get(guildId) });
 
 		this.dungeon = dungeon;
 		this.guildId = guildId;
@@ -99,17 +99,17 @@ export class Raid implements RaidBase {
 
 		this.controlPanelId = controlPanelChannelId;
 
-		Object.defineProperty(this, 'member', { value: this.guild.members.cache.get(this.memberId) });
+		Reflect.defineProperty(this, 'member', { value: this.guild.members.cache.get(this.memberId) });
 
 		const textChannel = await this.guild.channels.fetch(this.textChannelId);
-		if (textChannel?.isText()) Object.defineProperty(this, 'textChannel', { value: textChannel });
+		if (textChannel?.isText()) Reflect.defineProperty(this, 'textChannel', { value: textChannel });
 
 		const voiceChannel = await this.guild.channels.fetch(this.voiceChannelId);
-		if (voiceChannel?.isVoice()) Object.defineProperty(this, 'voiceChannel', { value: voiceChannel });
+		if (voiceChannel?.isVoice()) Reflect.defineProperty(this, 'voiceChannel', { value: voiceChannel });
 
 		const controlPanel = await this.guild.channels.fetch(this.controlPanelId);
 		if (controlPanel?.isText()) {
-			Object.defineProperty(this, 'controlPanel', { value: controlPanel });
+			Reflect.defineProperty(this, 'controlPanel', { value: controlPanel });
 
 			await controlPanel.threads
 				.create({
@@ -117,7 +117,7 @@ export class Raid implements RaidBase {
 				})
 				.then(async (channel) => {
 					this.controlPanelThreadId = channel.id;
-					Object.defineProperty(this, 'controlPanelThread', { value: channel });
+					Reflect.defineProperty(this, 'controlPanelThread', { value: channel });
 
 					await this.notify();
 					await this.setupControlPanel();
@@ -166,7 +166,7 @@ export class Raid implements RaidBase {
 					dungeon.main.map((emoji) => emoji.emoji)
 				);
 
-				Object.defineProperty(this, 'mainMessage', { value: m });
+				Reflect.defineProperty(this, 'mainMessage', { value: m });
 				this.mainMessageId = m.id;
 			});
 	}
@@ -237,7 +237,7 @@ export class Raid implements RaidBase {
 				components: generateActionRows(...buttons),
 			})
 			.then((msg) => {
-				Object.defineProperty(this, 'controlPanelThreadMessage', { value: msg });
+				Reflect.defineProperty(this, 'controlPanelThreadMessage', { value: msg });
 				this.controlPanelThreadMessageId = msg.id;
 
 				return msg;
