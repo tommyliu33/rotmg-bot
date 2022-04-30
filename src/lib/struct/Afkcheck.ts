@@ -16,20 +16,20 @@ export class Afkcheck extends Raid {
 		this.reactions = new Collection();
 	}
 
-	public addReaction(emojiId: string, userId: string, state: ReactionState) {
-		this.reactions.get(emojiId)![state].add(userId);
-	}
-
-	public removeReaction(emojiId: string, userId: string, state: ReactionState) {
-		this.reactions.get(emojiId)![state].delete(userId);
-	}
-
 	public getReaction(emojiId: string, state: ReactionState) {
 		return this.reactions.get(emojiId)![state];
 	}
 
+	public addReaction(emojiId: string, userId: string, state: ReactionState) {
+		this.getReaction(emojiId, state).add(userId);
+	}
+
+	public removeReaction(emojiId: string, userId: string, state: ReactionState) {
+		this.getReaction(emojiId, state).delete(userId);
+	}
+
 	public userReacted(emojiId: string, userId: string, state: ReactionState) {
-		return this.reactions.get(emojiId)![state].has(userId);
+		return this.getReaction(emojiId, state).has(userId);
 	}
 }
 
