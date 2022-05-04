@@ -18,9 +18,9 @@ const payload = array.reduce<ApplicationCommand[]>((array, command) => {
 
 try {
 	await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID!, process.env.GUILD_ID!), { body: payload });
-	logger.info('Sucessfully refreshed slash commands for guild');
+	logger.info('Sucessfully refreshed application commands (/) for guild');
 } catch (e) {
-	logger.error(e, 'Failed to refresh slash commands for guild');
+	logger.error(e, 'Failed to refresh application commands (/) for guild');
 }
 
 type ApplicationCommand = Pick<APIApplicationCommand, 'name' | 'description' | 'options'>;
