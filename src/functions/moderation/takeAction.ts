@@ -2,14 +2,14 @@ import { logger } from '../../util/logger';
 import { ModLogAction, type ModLogCase } from './createCase';
 
 export async function takeAction(case_: ModLogCase) {
-	const { moderator, target, reason } = case_;
+	const { moderator, target, reason, deleteMessageDays } = case_;
 	const { guild } = moderator;
 
 	try {
 		switch (case_.action) {
 			case ModLogAction.Ban:
 			case ModLogAction.Unban:
-				await target.ban({ reason, deleteMessageDays: 7 });
+				await target.ban({ reason, deleteMessageDays });
 				if (case_.action === ModLogAction.Unban) {
 					await guild.members.unban(target.user.id);
 				}

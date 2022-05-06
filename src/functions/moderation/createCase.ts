@@ -36,4 +36,6 @@ export interface ModLogCase {
 
 	duration?: number;
 	silent?: boolean;
+
+	deleteMessageDays?: number;
 }
