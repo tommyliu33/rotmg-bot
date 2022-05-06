@@ -38,7 +38,7 @@ export default class implements Command {
 	];
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
-		const m = await interaction.deferReply({ ephemeral: true, fetchReply: true });
+		await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
 		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
 		const days = interaction.options.getInteger('days', false) ?? 0;

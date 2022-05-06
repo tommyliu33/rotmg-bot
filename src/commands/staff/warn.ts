@@ -22,11 +22,11 @@ export default class implements Command {
 	];
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
-		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
+		await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
-		const m = await interaction.deferReply({ ephemeral: true, fetchReply: true });
 		const moderator = interaction.member;
 
+		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
 		let target = interaction.options.getMember('member');
 		if (!target) {
 			const userId = interaction.options.getUser('member', true);
