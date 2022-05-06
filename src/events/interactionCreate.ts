@@ -25,8 +25,14 @@ export default class implements Event {
 				const error = e as Error;
 				logger.error(error, error.message);
 
-				if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
-				if (interaction.replied) await interaction.editReply(error.message);
+				try {
+					if (!interaction.deferred && !interaction.replied) await interaction.deferReply({ ephemeral: true });
+
+					await interaction.editReply({ content: error.message, components: [], embeds: [] });
+				} catch (err) {
+					const error = e as Error;
+					logger.error(error, error.message);
+				}
 			}
 		}
 
