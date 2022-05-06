@@ -36,7 +36,7 @@ export default class implements Command {
 
 		const target = interaction.options.getMember('member') ?? interaction.options.getUser('member');
 		const reason = interaction.options.getString('reason', false);
-		const days = interaction.options.getInteger('days', false) ?? 0;
+		const deleteMessageDays = interaction.options.getInteger('days', false) ?? 0;
 
 		if (
 			isMember(target) &&
@@ -52,7 +52,7 @@ export default class implements Command {
 			moderator: interaction.member,
 			target: target!,
 			reason,
-			deleteMessageDays: days,
+			deleteMessageDays,
 		});
 
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
