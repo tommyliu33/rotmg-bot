@@ -24,16 +24,8 @@ export default class implements Command {
 			description: 'The number of days to delete messages for',
 			type: 4,
 			required: false,
-			choices: [
-				{ name: '0d', value: 0 },
-				{ name: '1d', value: 1 },
-				{ name: '2d', value: 2 },
-				{ name: '3d', value: 3 },
-				{ name: '4d', value: 4 },
-				{ name: '5d', value: 5 },
-				{ name: '6d', value: 6 },
-				{ name: '7d', value: 7 },
-			],
+			min_value: 0,
+			max_value: 7,
 		},
 	];
 
@@ -41,7 +33,7 @@ export default class implements Command {
 		await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
 		let target: GuildMember | User | null = interaction.options.getUser('member');
-		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
+		const reason = interaction.options.getString('reason', false);
 		const days = interaction.options.getInteger('days', false) ?? 0;
 
 		const moderator = interaction.member;

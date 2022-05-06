@@ -26,7 +26,7 @@ export default class implements Command {
 
 		const moderator = interaction.member;
 
-		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
+		const reason = interaction.options.getString('reason', false);
 		let target = interaction.options.getMember('member');
 		if (!target) {
 			const userId = interaction.options.getUser('member', true);

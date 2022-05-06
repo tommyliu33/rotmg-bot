@@ -25,7 +25,7 @@ export default class implements Command {
 		await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
 		const target = interaction.options.getUser('user', true);
-		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
+		const reason = interaction.options.getString('reason', false);
 
 		try {
 			await interaction.guild.bans.fetch(target.id);
