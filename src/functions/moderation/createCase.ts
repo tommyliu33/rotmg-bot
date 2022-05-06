@@ -1,4 +1,4 @@
-import type { GuildMember } from 'discord.js';
+import type { GuildMember, User } from 'discord.js';
 import { logCase } from './logCase';
 import { takeAction } from './takeAction';
 
@@ -29,7 +29,7 @@ export async function createCase(case_: ModLogCase) {
 
 export interface ModLogCase {
 	moderator: GuildMember;
-	target: GuildMember;
+	target: GuildMember | User;
 
 	action: number;
 	reason: string;
