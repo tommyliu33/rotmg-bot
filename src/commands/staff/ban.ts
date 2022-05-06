@@ -11,13 +11,13 @@ export default class implements Command {
 	public options = [
 		{
 			name: 'member',
-			description: 'The member for this action',
+			description: 'The member for this ban',
 			type: 6,
 			required: true,
 		},
 		{
 			name: 'reason',
-			description: 'The reason for this action',
+			description: 'The reason for this ban',
 			type: 3,
 			required: false,
 		},

@@ -9,13 +9,13 @@ export default class implements Command {
 	public options = [
 		{
 			name: 'member',
-			description: 'Member to warn',
+			description: 'The member to warn',
 			type: 6,
 			required: true,
 		},
 		{
 			name: 'reason',
-			description: 'Reason for warning',
+			description: 'The reason for this warning',
 			type: 3,
 			required: false,
 		},

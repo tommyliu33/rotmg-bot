@@ -9,13 +9,13 @@ export default class implements Command {
 	public options = [
 		{
 			name: 'user',
-			description: 'The user for this action',
+			description: 'The user to unban',
 			type: 6,
 			required: true,
 		},
 		{
 			name: 'reason',
-			description: 'The reason for this action',
+			description: 'The reason for this unban',
 			type: 3,
 			required: false,
 		},
