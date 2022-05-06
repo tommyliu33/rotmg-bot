@@ -22,7 +22,11 @@ export default class implements Event {
 			try {
 				await command?.run(interaction);
 			} catch (e) {
-				logger.error(e);
+				const error = e as Error;
+				logger.error(error, error.message);
+
+				if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
+				if (interaction.replied) await interaction.editReply(error.message);
 			}
 		}
 
