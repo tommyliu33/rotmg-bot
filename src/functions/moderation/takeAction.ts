@@ -1,5 +1,3 @@
-import type { GuildMember } from 'discord.js';
-
 import { logger } from '../../util/logger';
 import { ModLogAction, type ModLogCase } from './createCase';
 
@@ -16,7 +14,7 @@ export async function takeAction(case_: ModLogCase) {
 				await guild.members.unban(target.id);
 				break;
 			case ModLogAction.Kick:
-				await (target as GuildMember).kick(case_.reason!);
+				await moderator.guild.members.kick(target, case_.reason!);
 				break;
 			case ModLogAction.Mute:
 				break;
