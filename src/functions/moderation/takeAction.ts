@@ -8,13 +8,13 @@ export async function takeAction(case_: ModLogCase) {
 	try {
 		switch (case_.action) {
 			case ModLogAction.Ban:
-				await moderator.guild.bans.create(target, { deleteMessageDays, reason: case_.reason! });
+				await guild.bans.create(target, { deleteMessageDays, reason: case_.reason! });
 				break;
 			case ModLogAction.Unban:
 				await guild.members.unban(target.id);
 				break;
 			case ModLogAction.Kick:
-				await moderator.guild.members.kick(target, case_.reason!);
+				await guild.members.kick(target, case_.reason!);
 				break;
 			case ModLogAction.Mute:
 				break;
