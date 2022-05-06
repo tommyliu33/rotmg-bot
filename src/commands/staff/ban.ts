@@ -1,5 +1,5 @@
 import type { Command } from '#struct/Command';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, GuildMember, User } from 'discord.js';
 
 import { createCase, ModLogAction } from '#functions/moderation/createCase';
 
@@ -40,27 +40,20 @@ export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
+		let target: GuildMember | User | null = interaction.options.getUser('member');
 		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
 		const days = interaction.options.getInteger('days', false) ?? 0;
+
 		const moderator = interaction.member;
 
-		let target = interaction.options.getMember('member');
-		if (!target) {
-			const userId = interaction.options.getUser('member', true);
-			target = await interaction.guild.members.fetch({ user: userId }).catch(async () => {
-				await interaction.editReply('Could not fetch member from the server.');
-				return null;
-			});
-		}
-
-		if (!target) return;
-
-		if (target.user.bot) {
-			await interaction.editReply('Cannot ban a bot.');
-			return;
+		if (target instanceof User) {
+			try {
+				target = await interaction.guild.members.fetch(target.id);
+			} catch {}
 		}
 
 		if (
+			target instanceof GuildMember &&
 			moderator.user.id !== interaction.guild.ownerId &&
 			moderator.roles.highest.position <= target.roles.highest.position
 		) {
@@ -71,11 +64,12 @@ export default class implements Command {
 		await createCase({
 			action: ModLogAction.Ban,
 			moderator,
-			target,
+			target: target!,
 			reason,
 			deleteMessageDays: days,
 		});
 
-		await interaction.editReply(`${target.user.tag} was banned.`);
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+		await interaction.editReply(`${target instanceof GuildMember ? target.user.tag : target?.tag} was banned.`);
 	}
 }
