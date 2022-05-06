@@ -38,7 +38,7 @@ export async function logCase(case_: ModLogCase) {
 					${bold('Action:')} ${ModLogAction[case_.action]}
 					${bold('Moderator:')} ${case_.moderator.toString()} (${inlineCode(case_.moderator.id)})
 					${bold('User:')} ${case_.target.toString()} (${inlineCode(case_.target.id)})
-					${bold('Reason:')} ${case_.reason}
+					${bold('Reason:')} ${case_.reason!}
 					`
 					)
 					.setTimestamp()

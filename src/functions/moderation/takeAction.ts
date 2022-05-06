@@ -4,7 +4,8 @@ import { logger } from '../../util/logger';
 import { ModLogAction, type ModLogCase } from './createCase';
 
 export async function takeAction(case_: ModLogCase) {
-	const { moderator, target, reason, deleteMessageDays } = case_;
+	const { moderator, target, deleteMessageDays } = case_;
+	const reason = case_.reason!;
 	const { guild } = moderator;
 
 	try {
