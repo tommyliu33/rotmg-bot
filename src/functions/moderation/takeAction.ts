@@ -8,11 +8,10 @@ export async function takeAction(case_: ModLogCase) {
 	try {
 		switch (case_.action) {
 			case ModLogAction.Ban:
-			case ModLogAction.Unban:
 				await target.ban({ reason, deleteMessageDays });
-				if (case_.action === ModLogAction.Unban) {
-					await guild.members.unban(target.user.id);
-				}
+				break;
+			case ModLogAction.Unban:
+				await guild.members.unban(target.user.id);
 				break;
 			case ModLogAction.Kick:
 				await target.kick(reason);
