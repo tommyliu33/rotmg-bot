@@ -10,7 +10,7 @@ export async function takeAction(case_: ModLogCase) {
 	try {
 		switch (case_.action) {
 			case ModLogAction.Ban:
-				await (target as GuildMember).ban({ reason, deleteMessageDays });
+				await moderator.guild.bans.create(target, { deleteMessageDays, reason });
 				break;
 			case ModLogAction.Unban:
 				await guild.members.unban(target.id);
