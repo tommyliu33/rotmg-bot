@@ -1,7 +1,9 @@
 import type { Command } from '#struct/Command';
-import { ChatInputCommandInteraction, GuildMember, User } from 'discord.js';
+import { type ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
 import { createCase, ModLogAction } from '#functions/moderation/createCase';
+
+const isMember = (what: unknown): what is GuildMember => what instanceof GuildMember;
 
 export default class implements Command {
 	public name = 'ban';
@@ -32,22 +34,14 @@ export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
-		let target: GuildMember | User | null = interaction.options.getUser('member');
+		const target = interaction.options.getMember('member') ?? interaction.options.getUser('member');
 		const reason = interaction.options.getString('reason', false);
 		const days = interaction.options.getInteger('days', false) ?? 0;
 
-		const moderator = interaction.member;
-
-		if (target instanceof User) {
-			try {
-				target = await interaction.guild.members.fetch(target.id);
-			} catch {}
-		}
-
 		if (
-			target instanceof GuildMember &&
-			moderator.user.id !== interaction.guild.ownerId &&
-			moderator.roles.highest.position <= target.roles.highest.position
+			isMember(target) &&
+			interaction.member.user.id !== interaction.guild.ownerId &&
+			interaction.member.roles.highest.position <= target.roles.highest.position
 		) {
 			await interaction.editReply('You cannot do that.');
 			return;
@@ -55,13 +49,13 @@ export default class implements Command {
 
 		await createCase({
 			action: ModLogAction.Ban,
-			moderator,
+			moderator: interaction.member,
 			target: target!,
 			reason,
 			deleteMessageDays: days,
 		});
 
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-		await interaction.editReply(`${target instanceof GuildMember ? target.user.tag : target?.tag} was banned.`);
+		await interaction.editReply(`${isMember(target) ? target.user.tag : target!.tag} was banned.`);
 	}
 }

@@ -24,28 +24,22 @@ export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: true, fetchReply: true });
 
-		const moderator = interaction.member;
-
+		const user = interaction.options.getUser('member', true);
 		const reason = interaction.options.getString('reason', false);
-		let target = interaction.options.getMember('member');
-		if (!target) {
-			const userId = interaction.options.getUser('member', true);
-			target = await interaction.guild.members.fetch({ user: userId }).catch(async () => {
-				await interaction.editReply('Could not fetch member from the server.');
-				return null;
-			});
-		}
 
-		if (!target) return;
+		await interaction.guild.members.fetch({ user }).catch(() => {
+			throw new Error('This user is not in the server.');
+		});
 
+		const target = interaction.options.getMember('member')!;
 		if (target.user.bot) {
 			await interaction.editReply('Cannot warn a bot.');
 			return;
 		}
 
 		if (
-			moderator.user.id !== interaction.guild.ownerId &&
-			moderator.roles.highest.position <= target.roles.highest.position
+			interaction.member.user.id !== interaction.guild.ownerId &&
+			interaction.member.roles.highest.position <= target.roles.highest.position
 		) {
 			await interaction.editReply('You cannot do that.');
 			return;
@@ -53,7 +47,7 @@ export default class implements Command {
 
 		await createCase({
 			action: ModLogAction.Warn,
-			moderator,
+			moderator: interaction.member,
 			target,
 			reason,
 		});

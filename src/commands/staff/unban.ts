@@ -27,11 +27,9 @@ export default class implements Command {
 		const target = interaction.options.getUser('user', true);
 		const reason = interaction.options.getString('reason', false);
 
-		try {
-			await interaction.guild.bans.fetch(target.id);
-		} catch {
+		await interaction.guild.bans.fetch(target.id).catch(() => {
 			throw new Error('This user is not banned.');
-		}
+		});
 
 		await createCase({
 			action: ModLogAction.Unban,
