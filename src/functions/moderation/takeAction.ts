@@ -5,19 +5,18 @@ import { ModLogAction, type ModLogCase } from './createCase';
 
 export async function takeAction(case_: ModLogCase) {
 	const { moderator, target, deleteMessageDays } = case_;
-	const reason = case_.reason!;
 	const { guild } = moderator;
 
 	try {
 		switch (case_.action) {
 			case ModLogAction.Ban:
-				await moderator.guild.bans.create(target, { deleteMessageDays, reason });
+				await moderator.guild.bans.create(target, { deleteMessageDays, reason: case_.reason! });
 				break;
 			case ModLogAction.Unban:
 				await guild.members.unban(target.id);
 				break;
 			case ModLogAction.Kick:
-				await (target as GuildMember).kick(reason);
+				await (target as GuildMember).kick(case_.reason!);
 				break;
 			case ModLogAction.Mute:
 				break;
