@@ -1,10 +1,11 @@
+import type { Database } from '#struct/Database';
+import type { EmojiReaction } from '#struct/RaidManager';
+
 import { chunk } from '@sapphire/utilities';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, MessageActionRowComponentBuilder } from 'discord.js';
 import { nanoid } from 'nanoid';
 import { container } from 'tsyringe';
 import { kClient, kDatabase } from '../../tokens';
-import type { Database } from '#struct/Database';
-import type { EmojiReaction } from '#struct/RaidManager';
 
 // #region Raiding utils
 

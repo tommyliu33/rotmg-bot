@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model guilds {
-  id      String               @id @default(auto()) @map("_id") @db.ObjectId
-  guildId String               @unique() @map("guild_id")
-  main    GuildsMainRaiding    @map("main_raiding")
-  veteran GuildsVeteranRaiding @map("veteran_raiding")
-}
-
 type GuildsMainRaiding {
   categoryId               String                                    @map("category_id")
   controlPanelChannelId    String                                    @map("control_panel_channel_id")
@@ -33,6 +26,18 @@ type GuildsMainRaidingVerificationRequirements {
   verificationMessage String  @default("") @map("verification_message")
 }
 
+type GuildsModeration {
+  cases        GuildsModerationCases[]
+  logChannelId String                  @map("log_channel_id")
+  roleId       String                  @map("role_id")
+}
+
+type GuildsModerationCases {
+  action      Int
+  moderatorId String @map("moderator_id")
+  targetId    String @map("target_id")
+}
+
 type GuildsVeteranRaiding {
   categoryId               String                                       @map("category_id")
   controlPanelChannelId    String                                       @map("control_panel_channel_id")
@@ -47,4 +52,12 @@ type GuildsVeteranRaiding {
 type GuildsVeteranRaidingVerificationRequirements {
   dungeonCompletions  Int[]  @map("dungeon_completions")
   verificationMessage String @default("") @map("verification_message")
+}
+
+model guilds {
+  id         String               @id @default(auto()) @map("_id") @db.ObjectId
+  guildId    String               @unique() @map("guild_id")
+  main       GuildsMainRaiding    @map("main_raiding")
+  moderation GuildsModeration
+  veteran    GuildsVeteranRaiding @map("veteran_raiding")
 }

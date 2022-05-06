@@ -1,9 +1,7 @@
+import type { Command } from '#struct/Command';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
-import { EmbedBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-
-import { nanoid } from 'nanoid';
-import type { Command } from '#struct/Command';
+import { createCase, ModLogAction } from '#functions/moderation/createCase';
 
 export default class implements Command {
 	public name = 'warn';
@@ -21,26 +19,45 @@ export default class implements Command {
 			type: 3,
 			required: false,
 		},
-		{
-			name: 'slient',
-			description: "Doesn't tell the member who warned them",
-			type: 5,
-			required: false,
-		},
 	];
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
-		// TODO: setup role to execute and permissions
+		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
 
 		const m = await interaction.deferReply({ ephemeral: true, fetchReply: true });
+		const moderator = interaction.member;
 
-		let member = interaction.options.getMember('member');
-		if (!member) {
+		let target = interaction.options.getMember('member');
+		if (!target) {
 			const userId = interaction.options.getUser('member', true);
-			member = await interaction.guild.members.fetch({ user: userId });
+			target = await interaction.guild.members.fetch({ user: userId }).catch(async () => {
+				await interaction.editReply('Could not fetch member from the server.');
+				return null;
+			});
 		}
 
-		const reason = interaction.options.getString('reason', false) ?? 'No reason provided';
-		const slient = interaction.options.getBoolean('slient', false) ?? false;
+		if (!target) return;
+
+		if (target.user.bot) {
+			await interaction.editReply('Cannot warn a bot.');
+			return;
+		}
+
+		if (
+			moderator.user.id !== interaction.guild.ownerId &&
+			moderator.roles.highest.position <= target.roles.highest.position
+		) {
+			await interaction.editReply('You cannot do that.');
+			return;
+		}
+
+		await createCase({
+			action: ModLogAction.Warn,
+			moderator,
+			target,
+			reason,
+		});
+
+		await interaction.editReply(`${target.user.tag} was warned.`);
 	}
 }

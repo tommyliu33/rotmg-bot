@@ -13,11 +13,6 @@ export class Database {
 	private readonly prismaClient: Prisma.PrismaClient | undefined;
 	public constructor(@inject(kClient) private readonly client: Client) {}
 
-	public get guilds() {
-		if (this.prismaClient) return this.prismaClient.guilds;
-		return null;
-	}
-
 	public async start() {
 		if (this.prismaClient) return this.prismaClient;
 
@@ -72,6 +67,16 @@ export class Database {
 		const doc = await this.guilds?.findFirst({ where: { guildId } });
 		if (doc) return { main: doc.main, veteran: doc.veteran };
 
+		return null;
+	}
+
+	public async getModSettings(guildId: string) {
+		const doc = await this.guilds?.findFirst({ where: { guildId } });
+		return doc?.moderation ?? null;
+	}
+
+	public get guilds() {
+		if (this.prismaClient) return this.prismaClient.guilds;
 		return null;
 	}
 }
