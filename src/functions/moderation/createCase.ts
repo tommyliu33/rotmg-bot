@@ -22,11 +22,6 @@ export async function createCase(case_: ModLogCase) {
 		case_.reason = 'No reason provided';
 	}
 
-	const { target, action, reason, moderator } = case_;
-	const { guild } = moderator;
-
-	console.log(case_);
-
 	await takeAction(case_);
 	await logCase(case_);
 }
