@@ -8,15 +8,12 @@ export enum ModLogAction {
 
 	Kick,
 
-	Mute,
-	Unmute,
+	Timeout,
 
 	Suspend,
 	Unsuspend,
 
 	Warn,
-
-	Timeout,
 }
 
 export async function createCase(case_: ModLogCase) {

@@ -17,11 +17,6 @@ export async function takeAction(case_: ModLogCase) {
 			case ModLogAction.Kick:
 				await guild.members.kick(target, case_.reason!);
 				break;
-			case ModLogAction.Mute:
-				break;
-			case ModLogAction.Unmute:
-				break;
-
 			case ModLogAction.Suspend:
 				break;
 			case ModLogAction.Unsuspend:
