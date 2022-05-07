@@ -27,9 +27,11 @@ export default class implements Command {
 		const user = interaction.options.getUser('member', true);
 		const reason = interaction.options.getString('reason', false);
 
-		await interaction.guild.members.fetch({ user }).catch(() => {
+		try {
+			await interaction.guild.members.fetch({ user });
+		} catch {
 			throw new Error('This user is not in the server.');
-		});
+		}
 
 		const target = interaction.options.getMember('member')!;
 		if (target.user.bot) {
