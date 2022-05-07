@@ -15,6 +15,8 @@ export enum ModLogAction {
 	Unsuspend,
 
 	Warn,
+
+	Timeout,
 }
 
 export async function createCase(case_: ModLogCase) {

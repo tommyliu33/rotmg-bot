@@ -1,5 +1,6 @@
 import { logger } from '../../util/logger';
 import { ModLogAction, type ModLogCase } from './createCase';
+import type { GuildMember } from 'discord.js';
 
 export async function takeAction(case_: ModLogCase) {
 	const { moderator, target, deleteMessageDays } = case_;
@@ -20,11 +21,15 @@ export async function takeAction(case_: ModLogCase) {
 				break;
 			case ModLogAction.Unmute:
 				break;
+
 			case ModLogAction.Suspend:
 				break;
 			case ModLogAction.Unsuspend:
 				break;
 			case ModLogAction.Warn:
+				break;
+			case ModLogAction.Timeout:
+				await (target as GuildMember).timeout(case_.duration!);
 				break;
 		}
 	} catch (e) {
