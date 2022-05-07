@@ -27,8 +27,9 @@ type GuildsMainRaidingVerificationRequirements {
 }
 
 type GuildsModeration {
-  cases        GuildsModerationCases[]
-  logChannelId String                  @map("log_channel_id")
+  cases         GuildsModerationCases[]
+  logChannelId  String                  @map("log_channel_id")
+  suspendRoleId String                  @map("suspend_role_id")
 }
 
 type GuildsModerationCases {
