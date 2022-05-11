@@ -33,9 +33,14 @@ type GuildsModeration {
 }
 
 type GuildsModerationCases {
-  action      Int
-  moderatorId String @map("moderator_id")
-  targetId    String @map("target_id")
+  id              String
+  action          Int
+  moderatorId     String   @map("moderator_id")
+  targetId        String   @map("target_id")
+  actionProcessed Boolean  @map("action_processed")
+  duration        Int
+  roles           String[]
+  reason          String
 }
 
 type GuildsVeteranRaiding {

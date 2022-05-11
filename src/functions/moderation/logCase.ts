@@ -8,7 +8,7 @@ import { bold, inlineCode } from '@discordjs/builders';
 import { ModLogAction, ModLogCase } from './createCase';
 import { transformCase } from './transformCase';
 
-export async function logCase(case_: ModLogCase) {
+export async function logCase(case_: ModLogCase & { id: string }) {
 	const db = container.resolve<Database>(kDatabase);
 
 	const guildId = case_.moderator.guild.id;
@@ -42,7 +42,7 @@ export async function logCase(case_: ModLogCase) {
 					`
 					)
 					.setTimestamp()
-					.setFooter({ text: `Case #${cases}` });
+					.setFooter({ text: `Case #${cases} | ${case_.id}` });
 
 				await channel.send({ embeds: [embed] });
 			}

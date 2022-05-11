@@ -29,6 +29,7 @@
 		"@sapphire/type": "^2.2.0",
 		"@sapphire/utilities": "^3.6.2",
 		"@toommyliu/realmeye-scraper": "github:toommyliu/realmeye-scraper",
+		"bree": "^8.0.3",
 		"common-tags": "^1.8.2",
 		"discord-api-types": "^0.32.0",
 		"discord.js": "^14.0.0-dev.1651493371-4ba0f56",

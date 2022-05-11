@@ -1,6 +1,8 @@
-import type { GuildMember, User } from 'discord.js';
+import { nanoid } from 'nanoid';
 import { logCase } from './logCase';
 import { takeAction } from './takeAction';
+
+import type { GuildMember, User } from 'discord.js';
 
 export enum ModLogAction {
 	Ban,
@@ -16,13 +18,20 @@ export enum ModLogAction {
 	Warn,
 }
 
-export async function createCase(case_: ModLogCase) {
+export async function createCase(case_: ModLogCase & { id?: string }) {
 	if (!case_.reason) {
 		case_.reason = 'No reason provided';
 	}
 
+	if (!case_.id) {
+		case_.id = nanoid(13);
+	}
+
 	await takeAction(case_);
-	await logCase(case_);
+	// suspensions should edit the log embed
+	if (case_.action !== ModLogAction.Suspend)
+		// @ts-expect-error
+		await logCase(case_);
 }
 
 export interface ModLogCase {
@@ -32,8 +41,13 @@ export interface ModLogCase {
 	action: number;
 	reason: string | null;
 
+	roles?: string[];
+
 	duration?: number;
 	silent?: boolean;
+
+	// whether this case has finished
+	processed?: boolean;
 
 	deleteMessageDays?: number;
 }

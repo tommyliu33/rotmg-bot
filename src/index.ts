@@ -6,7 +6,7 @@ import { Client, ClientEvents } from 'discord.js';
 
 import readdirp from 'readdirp';
 import { container } from 'tsyringe';
-import { kClient, kCommands, kDatabase, kModeration, kRaids } from './tokens';
+import { kClient, kCommands, kDatabase, kModeration, kRaids, kBree } from './tokens';
 
 import { logger } from './util/logger';
 
@@ -15,6 +15,7 @@ import { Database } from '#struct/Database';
 import type { Event } from '#struct/Event';
 import { RaidManager } from '#struct/RaidManager';
 import { ModLogCaseHandler } from '#struct/ModLogCaseHandler';
+import Bree from 'bree';
 
 const client = new Client({
 	intents: [
@@ -58,7 +59,35 @@ for await (const dir of readdirp('./events', { fileFilter: '*.js' })) {
 	client.on(event.event as keyof ClientEvents, async (...args: unknown[]) => event.run(...args));
 	logger.info(`Registered event: ${event.name}`);
 }
+// @ts-expect-error
+const bree = new Bree({ root: false, logger });
+import { fileURLToPath } from 'node:url';
+client.once('ready', () => {
+	container.register(kBree, { useValue: bree });
 
+	bree.add({
+		// or make it more general
+		name: 'suspensions',
+		interval: '30s',
+		path: fileURLToPath(new URL('./jobs/suspensions.js', import.meta.url)),
+	});
+	logger.info('registered job: suspensionsJob');
+
+	bree.run('suspensions');
+	logger.info('starting jobs');
+
+	// TODO: cleanup
+	bree.on('worker created', (name: string) => {
+		logger.info('worker created:', name);
+	});
+
+	bree.on('worker deleted', (name: string) => {
+		bree.workers.get(name)?.removeAllListeners();
+	});
+
+	// RECEIVE MESSAGE
+	bree.workers.get('suspensions')?.on('error', (err) => logger.error(err));
+});
 await client.login();
 
 type Constructor<T> = new (...args: any[]) => T;
