@@ -39,7 +39,7 @@
 		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
 		"source-map-support": "^0.5.21",
-		"tsyringe": "^4.6.0"
+		"tsyringe": "^4.7.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^16.2.3",
