@@ -30,7 +30,7 @@
 		"@sapphire/utilities": "^3.6.2",
 		"@toommyliu/realmeye-scraper": "github:toommyliu/realmeye-scraper",
 		"common-tags": "^1.8.2",
-		"discord-api-types": "^0.32.0",
+		"discord-api-types": "^0.33.2",
 		"discord.js": "^14.0.0-dev.1651493371-4ba0f56",
 		"dotenv": "^16.0.0",
 		"nanoid": "^3.3.2",
