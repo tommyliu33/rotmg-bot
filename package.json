@@ -24,7 +24,7 @@
 		"@discordjs/builders": "^0.13.0-dev.1649505810-3c0bbac",
 		"@discordjs/rest": "^0.4.1",
 		"@ltd/j-toml": "^1.30.0",
-		"@prisma/client": "^3.13.0",
+		"@prisma/client": "^3.15.0",
 		"@sapphire/stopwatch": "^1.4.1",
 		"@sapphire/type": "^2.2.0",
 		"@sapphire/utilities": "^3.6.2",
