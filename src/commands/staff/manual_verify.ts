@@ -52,21 +52,21 @@ export default class implements Command {
 			return;
 		}
 
-		if (member?.manageable) {
-			await verifyMember(member, {
-				nickname: name,
-				roleId: role.id,
-				type: VerificationType.Main,
-			})
-				.then(async () => {
-					await interaction.editReply(`Successfully verified ${member.toString()}.`);
-				})
-				.catch(async (err: Error) => {
-					await interaction.editReply(err.message);
-				});
+		if (!member?.manageable) {
+			await interaction.editReply('I cannot manage this user.');
 			return;
 		}
 
-		await interaction.editReply('I cannot manage this user.');
+		verifyMember(member, {
+			nickname: name,
+			roleId: role.id,
+			type: VerificationType.Main,
+		})
+			.then(async () => {
+				await interaction.editReply(`Successfully verified ${member.toString()}.`);
+			})
+			.catch(async (err: Error) => {
+				await interaction.editReply(err.message);
+			});
 	}
 }
