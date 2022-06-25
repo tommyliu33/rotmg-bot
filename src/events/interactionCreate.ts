@@ -6,6 +6,7 @@ import { kCommands } from '../tokens';
 import { logger } from '../util/logger';
 import type { Command } from '#struct/Command';
 import type { Event } from '#struct/Event';
+import { InteractionType } from 'discord-api-types/v10';
 
 @injectable()
 export default class implements Event {
@@ -26,7 +27,7 @@ export default class implements Event {
 			}
 		}
 
-		if (interaction.isAutocomplete()) {
+		if (interaction.type === InteractionType.ApplicationCommandAutocomplete && interaction.isRepliable()) {
 			const command = this.commands.get(interaction.commandName);
 			if (typeof command?.autocomplete !== 'function') return;
 

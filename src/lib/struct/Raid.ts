@@ -14,6 +14,7 @@ import { generateActionRows, generateButtonsFromEmojis, random } from '#util/uti
 import { hyperlink, inlineCode } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 import {
+	ChannelType,
 	Client,
 	Collection,
 	EmbedBuilder,
@@ -109,13 +110,13 @@ export class Raid implements RaidBase {
 		Reflect.defineProperty(this, 'member', { value: this.guild.members.cache.get(this.memberId) });
 
 		const textChannel = await this.guild.channels.fetch(this.textChannelId);
-		if (textChannel?.isText()) Reflect.defineProperty(this, 'textChannel', { value: textChannel });
+		if (textChannel?.isTextBased()) Reflect.defineProperty(this, 'textChannel', { value: textChannel });
 
 		const voiceChannel = await this.guild.channels.fetch(this.voiceChannelId);
-		if (voiceChannel?.isVoice()) Reflect.defineProperty(this, 'voiceChannel', { value: voiceChannel });
+		if (voiceChannel?.isVoiceBased()) Reflect.defineProperty(this, 'voiceChannel', { value: voiceChannel });
 
 		const controlPanel = await this.guild.channels.fetch(this.controlPanelId);
-		if (controlPanel?.isText()) {
+		if (controlPanel?.isTextBased() && controlPanel.type === ChannelType.GuildText) {
 			Reflect.defineProperty(this, 'controlPanel', { value: controlPanel });
 
 			await controlPanel.threads

@@ -4,8 +4,7 @@ import { scrapePlayer, scrapeGuild } from '@toommyliu/realmeye-scraper';
 import { stripIndents } from 'common-tags';
 import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
-
-import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, Util } from 'discord.js';
+import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, escapeMarkdown } from 'discord.js';
 
 import { FAME_EMOJI_ID } from '../../constants';
 import { paginate } from '../../functions/paginate';
@@ -62,7 +61,7 @@ export default class implements Command {
 				});
 
 				if (player) {
-					if (player.description) embed.setDescription(Util.escapeMarkdown(player.description));
+					if (player.description) embed.setDescription(escapeMarkdown(player.description));
 
 					const fields = [
 						{
@@ -164,7 +163,7 @@ export default class implements Command {
 				});
 
 				if (guild) {
-					if (guild.description) embed.setDescription(Util.escapeMarkdown(guild.description));
+					if (guild.description) embed.setDescription(escapeMarkdown(guild.description));
 
 					const fields = [
 						{

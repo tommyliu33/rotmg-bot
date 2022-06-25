@@ -155,7 +155,7 @@ export default class implements Command {
 			return undefined;
 		});
 
-		if (!channel?.isText()) return;
+		if (!channel?.isTextBased()) return;
 		if (!verification_requirements.verification_message) {
 			await interaction.editReply('There is no set verification message to display.');
 			return;

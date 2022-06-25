@@ -96,7 +96,7 @@ export default class implements Command {
 				await interaction.editReply({
 					content: null,
 					embeds: [embed],
-					components: voiceChannel?.isVoice() ? generateActionRows(crashersButton) : [],
+					components: voiceChannel?.isVoiceBased() ? generateActionRows(crashersButton) : [],
 				});
 
 				const collectedInteraction = await m
@@ -112,7 +112,7 @@ export default class implements Command {
 						return undefined;
 					});
 
-				if (collectedInteraction?.customId === crashersKey && voiceChannel?.isVoice()) {
+				if (collectedInteraction?.customId === crashersKey && voiceChannel?.isVoiceBased()) {
 					await collectedInteraction.deferReply({ ephemeral: true });
 
 					const filter = (m: GuildMember) => m.id !== interaction.user.id || !m.user.bot;

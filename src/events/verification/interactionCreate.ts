@@ -17,6 +17,7 @@ import { VerificationType, verifyMember } from '#functions/verification/verifyMe
 import type { Event } from '#struct/Event';
 import { cancelButton, doneButton } from '#util/constants/buttons';
 import { generateActionRows } from '#util/util';
+import { InteractionType } from 'discord-api-types/v10';
 const profileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
 
 export default class implements Event {
@@ -83,7 +84,7 @@ export default class implements Event {
 			}
 		}
 
-		if (interaction.isModalSubmit()) {
+		if (interaction.type === InteractionType.ModalSubmit && interaction.isRepliable()) {
 			await interaction.reply({ content: 'Please check your DMs to continue.', ephemeral: true });
 
 			const channel = await interaction.user.createDM().catch(async () => {
