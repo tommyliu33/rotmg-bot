@@ -23,7 +23,6 @@
 		"@discordjs/rest": "^0.4.1",
 		"@ltd/j-toml": "^1.30.0",
 		"@sapphire/stopwatch": "^1.4.1",
-		"@sapphire/type": "^2.2.0",
 		"@sapphire/utilities": "^3.6.2",
 		"@toommyliu/realmeye-scraper": "github:toommyliu/realmeye-scraper",
 		"common-tags": "^1.8.2",
