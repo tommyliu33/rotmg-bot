@@ -1,20 +1,3 @@
-import { hyperlink, inlineCode } from '@discordjs/builders';
-import { stripIndents } from 'common-tags';
-import {
-	Client,
-	EmbedBuilder,
-	Guild,
-	GuildMember,
-	Message,
-	TextChannel,
-	ThreadChannel,
-	VoiceChannel,
-} from 'discord.js';
-import { container } from 'tsyringe';
-import { Afkcheck } from './Afkcheck';
-import type { Headcount } from './Headcount';
-import type { Dungeon, RaidManager } from './RaidManager';
-import { kClient, kRaids } from '../../tokens';
 import {
 	ABORT_ID,
 	afkCheckButtons,
@@ -26,8 +9,24 @@ import {
 	REVEAL_LOCATION_ID,
 } from '#constants/buttons';
 import { react } from '#functions/react';
-import { generateActionRows, generateButtonsFromEmojis, random } from '#util/util';
 import { isVeteranSection } from '#raids/isVeteranSection';
+import { generateActionRows, generateButtonsFromEmojis, random } from '#util/util';
+import { hyperlink, inlineCode } from '@discordjs/builders';
+import { stripIndents } from 'common-tags';
+import {
+	Client,
+	Collection,
+	EmbedBuilder,
+	Guild,
+	GuildMember,
+	Message,
+	TextChannel,
+	ThreadChannel,
+	VoiceChannel,
+} from 'discord.js';
+import { container } from 'tsyringe';
+import { kClient, kRaids } from '../../tokens';
+import type { Dungeon, RaidManager } from './RaidManager';
 
 import { config } from '../../util/config';
 
@@ -52,8 +51,8 @@ const listButtonsFromType = (type: RaidType) => {
 	return headCountButtons.map((button) => Reflect.get(mappedButtonEmojis, button.data.emoji!.name!) as string);
 };
 
-export const RAID_MESSAGE = (dungeonName: string, dungeonEmoji: string, voiceChannel: string, isRaid: boolean) =>
-	`@here \`${dungeonName}\` ${dungeonEmoji} ${isRaid ? 'is now starting in' : 'Headcount for'} ${voiceChannel}`;
+export const RAID_MESSAGE = (dungeonName: string, dungeonEmoji: string, voiceChannel: string, isAfkCheck: boolean) =>
+	`@here \`${dungeonName}\` ${dungeonEmoji} ${isAfkCheck ? 'is now starting in' : 'Headcount for'} ${voiceChannel}`;
 
 export class Raid implements RaidBase {
 	private readonly client = container.resolve<Client<true>>(kClient);
@@ -67,6 +66,8 @@ export class Raid implements RaidBase {
 	private readonly controlPanel!: TextChannel;
 	private readonly controlPanelThread!: ThreadChannel;
 
+	public reactions: Collection<string, ReactionStateUsers>;
+
 	public textChannelId: string;
 	public voiceChannelId: string;
 	public controlPanelId!: string;
@@ -79,8 +80,10 @@ export class Raid implements RaidBase {
 	public memberId: string;
 	public dungeon: Dungeon;
 	public type: RaidType;
+	public location: string;
+	public locationRevealed: boolean;
 
-	public constructor(raid: Omit<RaidBase, 'mainMessageId'>) {
+	public constructor(raid: Omit<RaidBase, 'mainMessageId'> & { type: RaidType }) {
 		const { guildId, dungeon, memberId, textChannelId, voiceChannelId } = raid;
 
 		Reflect.defineProperty(this, 'guild', { value: this.client.guilds.cache.get(guildId) });
@@ -90,11 +93,14 @@ export class Raid implements RaidBase {
 		this.memberId = memberId;
 		this.textChannelId = textChannelId;
 		this.voiceChannelId = voiceChannelId;
+		this.location = '';
+		this.locationRevealed = false;
+		this.type = raid.type;
 
-		this.type = this instanceof Afkcheck ? RaidType.AfkCheck : RaidType.Headcount;
+		this.reactions = new Collection();
 	}
 
-	public async begin() {
+	public async init() {
 		const isVet = isVeteranSection(config, this.textChannelId);
 		const controlPanelChannelId = config[isVet ? 'veteran_raiding' : 'main_raiding'].control_panel_channel_id;
 
@@ -155,7 +161,7 @@ export class Raid implements RaidBase {
 					dungeon.name,
 					this.client.emojis.cache.get(dungeon.portal)?.toString() ?? '',
 					this.voiceChannel.name,
-					this.isAfkCheck()
+					this.type === RaidType.AfkCheck
 				),
 				allowedMentions: { parse: ['everyone'] },
 				embeds: [embed.toJSON()],
@@ -193,7 +199,7 @@ export class Raid implements RaidBase {
 			await msg?.edit({ components: [] });
 		} catch {}
 
-		this.manager.headcounts.delete(`${this.guildId}-${this.memberId}`);
+		this.manager.raids.delete(this.key);
 	}
 
 	public async abort() {
@@ -213,6 +219,7 @@ export class Raid implements RaidBase {
 
 		await this.mainMessage.reactions.removeAll().catch(() => undefined);
 		await this.controlPanelThread.setArchived(true);
+		await this.manager.raids.delete(this.key);
 	}
 
 	private async setupControlPanel() {
@@ -231,7 +238,7 @@ export class Raid implements RaidBase {
 			.setTimestamp()
 			.setColor(this.dungeon.color);
 
-		const buttons = this.isAfkCheck() ? afkCheckButtons : headCountButtons;
+		const buttons = this.isAfkcheck ? afkCheckButtons : headCountButtons;
 		const m = await this.controlPanelThread
 			.send({
 				embeds: [embed.toJSON()],
@@ -263,11 +270,11 @@ export class Raid implements RaidBase {
 			switch (interaction.customId) {
 				case ABORT_ID:
 					await this.abort();
-					await interaction.editReply('✅ Aborted your headcount.');
+					await interaction.editReply('Headcount aborted.');
 					break;
 				case END_ID:
 					await this.end();
-					await interaction.editReply('✅ Ended your headcount.');
+					await interaction.editReply('Headcount ended.');
 					break;
 				case CHANGE_LOCATION_ID:
 					await interaction.editReply('Enter a new location for this raid.');
@@ -282,7 +289,7 @@ export class Raid implements RaidBase {
 							return undefined;
 						});
 
-					if (msg?.content && this.isAfkCheck()) {
+					if (msg?.content && this.isAfkcheck) {
 						this.location = msg.content;
 
 						await interaction.editReply('✅Updated location.');
@@ -297,7 +304,7 @@ export class Raid implements RaidBase {
 					}
 					break;
 				case REVEAL_LOCATION_ID:
-					if (this.isAfkCheck()) {
+					if (this.isAfkcheck) {
 						if (!this.location) {
 							await interaction.editReply('Set a location before revealing.');
 							return;
@@ -319,7 +326,7 @@ export class Raid implements RaidBase {
 					}
 					break;
 				case FINISH_ID:
-					if (this.isAfkCheck()) {
+					if (this.isAfkcheck) {
 						this.delete();
 						await interaction.editReply('Done.');
 					}
@@ -329,37 +336,37 @@ export class Raid implements RaidBase {
 		});
 	}
 
-	// cache the raid
 	public save() {
-		if (this.isAfkCheck()) {
-			this.manager.afkchecks.set(this.key, this);
-			return;
-		}
-
-		this.manager.headcounts.set(this.key, this);
+		this.manager.raids.set(this.key, this);
 	}
 
-	// delete raid from cache
 	public delete() {
-		if (this.isAfkCheck()) {
-			this.manager.afkchecks.delete(this.key);
-			return;
-		}
-
-		this.manager.headcounts.delete(this.key);
+		this.manager.raids.delete(this.key);
 	}
 
-	public isAfkCheck(): this is Afkcheck {
-		return this.type === RaidType.AfkCheck;
+	public getReaction(emojiId: string, state: ReactionState) {
+		return this.reactions.get(emojiId)![state];
 	}
 
-	public isHeadCount(): this is Headcount {
-		return this.type === RaidType.Headcount;
+	public addReaction(emojiId: string, userId: string, state: ReactionState) {
+		this.getReaction(emojiId, state).add(userId);
+	}
+
+	public removeReaction(emojiId: string, userId: string, state: ReactionState) {
+		this.getReaction(emojiId, state).delete(userId);
+	}
+
+	public userReacted(emojiId: string, userId: string, state: ReactionState) {
+		return this.getReaction(emojiId, state).has(userId);
 	}
 
 	public get typeName() {
-		const formattedName = this.isAfkCheck() ? 'Afkcheck' : 'Headcount';
+		const formattedName = this.isAfkcheck ? 'Afkcheck' : 'Headcount';
 		return formattedName;
+	}
+
+	public get isAfkcheck() {
+		return this.type === RaidType.AfkCheck;
 	}
 
 	private get key(): string {
@@ -374,4 +381,10 @@ export interface RaidBase {
 	textChannelId: string;
 	voiceChannelId: string;
 	dungeon: Dungeon;
+}
+
+type ReactionState = 'pending' | 'confirmed';
+interface ReactionStateUsers {
+	confirmed: Set<string>;
+	pending: Set<string>;
 }

@@ -6,6 +6,7 @@ import { injectable, inject } from 'tsyringe';
 import { kClient, kRaids } from '../../tokens';
 import type { Event } from '#struct/Event';
 import type { RaidManager } from '#struct/RaidManager';
+import { RaidType } from '#struct/Raid';
 
 @injectable()
 export default class implements Event {
@@ -20,12 +21,13 @@ export default class implements Event {
 	public async run(interaction: Interaction<'cached'>) {
 		if (!interaction.isButton()) return;
 
-		const raidKey = this.manager.afkchecks.findKey(
+		const raidKey = this.manager.raids.findKey(
 			(raid) => raid.textChannelId === interaction.channelId && raid.mainMessageId === interaction.message.id
 		);
 		if (!raidKey) return;
 
-		const raid = this.manager.afkchecks.get(raidKey)!;
+		const raid = this.manager.raids.get(raidKey)!;
+		if (raid.type !== RaidType.AfkCheck) return;
 
 		const reply = await interaction.deferReply({ fetchReply: true, ephemeral: true });
 

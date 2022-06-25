@@ -1,9 +1,10 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
-
-import { inject, injectable } from 'tsyringe';
-import { kRaids } from '../tokens';
 import type { Command } from '#struct/Command';
 import type { RaidManager } from '#struct/RaidManager';
+import type { ChatInputCommandInteraction } from 'discord.js';
+
+import { RaidType } from '#struct/Raid';
+import { inject, injectable } from 'tsyringe';
+import { kRaids } from '../tokens';
 
 @injectable()
 export default class implements Command {
@@ -17,21 +18,18 @@ export default class implements Command {
 
 		const key = `${interaction.guildId}-${interaction.member.id}`;
 
-		const afkcheck = this.manager.afkchecks.get(key);
-		const headcount = this.manager.headcounts.get(key);
-		if (afkcheck) {
-			await afkcheck.abort();
-			this.manager.afkchecks.delete(key);
+		const raid = this.manager.raids.get(key);
+		if (raid) {
+			await raid.abort();
+			switch (raid.type) {
+				case RaidType.Headcount:
+					await interaction.editReply('Headcount aborted.');
+					break;
+				case RaidType.AfkCheck:
+					await interaction.editReply('Afkcheck aborted.');
+					break;
+			}
 
-			await interaction.editReply({ content: 'Aborted your afkcheck.' });
-			return;
-		}
-
-		if (headcount) {
-			await headcount.abort();
-			this.manager.headcounts.delete(key);
-
-			await interaction.editReply({ content: 'Aborted your headcount.' });
 			return;
 		}
 

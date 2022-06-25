@@ -2,7 +2,7 @@ import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'disco
 import { injectable, inject } from 'tsyringe';
 import { kRaids } from '../tokens';
 import type { Command } from '#struct/Command';
-import { Headcount } from '#struct/Headcount';
+import { Raid, RaidType } from '#struct/Raid';
 import type { RaidManager } from '#struct/RaidManager';
 
 import { config } from '../util/config';
@@ -42,7 +42,7 @@ export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 
-		if (this.manager.headcounts.has(`${interaction.guildId}-${interaction.member.id}`)) {
+		if (this.manager.raids.get(`${interaction.guildId}-${interaction.member.id}`)?.type === RaidType.Headcount) {
 			await interaction.editReply('You already have an active headcount, abort to start another.');
 			return;
 		}
@@ -50,18 +50,19 @@ export default class implements Command {
 		const voiceChannelId = interaction.options.getString('voice_channel', true);
 		const dungeon = this.manager.dungeonCache.get(interaction.options.getString('dungeon', true))!;
 
-		const headcount = new Headcount({
+		const raid = new Raid({
 			dungeon,
 			guildId: interaction.guildId,
 			memberId: interaction.member.id,
 
 			textChannelId: interaction.channelId,
 			voiceChannelId,
+
+			type: RaidType.Headcount,
 		});
 
-		await headcount.begin();
-
 		await interaction.deleteReply();
+		await raid.init();
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {

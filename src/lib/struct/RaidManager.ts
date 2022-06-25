@@ -5,8 +5,7 @@ import { parse } from '@ltd/j-toml';
 import * as constants from '../../constants';
 import { logger } from '../../util/logger';
 
-import type { Afkcheck } from '#struct/Afkcheck';
-import type { Headcount } from '#struct/Headcount';
+import type { Raid } from '#struct/Raid';
 
 const resolveEmoji = (emoji: string) => {
 	if (emoji in constants) return Reflect.get(constants, emoji) as string;
@@ -14,14 +13,11 @@ const resolveEmoji = (emoji: string) => {
 };
 
 export class RaidManager {
-	public afkchecks: Collection<string, Afkcheck>;
-	public headcounts: Collection<string, Headcount>;
+	public raids: Collection<string, Raid>;
 	public dungeonCache: Collection<string, Dungeon>;
 
 	public constructor() {
-		this.afkchecks = new Collection();
-		this.headcounts = new Collection();
-
+		this.raids = new Collection();
 		this.dungeonCache = new Collection();
 
 		this.init();
