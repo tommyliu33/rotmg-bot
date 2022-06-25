@@ -1,12 +1,9 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
 import type { Command } from '#struct/Command';
-import { inject, injectable } from 'tsyringe';
-import { kDatabase } from '../../tokens';
-import { Database } from '#struct/Database';
+import type { ChatInputCommandInteraction } from 'discord.js';
 
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
+import { config } from '../../util/config';
 
-@injectable()
 export default class implements Command {
 	public name = 'manual_verify';
 	public description = 'Manually verify a member';
@@ -31,24 +28,21 @@ export default class implements Command {
 		},
 	];
 
-	public constructor(@inject(kDatabase) public readonly db: Database) {}
-
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: interaction.options.getBoolean('hidden') ?? false });
 
-		const { userRoleId } = await this.db.getSection(interaction.guildId, 'veteran');
-
-		if (!userRoleId) {
-			await interaction.editReply('There is no set role in the database.');
+		const { user_role_id } = config['main_raiding'];
+		if (!user_role_id) {
+			await interaction.editReply('No role found.');
 			return;
 		}
 
 		const member = interaction.options.getMember('member');
 		const name = interaction.options.getString('name', true);
-		const role = await interaction.guild.roles.fetch(userRoleId).catch(() => undefined);
+		const role = await interaction.guild.roles.fetch(user_role_id).catch(() => undefined);
 
 		if (!role) {
-			await interaction.editReply(`Could not find role in the server (it is currently set to: ${userRoleId}).`);
+			await interaction.editReply(`Could not find role in the server (it is currently set to: ${user_role_id}).`);
 			return;
 		}
 

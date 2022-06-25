@@ -1,11 +1,12 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 import { injectable, inject } from 'tsyringe';
-import { kDatabase, kRaids } from '../tokens';
+import { kRaids } from '../tokens';
 import type { Command } from '#struct/Command';
-import type { Database } from '#struct/Database';
 import { Headcount } from '#struct/Headcount';
 import type { RaidManager } from '#struct/RaidManager';
-import { isVeteranSection } from '#util/util';
+
+import { config } from '../util/config';
+import { isVeteranSection } from '#raids/isVeteranSection';
 
 @injectable()
 export default class implements Command {
@@ -36,10 +37,7 @@ export default class implements Command {
 		},
 	];
 
-	public constructor(
-		@inject(kRaids) public readonly manager: RaidManager,
-		@inject(kDatabase) public readonly db: Database
-	) {}
+	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
@@ -67,13 +65,11 @@ export default class implements Command {
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
-		const isVet = await isVeteranSection(interaction.guildId, interaction.channelId);
-
-		const guild = await this.db.getSection(interaction.guildId, isVet ? 'veteran' : 'main');
-		const channelIds = guild.voiceChannelIds;
+		const isVet = isVeteranSection(config, interaction.channelId);
+		const { voice_channel_ids } = config[isVet ? 'veteran_raiding' : 'main_raiding'];
 
 		const response = [];
-		for (const id of channelIds) {
+		for (const id of voice_channel_ids) {
 			const channel = await interaction.guild.channels.fetch(id, { cache: true }).catch(() => undefined);
 			if (channel?.isVoice()) response.push({ name: channel.name, value: id });
 		}

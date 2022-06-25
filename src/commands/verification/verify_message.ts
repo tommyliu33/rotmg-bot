@@ -2,40 +2,37 @@ import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, inlineCode } from '@disc
 import { toTitleCase } from '@sapphire/utilities';
 import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { ComponentType } from 'discord.js';
-import { injectable, inject } from 'tsyringe';
-import { kDatabase } from '../../tokens';
 import type { Command } from '#struct/Command';
-import { Database } from '#struct/Database';
 
-@injectable()
+import { config } from '../../util/config';
+
 export default class implements Command {
 	public name = 'verify_message';
 	public description = "Sends the section's verification requirements";
 	public options = [
-		{
-			type: 1,
-			name: 'edit',
-			description: 'Update the verification message',
-			options: [
-				{
-					type: 3,
-					name: 'section',
-					description: 'The section requirements to edit',
-					choices: [
-						{
-							name: 'Main',
-							value: 'main',
-						},
-						{
-							name: 'Veteran',
-							value: 'veteran',
-						},
-					],
-					required: true,
-				},
-			],
-		},
+		// {
+		// 	type: 1,
+		// 	name: 'edit',
+		// 	description: 'Update the verification message',
+		// 	options: [
+		// 		{
+		// 			type: 3,
+		// 			name: 'section',
+		// 			description: 'The section requirements to edit',
+		// 			choices: [
+		// 				{
+		// 					name: 'Main',
+		// 					value: 'main',
+		// 				},
+		// 				{
+		// 					name: 'Veteran',
+		// 					value: 'veteran',
+		// 				},
+		// 			],
+		// 			required: true,
+		// 		},
+		// 	],
+		// },
 		{
 			type: 1,
 			name: 'send',
@@ -48,11 +45,11 @@ export default class implements Command {
 					choices: [
 						{
 							name: 'Main',
-							value: 'main',
+							value: 'main_raiding',
 						},
 						{
 							name: 'Veteran',
-							value: 'veteran',
+							value: 'veteran_raiding',
 						},
 					],
 					required: true,
@@ -67,108 +64,106 @@ export default class implements Command {
 		},
 	];
 
-	public constructor(@inject(kDatabase) public readonly db: Database) {}
-
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
-		const reply = await interaction.deferReply({ fetchReply: true });
+		await interaction.deferReply();
 
-		const section = interaction.options.getString('section', true) as 'main' | 'veteran';
+		const section = interaction.options.getString('section', true) as 'main_raiding' | 'veteran_raiding';
 		const button = interaction.options.getBoolean('button', false) ?? false;
 
-		const { verificationRequirements, verificationChannelId } = await this.db.getSection(interaction.guildId, section);
+		const { verification_requirements, verification_channel_id } = config[section];
 
 		const embed = new EmbedBuilder().setTitle(
 			`${inlineCode(interaction.guild.name)} ${toTitleCase(section)} Section Verification`
 		);
 
-		if (interaction.options.getSubcommand(true) === 'edit') {
-			await interaction.editReply(
-				'Enter the message you want to display. It will be displayed in an embed.\nYou have 1 minute to respond.'
-			);
-			const messages = await reply.channel
-				.awaitMessages({
-					filter: (m) => m.author.id === interaction.user.id,
-					time: 60_000,
-					max: 1,
-				})
-				.catch(async () => {
-					await interaction.editReply('Collector timed out, run the command to start again.');
-					return undefined;
-				});
+		// if (interaction.options.getSubcommand(true) === 'edit') {
+		// 	await interaction.editReply(
+		// 		'Enter the message you want to display. It will be displayed in an embed.\nYou have 1 minute to respond.'
+		// 	);
+		// 	const messages = await reply.channel
+		// 		.awaitMessages({
+		// 			filter: (m) => m.author.id === interaction.user.id,
+		// 			time: 60_000,
+		// 			max: 1,
+		// 		})
+		// 		.catch(async () => {
+		// 			await interaction.editReply('Collector timed out, run the command to start again.');
+		// 			return undefined;
+		// 		});
 
-			if (!messages?.first()) return;
+		// 	if (!messages?.first()) return;
 
-			const msg = messages.first()!;
-			const { content } = msg;
+		// 	const msg = messages.first()!;
+		// 	const { content } = msg;
 
-			try {
-				await msg.delete();
-			} catch {}
+		// 	try {
+		// 		await msg.delete();
+		// 	} catch {}
 
-			const yesKey = 'yes';
-			const noKey = 'no';
+		// 	const yesKey = 'yes';
+		// 	const noKey = 'no';
 
-			const yesButton = new ButtonBuilder()
-				.setCustomId(yesKey)
-				.setLabel(toTitleCase(yesKey))
-				.setStyle(ButtonStyle.Primary);
+		// 	const yesButton = new ButtonBuilder()
+		// 		.setCustomId(yesKey)
+		// 		.setLabel(toTitleCase(yesKey))
+		// 		.setStyle(ButtonStyle.Primary);
 
-			const noButton = new ButtonBuilder()
-				.setCustomId(noKey)
-				.setLabel(toTitleCase(noKey))
-				.setStyle(ButtonStyle.Secondary);
+		// 	const noButton = new ButtonBuilder()
+		// 		.setCustomId(noKey)
+		// 		.setLabel(toTitleCase(noKey))
+		// 		.setStyle(ButtonStyle.Secondary);
 
-			await interaction.editReply({
-				content: 'This is what users will see, click yes/no to continue.',
-				embeds: [embed.setDescription(content).toJSON()],
-				components: [new ActionRowBuilder<ButtonBuilder>().addComponents(yesButton, noButton)],
-			});
+		// 	await interaction.editReply({
+		// 		content: 'This is what users will see, click yes/no to continue.',
+		// 		embeds: [embed.setDescription(content).toJSON()],
+		// 		components: [new ActionRowBuilder<ButtonBuilder>().addComponents(yesButton, noButton)],
+		// 	});
 
-			const collectedInteraction = await reply
-				.awaitMessageComponent({
-					componentType: ComponentType.Button,
-					filter: async (i) => {
-						await i.deferUpdate();
-						return i.user.id === interaction.user.id;
-					},
-					time: 60_000,
-				})
-				.catch(async () => {
-					await interaction.editReply({ components: [] });
-					return undefined;
-				});
+		// 	const collectedInteraction = await reply
+		// 		.awaitMessageComponent({
+		// 			componentType: ComponentType.Button,
+		// 			filter: async (i) => {
+		// 				await i.deferUpdate();
+		// 				return i.user.id === interaction.user.id;
+		// 			},
+		// 			time: 60_000,
+		// 		})
+		// 		.catch(async () => {
+		// 			await interaction.editReply({ components: [] });
+		// 			return undefined;
+		// 		});
 
-			if (collectedInteraction?.customId === yesKey) {
-				await this.db.updateSection(interaction.guildId, section as 'main', 'verificationRequirements', content);
+		// 	if (collectedInteraction?.customId === yesKey) {
+		// 		await this.db.updateSection(interaction.guildId, section as 'main', 'verificationRequirements', content);
 
-				await collectedInteraction.editReply({
-					content: `Updated the ${inlineCode(toTitleCase(section))} verification message.`,
-					components: [],
-				});
-			} else if (collectedInteraction?.customId === noKey) {
-				await collectedInteraction.editReply({
-					content: 'Cancelled.',
-					embeds: [],
-					components: [],
-				});
-			}
-			return;
-		}
+		// 		await collectedInteraction.editReply({
+		// 			content: `Updated the ${inlineCode(toTitleCase(section))} verification message.`,
+		// 			components: [],
+		// 		});
+		// 	} else if (collectedInteraction?.customId === noKey) {
+		// 		await collectedInteraction.editReply({
+		// 			content: 'Cancelled.',
+		// 			embeds: [],
+		// 			components: [],
+		// 		});
+		// 	}
+		// 	return;
+		// }
 
-		const channel = await interaction.guild.channels.fetch(verificationChannelId).catch(async () => {
+		const channel = await interaction.guild.channels.fetch(verification_channel_id).catch(async () => {
 			await interaction.editReply('The verification channel could not be found.');
 			return undefined;
 		});
 
 		if (!channel?.isText()) return;
-		if (!verificationRequirements.verificationMessage) {
+		if (!verification_requirements.verification_message) {
 			await interaction.editReply('There is no set verification message to display.');
 			return;
 		}
 
 		// TODO: refactor
 
-		const verifyKey = section === 'veteran' ? 'veteran_verification' : 'main_verification';
+		const verifyKey = section === 'veteran_raiding' ? 'veteran_verification' : 'main_verification';
 		const verifyButton = new ButtonBuilder().setCustomId(verifyKey).setStyle(ButtonStyle.Primary).setLabel('Verify');
 
 		const opts: { components: any[] } = { components: [] };
@@ -177,7 +172,7 @@ export default class implements Command {
 		}
 
 		const m = await channel.send({
-			embeds: [embed.setDescription(verificationRequirements.verificationMessage).toJSON()],
+			embeds: [embed.setDescription(verification_requirements.verification_message).toJSON()],
 			...opts,
 		});
 

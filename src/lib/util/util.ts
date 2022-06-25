@@ -2,25 +2,8 @@ import { chunk } from '@sapphire/utilities';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, MessageActionRowComponentBuilder } from 'discord.js';
 import { nanoid } from 'nanoid';
 import { container } from 'tsyringe';
-import { kClient, kDatabase } from '../../tokens';
-import type { Database } from '#struct/Database';
+import { kClient } from '../../tokens';
 import type { EmojiReaction } from '#struct/RaidManager';
-
-// #region Raiding utils
-
-export async function isVeteranSection(guildId: string, what: string) {
-	const db = container.resolve<Database>(kDatabase);
-	const settings = await db.getSection(guildId, 'veteran');
-
-	if (settings.statusChannelId === what) return true;
-	if (settings.controlPanelChannelId === what) return true;
-	if (settings.verificationChannelId.includes(what)) return true;
-	if (settings.verificationChannelId === what) return true;
-
-	return false;
-}
-
-// #endregion
 
 // #region Message components
 

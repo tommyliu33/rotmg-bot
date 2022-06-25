@@ -12,10 +12,9 @@ import {
 } from 'discord.js';
 import { container } from 'tsyringe';
 import { Afkcheck } from './Afkcheck';
-import type { Database } from './Database';
 import type { Headcount } from './Headcount';
 import type { Dungeon, RaidManager } from './RaidManager';
-import { kClient, kDatabase, kRaids } from '../../tokens';
+import { kClient, kRaids } from '../../tokens';
 import {
 	ABORT_ID,
 	afkCheckButtons,
@@ -27,7 +26,10 @@ import {
 	REVEAL_LOCATION_ID,
 } from '#constants/buttons';
 import { react } from '#functions/react';
-import { generateActionRows, generateButtonsFromEmojis, isVeteranSection, random } from '#util/util';
+import { generateActionRows, generateButtonsFromEmojis, random } from '#util/util';
+import { isVeteranSection } from '#raids/isVeteranSection';
+
+import { config } from '../../util/config';
 
 export enum RaidType {
 	Headcount = 0,
@@ -56,7 +58,6 @@ export const RAID_MESSAGE = (dungeonName: string, dungeonEmoji: string, voiceCha
 export class Raid implements RaidBase {
 	private readonly client = container.resolve<Client<true>>(kClient);
 	private readonly manager = container.resolve<RaidManager>(kRaids);
-	private readonly db = container.resolve<Database>(kDatabase);
 
 	private readonly guild!: Guild;
 	private readonly member!: GuildMember;
@@ -94,8 +95,8 @@ export class Raid implements RaidBase {
 	}
 
 	public async begin() {
-		const key = (await isVeteranSection(this.guildId, this.textChannelId)) ? 'veteran' : 'main';
-		const { controlPanelChannelId } = await this.db.getSection(this.guildId, key);
+		const isVet = isVeteranSection(config, this.textChannelId);
+		const controlPanelChannelId = config[isVet ? 'veteran_raiding' : 'main_raiding'].control_panel_channel_id;
 
 		this.controlPanelId = controlPanelChannelId;
 

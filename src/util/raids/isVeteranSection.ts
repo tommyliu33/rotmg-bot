@@ -1,0 +1,13 @@
+import type { GuildConfig } from '../config';
+
+export function isVeteranSection(config: GuildConfig, id: string): boolean {
+	const { veteran_raiding } = config;
+
+	if (veteran_raiding.status_channel_id === id) return true;
+	if (veteran_raiding.control_panel_channel_id === id) return true;
+	if (veteran_raiding.category_id === id) return true;
+	if (veteran_raiding.voice_channel_ids.includes(id)) return true;
+	if (veteran_raiding.verification_channel_id === id) return true;
+
+	return false;
+}

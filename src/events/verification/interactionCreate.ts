@@ -10,35 +10,28 @@ import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ComponentType, Events, GuildMember, Interaction, TextInputStyle } from 'discord.js';
 import { nanoid } from 'nanoid';
 
-import { injectable, inject } from 'tsyringe';
-import { kDatabase } from '../../tokens';
+import { config } from '../../util/config';
+
 import { checkEligibility } from '#functions/verification/checkEligibility';
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
-import { Database } from '#struct/Database';
 import type { Event } from '#struct/Event';
 import { cancelButton, doneButton } from '#util/constants/buttons';
 import { generateActionRows } from '#util/util';
 const profileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
 
-@injectable()
 export default class implements Event {
 	public name = 'Guild interaction verification handling';
 	public event = Events.InteractionCreate;
-
-	public constructor(@inject(kDatabase) public readonly db: Database) {}
 
 	public async run(interaction: Interaction) {
 		if (!interaction.inCachedGuild()) return;
 
 		if (interaction.isButton()) {
-			const mainSettings = await this.db.getSection(interaction.guildId, 'main');
-			const veteranSettings = await this.db.getSection(interaction.guildId, 'veteran');
-
 			if (
 				interaction.customId === 'main_verification' &&
-				interaction.channelId === mainSettings.verificationChannelId
+				interaction.channelId === config.main_raiding.verification_channel_id
 			) {
-				if (interaction.member.roles.cache.has(mainSettings.userRoleId)) {
+				if (interaction.member.roles.cache.has(config.main_raiding.user_role_id)) {
 					await interaction.reply({ content: 'It seems you are already verified.', ephemeral: true });
 					return;
 				}
@@ -57,7 +50,7 @@ export default class implements Event {
 				);
 			} else if (
 				interaction.customId === 'veteran_verification' &&
-				interaction.channelId === veteranSettings.verificationChannelId
+				interaction.channelId === config.veteran_raiding.verification_channel_id
 			) {
 				await interaction.deferReply({ ephemeral: true });
 				const status = await checkEligibility(interaction.member, VerificationType.Veteran);
@@ -79,7 +72,7 @@ export default class implements Event {
 				} else if (typeof status === 'boolean') {
 					if (status) {
 						await verifyMember(interaction.member, {
-							roleId: veteranSettings.userRoleId,
+							roleId: config.veteran_raiding.user_role_id,
 							type: VerificationType.Veteran,
 						});
 						await interaction.editReply('you are now veteran verified');
@@ -106,7 +99,6 @@ export default class implements Event {
 	}
 
 	private async link(member: GuildMember, name: string) {
-		const { userRoleId } = await this.db.getSection(member.guild.id, 'main');
 		const channel = member.user.dmChannel!;
 
 		const code = nanoid(12);
@@ -159,7 +151,7 @@ export default class implements Event {
 
 			await verifyMember(member, {
 				nickname: name,
-				roleId: userRoleId,
+				roleId: config.main_raiding.user_role_id,
 				type: VerificationType.Main,
 			});
 

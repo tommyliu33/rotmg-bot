@@ -1,0 +1,49 @@
+guild_id = '884659225224175626'
+
+[main_raiding]
+category_id = '915136036517085185'
+control_panel_channel_id = '944830010534023218'
+leader_role_id = '918276263553167410'
+status_channel_id = '934543553433059379'
+user_role_id = '884967714043605021'
+verification_channel_id = '924145472728363109'
+voice_channel_ids = ['927717643220291624', '927717643933347880', '927717644843511818', '927717645522980914', '927717646361837568']
+
+[main_raiding.verification_requirements]
+hidden_location = true
+minimum_chars = 0
+minimum_fame = 0
+minimum_rank = 0
+verification_message = """
+Welcome to `rotmg`! 
+
+To link your in-game and Discord accounts, you will go through a verification process. Make sure you have access to your RealmEye account before you start! 
+
+In order to be verified, you must meet the following requirements:
+```diff
++ Public RealmEye profile
++ Public RealmEye name history
++ Public RealmEye graveyard
+```
+
+Once you click the button below, you will start verification. No sensitive info you send to the bot will be saved!
+
+If you completed verification but did not get a role or a nickname, contact a staff member to have it set manually.
+
+Have fun, and happy raiding!
+"""
+
+[veteran_raiding]
+category_id = '915136181623201823'
+control_panel_channel_id = '946147542251495534'
+leader_role_id = '918276306251157544'
+status_channel_id = '905966427746500668'
+user_role_id = '892543647680180244'
+verification_channel_id = '925146073914310656'
+voice_channel_ids = ['923839334220709928', '923839334908588073', '923839334908588073', '923839336665985074', '923839337324507156']
+
+[veteran_raiding.verification_requirements]
+dungeon_completions = [0, 0, 0, 0, 0, 0]
+verification_message = """
+
+"""

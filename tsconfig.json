@@ -18,10 +18,10 @@
 			"#functions/*": ["src/functions/*"],
 			"#util/*": ["src/lib/util/*"],
 			"#constants/*": ["src/lib/util/constants/*"],
-			"#entities/*": ["src/lib/entities/*"]
+			"#entities/*": ["src/lib/entities/*"],
+			"#raids/*": ["src/util/raids/*"]
 		},
 		
-
 		/* Emit */
 		"outDir": "./dist",
 		"sourceMap": true,
