@@ -1,6 +1,7 @@
 import { codeBlock } from '@discordjs/builders';
 import { Stopwatch } from '@sapphire/stopwatch';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
+import { ChannelType } from 'discord-api-types/v10';
 
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ComponentType } from 'discord.js';
 
@@ -43,7 +44,7 @@ export default class implements Command {
 			name: 'voice_channel',
 			description: 'Voice channel to use (leave blank to use your current voice channel if available)',
 			required: false,
-			channel_types: [2],
+			channel_types: [ChannelType.GuildVoice],
 		},
 	];
 
