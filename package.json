@@ -31,7 +31,7 @@
 		"dotenv": "^16.0.1",
 		"nanoid": "^4.0.0",
 		"petitio": "^1.4.0",
-		"pino": "^7.10.0",
+		"pino": "^8.1.0",
 		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
 		"source-map-support": "^0.5.21",
