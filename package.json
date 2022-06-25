@@ -19,7 +19,7 @@
 		"#raids/": "./dist/src/util/raids/*.js"
 	},
 	"dependencies": {
-		"@discordjs/builders": "^0.13.0-dev.1649505810-3c0bbac",
+		"@discordjs/builders": "^0.15.0",
 		"@discordjs/rest": "^0.5.0",
 		"@ltd/j-toml": "^1.30.0",
 		"@sapphire/stopwatch": "^1.4.1",
