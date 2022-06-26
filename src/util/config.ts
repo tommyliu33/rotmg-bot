@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { parse } from '@ltd/j-toml';
 
 export async function parseToml<T>(toml: string): Promise<T> {
@@ -9,7 +10,7 @@ export async function parseToml<T>(toml: string): Promise<T> {
 	return json;
 }
 
-export const config = await parseToml<GuildConfig>('../../data/config.toml');
+export const config = await parseToml<GuildConfig>(resolve('../data/config.toml'));
 
 export interface GuildConfig {
 	guild_id: string;
