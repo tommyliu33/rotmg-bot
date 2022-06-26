@@ -1,3 +1,4 @@
+import { InteractionType } from 'discord-api-types/v10';
 import { Events, Interaction } from 'discord.js';
 
 import { injectable, inject } from 'tsyringe';
@@ -6,7 +7,6 @@ import { kCommands } from '../tokens';
 import { logger } from '../util/logger';
 import type { Command } from '#struct/Command';
 import type { Event } from '#struct/Event';
-import { InteractionType } from 'discord-api-types/v10';
 
 @injectable()
 export default class implements Event {

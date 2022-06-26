@@ -7,6 +7,7 @@ import {
 } from '@discordjs/builders';
 import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 import { stripIndents } from 'common-tags';
+import { InteractionType } from 'discord-api-types/v10';
 import { ActionRowBuilder, ComponentType, Events, GuildMember, Interaction, TextInputStyle } from 'discord.js';
 import { nanoid } from 'nanoid';
 
@@ -16,7 +17,6 @@ import { checkEligibility } from '#functions/verification/checkEligibility';
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
 import type { Event } from '#struct/Event';
 import { generateActionRows, cancelButton, doneButton } from '#util/util';
-import { InteractionType } from 'discord-api-types/v10';
 
 const generateProfileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
 

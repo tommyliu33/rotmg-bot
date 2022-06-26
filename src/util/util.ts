@@ -1,6 +1,6 @@
 import { ButtonBuilder } from '@discordjs/builders';
-import { ActionRowBuilder, ButtonStyle, MessageActionRowComponentBuilder, Client } from 'discord.js';
 import { chunk } from '@sapphire/utilities';
+import { ActionRowBuilder, ButtonStyle, MessageActionRowComponentBuilder, Client } from 'discord.js';
 import { nanoid } from 'nanoid';
 import { container } from 'tsyringe';
 import { kClient } from '../tokens';

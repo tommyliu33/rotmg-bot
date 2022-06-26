@@ -1,11 +1,11 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 import { injectable, inject } from 'tsyringe';
 import { kRaids } from '../tokens';
+import { config } from '../util/config';
 import type { Command } from '#struct/Command';
 import { Raid, RaidType, isVeteranSection } from '#struct/Raid';
 import type { RaidManager } from '#struct/RaidManager';
 
-import { config } from '../util/config';
 
 @injectable()
 export default class implements Command {

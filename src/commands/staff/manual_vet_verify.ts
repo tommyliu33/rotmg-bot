@@ -1,8 +1,8 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
+import { config } from '../../util/config';
+import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
 import type { Command } from '#struct/Command';
 
-import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
-import { config } from '../../util/config';
 
 export default class implements Command {
 	public name = 'manual_vet_verify';

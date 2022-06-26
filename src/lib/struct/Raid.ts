@@ -1,15 +1,3 @@
-import {
-	ABORT_ID,
-	afkCheckButtons,
-	CHANGE_LOCATION_ID,
-	END_ID,
-	FINISH_ID,
-	headCountButtons,
-	participateButton,
-	REVEAL_LOCATION_ID,
-} from '#util/util';
-import { react } from '#functions/react';
-import { generateActionRows, generateButtonsFromEmojis } from '#util/util';
 import { hyperlink, inlineCode } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 import {
@@ -25,10 +13,23 @@ import {
 	VoiceChannel,
 } from 'discord.js';
 import { container } from 'tsyringe';
-import { kClient, kRaids } from '../../tokens';
 import type { Dungeon, RaidManager } from './RaidManager';
+import { kClient, kRaids } from '../../tokens';
 
 import { config, type GuildConfig } from '../../util/config';
+import { react } from '#functions/react';
+import {
+	ABORT_ID,
+	afkCheckButtons,
+	CHANGE_LOCATION_ID,
+	END_ID,
+	FINISH_ID,
+	headCountButtons,
+	participateButton,
+	REVEAL_LOCATION_ID,
+	generateActionRows,
+	generateButtonsFromEmojis,
+} from '#util/util';
 
 export enum RaidType {
 	Headcount = 0,

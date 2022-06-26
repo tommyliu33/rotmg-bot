@@ -5,8 +5,8 @@ import { Events, ComponentType, ButtonBuilder, ButtonStyle, ButtonComponent, Act
 import { injectable, inject } from 'tsyringe';
 import { kClient, kRaids } from '../../tokens';
 import type { Event } from '#struct/Event';
-import type { RaidManager } from '#struct/RaidManager';
 import { RaidType } from '#struct/Raid';
+import type { RaidManager } from '#struct/RaidManager';
 
 @injectable()
 export default class implements Event {

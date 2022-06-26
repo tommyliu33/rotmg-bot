@@ -1,7 +1,7 @@
 import { codeBlock } from '@discordjs/builders';
 import { Stopwatch } from '@sapphire/stopwatch';
-import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { ChannelType } from 'discord-api-types/v10';
+import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ComponentType } from 'discord.js';
 

@@ -2,9 +2,9 @@ import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, inlineCode } from '@disc
 import { toTitleCase } from '@sapphire/utilities';
 import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
+import { config } from '../../util/config';
 import type { Command } from '#struct/Command';
 
-import { config } from '../../util/config';
 
 export default class implements Command {
 	public name = 'verify_message';
