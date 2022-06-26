@@ -1,3 +1,3 @@
-export const kClient = Symbol('Client');
-export const kRaids = Symbol('RaidManager');
-export const kCommands = Symbol('Commands');
+export const kClient = Symbol('client instance');
+export const kRaids = Symbol('raid manager');
+export const kCommands = Symbol('command store');
