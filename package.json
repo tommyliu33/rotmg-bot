@@ -13,10 +13,7 @@
 	"imports": {
 		"#struct/*": "./dist/lib/struct/*.js",
 		"#functions/*": "./dist/functions/*.js",
-		"#util/*": "./dist/lib/util/*.js",
-		"#constants/*": "./dist/lib/util/constants/*.js",
-		"#entities/*": "./dist/lib/entities/*.js",
-		"#raids/": "./dist/src/util/raids/*.js"
+		"#util/*": "./dist/lib/util/*.js"
 	},
 	"dependencies": {
 		"@discordjs/builders": "^0.15.0",

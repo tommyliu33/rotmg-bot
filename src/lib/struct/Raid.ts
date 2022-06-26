@@ -7,9 +7,8 @@ import {
 	headCountButtons,
 	participateButton,
 	REVEAL_LOCATION_ID,
-} from '#constants/buttons';
+} from '#util/util';
 import { react } from '#functions/react';
-import { isVeteranSection } from '#raids/isVeteranSection';
 import { generateActionRows, generateButtonsFromEmojis, random } from '#util/util';
 import { hyperlink, inlineCode } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
@@ -29,7 +28,7 @@ import { container } from 'tsyringe';
 import { kClient, kRaids } from '../../tokens';
 import type { Dungeon, RaidManager } from './RaidManager';
 
-import { config } from '../../util/config';
+import { config, type GuildConfig } from '../../util/config';
 
 export enum RaidType {
 	Headcount = 0,
@@ -51,6 +50,19 @@ const listButtonsFromType = (type: RaidType) => {
 
 	return headCountButtons.map((button) => Reflect.get(mappedButtonEmojis, button.data.emoji!.name!) as string);
 };
+
+export function isVeteranSection(config: GuildConfig, id: string): boolean {
+	const { veteran_raiding } = config;
+
+	if (veteran_raiding.status_channel_id === id) return true;
+	if (veteran_raiding.control_panel_channel_id === id) return true;
+	if (veteran_raiding.category_id === id) return true;
+	if (veteran_raiding.voice_channel_ids.includes(id)) return true;
+	if (veteran_raiding.verification_channel_id === id) return true;
+
+	return false;
+}
+
 
 export const RAID_MESSAGE = (dungeonName: string, dungeonEmoji: string, voiceChannel: string, isAfkCheck: boolean) =>
 	`@here \`${dungeonName}\` ${dungeonEmoji} ${isAfkCheck ? 'is now starting in' : 'Headcount for'} ${voiceChannel}`;

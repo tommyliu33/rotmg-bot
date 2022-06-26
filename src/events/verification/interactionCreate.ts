@@ -15,10 +15,10 @@ import { config } from '../../util/config';
 import { checkEligibility } from '#functions/verification/checkEligibility';
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
 import type { Event } from '#struct/Event';
-import { cancelButton, doneButton } from '#util/constants/buttons';
-import { generateActionRows } from '#util/util';
+import { generateActionRows, cancelButton, doneButton } from '#util/util';
 import { InteractionType } from 'discord-api-types/v10';
-const profileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
+
+const generateProfileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
 
 export default class implements Event {
 	public name = 'Guild interaction verification handling';
@@ -111,7 +111,7 @@ export default class implements Event {
 			})
 			.setDescription(
 				stripIndents`
-			Add the following code to any line of your ${hyperlink('Realmeye profile', profileUrl(name))} description
+			Add the following code to any line of your ${hyperlink('Realmeye profile', generateProfileUrl(name))} description
 
 			${codeBlock('fix', code)}
 			Click 'Done' to continue or 'Cancel' to cancel.

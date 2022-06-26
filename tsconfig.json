@@ -16,10 +16,7 @@
 		"paths": {
 			"#struct/*": ["src/lib/struct/*"],
 			"#functions/*": ["src/functions/*"],
-			"#util/*": ["src/lib/util/*"],
-			"#constants/*": ["src/lib/util/constants/*"],
-			"#entities/*": ["src/lib/entities/*"],
-			"#raids/*": ["src/util/raids/*"]
+			"#util/*": ["src/util/*"]
 		},
 		
 		/* Emit */
