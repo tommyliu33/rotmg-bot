@@ -15,5 +15,5 @@ export default defineConfig((options) => ({
 	shims: false,
 	keepNames: true,
 	splitting: false,
-	silent: true,
+	silent: options.silent,
 }));
