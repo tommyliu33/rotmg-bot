@@ -9,7 +9,7 @@ import {
 	REVEAL_LOCATION_ID,
 } from '#util/util';
 import { react } from '#functions/react';
-import { generateActionRows, generateButtonsFromEmojis, random } from '#util/util';
+import { generateActionRows, generateButtonsFromEmojis } from '#util/util';
 import { hyperlink, inlineCode } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
 import {
@@ -62,7 +62,6 @@ export function isVeteranSection(config: GuildConfig, id: string): boolean {
 
 	return false;
 }
-
 
 export const RAID_MESSAGE = (dungeonName: string, dungeonEmoji: string, voiceChannel: string, isAfkCheck: boolean) =>
 	`@here \`${dungeonName}\` ${dungeonEmoji} ${isAfkCheck ? 'is now starting in' : 'Headcount for'} ${voiceChannel}`;
@@ -150,7 +149,7 @@ export class Raid implements RaidBase {
 		const { dungeon } = this;
 		const embed = new EmbedBuilder()
 			.setColor(dungeon.color)
-			.setThumbnail(random(dungeon.images))
+			.setThumbnail(dungeon.images[Math.floor(Math.random() * dungeon.images.length)])
 			.setAuthor({
 				name: `${dungeon.name} started by ${this.member.displayName}`,
 				iconURL: this.member.displayAvatarURL(),

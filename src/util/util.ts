@@ -89,9 +89,3 @@ export function generateActionRows<Component extends MessageActionRowComponentBu
 }
 
 // #endregion
-
-// #pragma General util
-export function random<T>(arr: T[]): T {
-	return arr[Math.floor(Math.random() * arr.length)];
-}
-// #endregion
