@@ -174,17 +174,19 @@ export class Raid implements RaidBase {
 					dungeon.name,
 					this.client.emojis.cache.get(dungeon.portal)?.toString() ?? '',
 					this.voiceChannel.name,
-					this.type === RaidType.AfkCheck
+					this.isAfkcheck
 				),
 				allowedMentions: { parse: ['everyone'] },
 				embeds: [embed.toJSON()],
 				components: components,
 			})
 			.then(async (m) => {
-				await react(
-					m,
-					dungeon.main.map((emoji) => emoji.emoji)
-				);
+				if (this.isAfkcheck) {
+					await react(
+						m,
+						dungeon.main.map((emoji) => emoji.emoji)
+					);
+				}
 
 				Reflect.defineProperty(this, 'mainMessage', { value: m });
 				this.mainMessageId = m.id;
