@@ -7,18 +7,40 @@ import { generateActionRows } from '#util/util';
 const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
 
 function generateMemberInformation(member: GuildMember) {
-	const embed = new EmbedBuilder().setThumbnail(member.displayAvatarURL()).setDescription(`
-	${inlineCode('Member')} ${userMention(member.id)} (${member.id})
-	${inlineCode('Roles')} ${member.roles.cache
-		.filter((role) => role.id !== member.guild.id)
-		.sort((a, b) => b.position - a.position)
-		.map((role) => role.toString())
-		.join(', ')}
-
-	${inlineCode('Joined server')} ${time(member.joinedAt!, 'R')}
-	${inlineCode('Account created')} ${time(member.user.createdAt, 'R')}
-	`);
-
+	const embed = new EmbedBuilder()
+		.setColor(member.displayColor)
+		.setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL() })
+		.setThumbnail(member.displayAvatarURL())
+		.addFields(
+			{
+				name: 'Mention',
+				value: userMention(member.id),
+				inline: true,
+			},
+			{
+				name: 'User Id',
+				value: member.id,
+				inline: true,
+			},
+			{
+				name: 'Joined server',
+				value: time(member.joinedAt!, 'R'),
+				inline: false,
+			},
+			{
+				name: 'Account created',
+				value: time(member.user.createdAt, 'R'),
+				inline: true,
+			},
+			{
+				name: 'Roles',
+				value: member.roles.cache
+					.filter((role) => role.id !== member.guild.id)
+					.sort((a, b) => b.position - a.position)
+					.map((role) => role.toString())
+					.join(', '),
+			}
+		);
 	return embed;
 }
 
@@ -33,7 +55,6 @@ export default class implements Command {
 			await interaction.editReply('Could not fetch members.');
 			return undefined;
 		});
-
 		if (!members) return;
 
 		const members_ = members.filter((member) => {
@@ -56,45 +77,45 @@ export default class implements Command {
 		}
 
 		const embed = new EmbedBuilder();
-		if (members_.size > 10) {
-			embed.setDescription('Too many members found, narrow your search.');
-			await interaction.editReply({
-				embeds: [embed],
-			});
+
+		if (members_.size < 10) {
+			embed.setDescription('Multiple matches found, manual selection required\n');
+
+			const buttons = [];
+			for (let i = 0; i < members_.size; ++i) {
+				buttons.push(
+					new ButtonBuilder().setEmoji({ name: emojis[i] }).setCustomId(i.toString()).setStyle(ButtonStyle.Primary)
+				);
+
+				const member = members_.at(i)!;
+				embed.data.description += `\n${inlineCode((i + 1).toString())}. ${member.toString()} - ${member.id}`;
+			}
+
+			await interaction.editReply({ embeds: [embed.toJSON()], components: generateActionRows(...buttons) });
+
+			const collectedInteraction = await m
+				.awaitMessageComponent({
+					filter: (i) => i.user.id === interaction.user.id,
+					componentType: ComponentType.Button,
+					time: 60_000,
+				})
+				.catch(async () => {
+					await interaction.editReply({ components: [] });
+					return undefined;
+				});
+
+			if (collectedInteraction?.customId) {
+				const index = Number(collectedInteraction.customId);
+				const member = members_.at(index)!;
+
+				const embed = generateMemberInformation(member);
+				await collectedInteraction.update({ embeds: [embed.toJSON()], components: [] });
+			}
 			return;
 		}
 
-		embed.setDescription('Multiple matches found, manual selection required\n');
-
-		const buttons = [];
-		for (let i = 0; i < members_.size; ++i) {
-			buttons.push(
-				new ButtonBuilder().setEmoji({ name: emojis[i] }).setCustomId(i.toString()).setStyle(ButtonStyle.Primary)
-			);
-
-			const member = members_.at(i)!;
-			embed.data.description += `\n${inlineCode((i + 1).toString())}. ${member.toString()} - ${member.id}`;
-		}
-
-		await interaction.editReply({ embeds: [embed.toJSON()], components: generateActionRows(...buttons) });
-
-		const collectedInteraction = await m
-			.awaitMessageComponent({
-				filter: (i) => i.user.id === interaction.user.id,
-				componentType: ComponentType.Button,
-				time: 60_000,
-			})
-			.catch(async () => {
-				await interaction.editReply({ components: [] });
-				return undefined;
-			});
-
-		if (collectedInteraction?.customId) {
-			const index = Number(collectedInteraction.customId);
-			const member = members_.at(index)!;
-
-			const embed = generateMemberInformation(member);
-			await collectedInteraction.update({ embeds: [embed.toJSON()], components: [] });
-		}
+		await interaction.editReply({
+			embeds: [embed.setDescription('Too many members found, narrow your search.')],
+		});
 	}
 }
