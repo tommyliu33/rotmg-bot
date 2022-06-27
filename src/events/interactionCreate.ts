@@ -5,6 +5,7 @@ import { injectable, inject } from 'tsyringe';
 import { kCommands } from '../tokens';
 
 import { logger } from '../util/logger';
+
 import type { Command } from '#struct/Command';
 import type { Event } from '#struct/Event';
 
@@ -27,15 +28,20 @@ export default class implements Event {
 			}
 		}
 
-		if (interaction.type === InteractionType.ApplicationCommandAutocomplete && interaction.isRepliable()) {
+		if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
 			const command = this.commands.get(interaction.commandName);
-			if (typeof command?.autocomplete !== 'function') return;
+			if (typeof command?.autocomplete !== 'function') return console.log('no autocomplete runner');
 
 			try {
 				await command.autocomplete(interaction);
 			} catch (e) {
 				logger.error(e);
 			}
+		} else {
+			console.log('type', interaction.type);
+			console.log('repliable', interaction.isRepliable());
 		}
+
+		console.log(interaction);
 	}
 }
