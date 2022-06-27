@@ -18,6 +18,7 @@ export default class implements Command {
 			return;
 		}
 
+		const isVet = isVeteranSection(config, interaction.channelId);
 		const voiceChannelId = interaction.options.getString('voice_channel', true);
 		const dungeon = this.manager.dungeonCache.get(interaction.options.getString('dungeon', true))!;
 
@@ -26,7 +27,7 @@ export default class implements Command {
 			guildId: interaction.guildId,
 			memberId: interaction.member.id,
 
-			textChannelId: interaction.channelId,
+			textChannelId: config[isVet ? 'veteran_raiding' : 'main_raiding'].status_channel_id,
 			voiceChannelId,
 
 			type: RaidType.Headcount,
