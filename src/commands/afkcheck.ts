@@ -6,7 +6,6 @@ import type { Command } from '#struct/Command';
 import { Raid, RaidType, isVeteranSection } from '#struct/Raid';
 import type { RaidManager } from '#struct/RaidManager';
 
-
 @injectable()
 export default class implements Command {
 	public name = 'afkcheck';

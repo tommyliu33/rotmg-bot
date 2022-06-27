@@ -1,6 +1,5 @@
 import { userMention, inlineCode, time } from '@discordjs/builders';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
-
 import { EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import type { Command } from '#struct/Command';
 import { generateActionRows } from '#util/util';

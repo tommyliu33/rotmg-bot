@@ -1,10 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { Collection } from '@discordjs/collection';
 import { parse } from '@ltd/j-toml';
-
-import * as constants from '../../constants';
-import { logger } from '../../util/logger';
-
+import * as constants from '../constants';
+import { logger } from '../util/logger';
 import type { Raid } from '#struct/Raid';
 
 const resolveEmoji = (emoji: string) => {

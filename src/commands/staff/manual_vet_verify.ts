@@ -3,7 +3,6 @@ import { config } from '../../util/config';
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
 import type { Command } from '#struct/Command';
 
-
 export default class implements Command {
 	public name = 'manual_vet_verify';
 	public description = 'Manually veteran verify a member';

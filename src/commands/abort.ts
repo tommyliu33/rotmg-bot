@@ -1,5 +1,4 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-
 import { inject, injectable } from 'tsyringe';
 import { kRaids } from '../tokens';
 import type { Command } from '#struct/Command';

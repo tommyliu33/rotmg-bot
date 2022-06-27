@@ -14,9 +14,9 @@ import {
 } from 'discord.js';
 import { container } from 'tsyringe';
 import type { Dungeon, RaidManager } from './RaidManager';
-import { kClient, kRaids } from '../../tokens';
+import { kClient, kRaids } from '../tokens';
 
-import { config, type GuildConfig } from '../../util/config';
+import { config, type GuildConfig } from '../util/config';
 import { react } from '#functions/react';
 import {
 	ABORT_ID,

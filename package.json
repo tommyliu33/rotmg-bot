@@ -11,7 +11,7 @@
 		"start:deploy": "tsup && cd dist && node -r source-map-support/register --experimental-specifier-resolution=node . --deploy"
 	},
 	"imports": {
-		"#struct/*": "./dist/lib/struct/*.js",
+		"#struct/*": "./dist/struct/*.js",
 		"#functions/*": "./dist/functions/*.js",
 		"#util/*": "./dist/util/*.js"
 	},

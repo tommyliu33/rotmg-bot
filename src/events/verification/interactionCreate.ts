@@ -10,13 +10,11 @@ import { stripIndents } from 'common-tags';
 import { InteractionType } from 'discord-api-types/v10';
 import { ActionRowBuilder, ComponentType, Events, GuildMember, Interaction, TextInputStyle } from 'discord.js';
 import { nanoid } from 'nanoid';
-
 import { config } from '../../util/config';
-
 import { checkEligibility } from '#functions/verification/checkEligibility';
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
 import type { Event } from '#struct/Event';
-import { generateActionRows, cancelButton, doneButton } from '#util/util';
+import { cancelButton, doneButton, generateActionRows } from '#util/util';
 
 const generateProfileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
 
