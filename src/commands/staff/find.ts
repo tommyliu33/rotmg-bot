@@ -29,8 +29,8 @@ export default class implements Command {
 
 		const m = await interaction.deferReply({ ephemeral: hide, fetchReply: true });
 
-		const members = await interaction.guild.members.fetch().catch(async () => {
-			await interaction.editReply('Failed to fetch server members.');
+		const members = await interaction.guild.members.fetch({ query: name, limit: 10 }).catch(async () => {
+			await interaction.editReply('Could not fetch members.');
 			return undefined;
 		});
 
