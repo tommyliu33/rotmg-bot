@@ -30,18 +30,14 @@ export default class implements Event {
 
 		if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
 			const command = this.commands.get(interaction.commandName);
-			if (typeof command?.autocomplete !== 'function') return console.log('no autocomplete runner');
+
+			if (typeof command?.autocomplete !== 'function') return;
 
 			try {
 				await command.autocomplete(interaction);
 			} catch (e) {
 				logger.error(e);
 			}
-		} else {
-			console.log('type', interaction.type);
-			console.log('repliable', interaction.isRepliable());
 		}
-
-		console.log(interaction);
 	}
 }
