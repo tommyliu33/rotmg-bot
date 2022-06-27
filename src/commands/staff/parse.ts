@@ -1,6 +1,5 @@
 import { codeBlock } from '@discordjs/builders';
 import { Stopwatch } from '@sapphire/stopwatch';
-import { ChannelType } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ComponentType } from 'discord.js';
@@ -30,24 +29,6 @@ function getNames(arr: string[]) {
 }
 
 export default class implements Command {
-	public name = 'parse';
-	public description = 'Parse usernames from /who screenshot (may be unreliable)';
-	public options = [
-		{
-			name: 'screenshot',
-			description: 'screenshot to parse',
-			type: 11,
-			required: true,
-		},
-		{
-			type: 7,
-			name: 'voice_channel',
-			description: 'Voice channel to use (leave blank to use your current voice channel if available)',
-			required: false,
-			channel_types: [ChannelType.GuildVoice],
-		},
-	];
-
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const timer = new Stopwatch();
 

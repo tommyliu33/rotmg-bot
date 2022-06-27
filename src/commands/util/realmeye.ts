@@ -12,37 +12,6 @@ import { paginate } from '../../functions/paginate';
 import type { Command } from '#struct/Command';
 
 export default class implements Command {
-	public name = 'realmeye';
-	public description = 'Realmeye search';
-	public options = [
-		{
-			type: 1,
-			name: 'guild',
-			description: 'Lookup a guild',
-			options: [
-				{
-					type: 3,
-					name: 'guild',
-					description: 'The guild name',
-					required: true,
-				},
-			],
-		},
-		{
-			type: 1,
-			name: 'player',
-			description: 'Lookup a player',
-			options: [
-				{
-					type: 3,
-					name: 'name',
-					description: 'The player name',
-					required: true,
-				},
-			],
-		},
-	];
-
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const m = await interaction.deferReply({ fetchReply: true });
 

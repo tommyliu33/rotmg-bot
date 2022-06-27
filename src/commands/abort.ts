@@ -7,9 +7,6 @@ import type { RaidManager } from '#struct/RaidManager';
 
 @injectable()
 export default class implements Command {
-	public name = 'abort';
-	public description = 'Abort your afkcheck or headcount';
-
 	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {

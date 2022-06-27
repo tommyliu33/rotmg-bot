@@ -3,10 +3,6 @@ import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from
 import type { Command } from '#struct/Command';
 
 export default class implements Command {
-	public name = 'verify';
-	public description = 'verify yourself';
-	public options = [];
-
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const modal = new ModalBuilder()
 			.setTitle(`${interaction.guild.name} Verification`)

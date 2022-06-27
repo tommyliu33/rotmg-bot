@@ -8,33 +8,6 @@ import type { RaidManager } from '#struct/RaidManager';
 
 @injectable()
 export default class implements Command {
-	public name = 'headcount';
-	public description = 'Start a headcount';
-	public options = [
-		{
-			type: 3,
-			name: 'voice_channel',
-			description: 'Voice channel to use',
-			autocomplete: true,
-			required: true,
-		},
-		{
-			name: 'dungeon',
-			description: 'The dungeon to run',
-			type: 3,
-			choices: [
-				{ name: 'Oryx Sanctuary', value: 'o3' },
-				{ name: 'The Void', value: 'void' },
-				{ name: 'Fullskip Void', value: 'fsv' },
-				{ name: 'The Shatters', value: 'shatters' },
-				{ name: 'Cultist Hideout', value: 'cult' },
-				{ name: 'The Nest', value: 'nest' },
-				{ name: 'Fungal Cavern', value: 'fungal' },
-			],
-			required: true,
-		},
-	];
-
 	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {

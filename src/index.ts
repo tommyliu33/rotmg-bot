@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import 'dotenv/config';
 
 import { GatewayIntentBits } from 'discord-api-types/v10';
-import { Client, ClientEvents } from 'discord.js';
+import { basename, Client, ClientEvents } from 'discord.js';
 
 import readdirp from 'readdirp';
 import { container } from 'tsyringe';
@@ -37,8 +37,10 @@ for await (const dir of readdirp('./commands', { fileFilter: '*.js' })) {
 	const commandMod = (await import(dir.fullPath)) as { default: Constructor<Command> };
 	const command = container.resolve(commandMod.default);
 
-	commands.set(command.name, command);
-	logger.info(`Registered command: ${command.name}`);
+	const name = basename(dir.fullPath, '.js');
+	commands.set(name, command);
+
+	logger.info(`Registered command: ${name}`);
 }
 container.register(kCommands, { useValue: commands });
 

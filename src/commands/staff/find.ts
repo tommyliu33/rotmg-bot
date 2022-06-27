@@ -23,23 +23,6 @@ function generateMemberInformation(member: GuildMember) {
 }
 
 export default class implements Command {
-	public name = 'find';
-	public description = 'Find a member with the target name';
-	public options = [
-		{
-			type: 3,
-			name: 'name',
-			description: 'Name to lookup',
-			required: true,
-		},
-		{
-			type: 5,
-			name: 'hide',
-			description: 'Hide command output',
-			required: false,
-		},
-	];
-
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const name = interaction.options.getString('name', true);
 		const hide = interaction.options.getBoolean('hide', false) ?? false;

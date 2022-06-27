@@ -4,29 +4,6 @@ import { VerificationType, verifyMember } from '#functions/verification/verifyMe
 import type { Command } from '#struct/Command';
 
 export default class implements Command {
-	public name = 'manual_verify';
-	public description = 'Manually verify a member';
-	public options = [
-		{
-			name: 'member',
-			description: 'The member to verify',
-			required: true,
-			type: 6,
-		},
-		{
-			name: 'name',
-			description: 'Their ingame name',
-			required: true,
-			type: 3,
-		},
-		{
-			name: 'hidden',
-			description: 'Hides command output',
-			required: false,
-			type: 5,
-		},
-	];
-
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: interaction.options.getBoolean('hidden') ?? false });
 

@@ -7,34 +7,7 @@ import { Raid, RaidType, isVeteranSection } from '#struct/Raid';
 import type { RaidManager } from '#struct/RaidManager';
 
 @injectable()
-export default class implements Command {
-	public name = 'afkcheck';
-	public description = 'start an afkcheck';
-	public options = [
-		{
-			type: 3,
-			name: 'voice_channel',
-			description: 'voice channel to use',
-			autocomplete: true,
-			required: true,
-		},
-		{
-			name: 'dungeon',
-			description: 'the dungeon to run',
-			type: 3,
-			choices: [
-				{ name: 'Oryx Sanctuary', value: 'o3' },
-				{ name: 'The Void', value: 'void' },
-				{ name: 'Fullskip Void', value: 'fsv' },
-				{ name: 'The Shatters', value: 'shatters' },
-				{ name: 'Cultist Hideout', value: 'cult' },
-				{ name: 'The Nest', value: 'nest' },
-				{ name: 'Fungal Cavern', value: 'fungal' },
-			],
-			required: true,
-		},
-	];
-
+export default class implements Command {	
 	public constructor(@inject(kRaids) public readonly manager: RaidManager) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
