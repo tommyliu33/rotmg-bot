@@ -2,7 +2,6 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import { inject, injectable } from 'tsyringe';
 import { kRaids } from '../tokens';
 import type { Command } from '#struct/Command';
-import { RaidType } from '#struct/Raid';
 import type { RaidManager } from '#struct/RaidManager';
 
 @injectable()
@@ -15,20 +14,12 @@ export default class implements Command {
 		const key = `${interaction.guildId}-${interaction.member.id}`;
 
 		const raid = this.manager.raids.get(key);
-		if (raid) {
-			await raid.abort();
-			switch (raid.type) {
-				case RaidType.Headcount:
-					await interaction.editReply('Headcount aborted.');
-					break;
-				case RaidType.AfkCheck:
-					await interaction.editReply('Afkcheck aborted.');
-					break;
-			}
-
+		if (!raid) {
+			await interaction.editReply('No raid found.');
 			return;
 		}
 
-		await interaction.editReply({ content: 'No raid found.' });
+		await raid.abort();
+		await interaction.editReply('Raid aborted.');
 	}
 }
