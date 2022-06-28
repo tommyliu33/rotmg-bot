@@ -13,7 +13,7 @@ import { generateActionRows } from '#util/util';
 
 const clean = (str: string) => str.replace(/[^A-Za-z]/g, '').toLowerCase();
 
-function getNames(arr: string[]) {
+function getNames(arr: string[]): string[] {
 	const names: string[] = [];
 
 	for (const name of arr) {
