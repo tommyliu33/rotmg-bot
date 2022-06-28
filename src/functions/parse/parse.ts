@@ -22,7 +22,7 @@ export async function parse(url: string): Promise<OCRApiResponse | undefined> {
 
 		if (!(await isImage(url))) throw new Error('Not an image');
 
-		const req = await fetch(API(process.env.OCR_SPACE_API_KEY!, url));
+		const req = fetch(API(process.env.OCR_SPACE_API_KEY!, url));
 		req.header('user-agent', UA);
 
 		await worker.terminate();
