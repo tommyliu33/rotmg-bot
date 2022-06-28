@@ -14,7 +14,7 @@ export default class implements Command {
 		await interaction.deferReply();
 
 		if (this.manager.raids.get(`${interaction.guildId}-${interaction.member.id}`)?.type === RaidType.AfkCheck) {
-			await interaction.editReply('You already have an active headcount, abort to start another.');
+			await interaction.editReply('You already have an active afkcheck, abort to start another.');
 			return;
 		}
 
