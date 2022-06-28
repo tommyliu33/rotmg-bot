@@ -1,3 +1,4 @@
+import { Worker, isMainThread } from 'node:worker_threads';
 import fetch from 'petitio';
 
 const UA =
@@ -15,13 +16,19 @@ async function isImage(url: string): Promise<boolean> {
 	return mediaType === 'image' && ['png', 'jpeg'].includes(ext);
 }
 
-export async function parse(url: string): Promise<OCRApiResponse> {
-	if (!(await isImage(url))) throw new Error('Not an image');
+export async function parse(url: string): Promise<OCRApiResponse | undefined> {
+	if (isMainThread) {
+		const worker = new Worker('./functions/parse/parse.js');
 
-	const req = await fetch(API(process.env.OCR_SPACE_API_KEY!, url));
-	req.header('user-agent', UA);
+		if (!(await isImage(url))) throw new Error('Not an image');
 
-	return req.json<OCRApiResponse>();
+		const req = await fetch(API(process.env.OCR_SPACE_API_KEY!, url));
+		req.header('user-agent', UA);
+
+		await worker.terminate();
+
+		return req.json<OCRApiResponse>();
+	}
 }
 
 // Types from AnthonyLzq/ocr-space-api-alt2
