@@ -11,6 +11,12 @@ export default {
 			required: true,
 		},
 		{
+			name: 'name',
+			description: 'The name of this member',
+			type: ApplicationCommandOptionType.String,
+			required: false,
+		},
+		{
 			name: 'hide',
 			description: 'Hides command output to other members',
 			type: ApplicationCommandOptionType.Boolean,
