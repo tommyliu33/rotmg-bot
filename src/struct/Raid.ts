@@ -166,7 +166,7 @@ export class Raid implements RaidBase {
 			)
 			.setTimestamp();
 
-		const components = generateActionRows(participateButton, ...generateButtonsFromEmojis(this.dungeon.keys));
+		const components = generateActionRows([participateButton, ...generateButtonsFromEmojis(this.dungeon.keys)]);
 
 		await this.textChannel
 			.send({
@@ -257,7 +257,7 @@ export class Raid implements RaidBase {
 		const m = await this.controlPanelThread
 			.send({
 				embeds: [embed.toJSON()],
-				components: generateActionRows(...buttons),
+				components: generateActionRows(buttons),
 			})
 			.then((msg) => {
 				Reflect.defineProperty(this, 'controlPanelThreadMessage', { value: msg });

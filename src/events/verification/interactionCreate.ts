@@ -118,7 +118,7 @@ export default class implements Event {
 
 		const m = await channel.send({
 			embeds: [embed],
-			components: generateActionRows(doneButton, cancelButton),
+			components: generateActionRows([doneButton, cancelButton]),
 		});
 
 		const collectedInteraction = await m

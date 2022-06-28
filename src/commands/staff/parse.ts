@@ -78,7 +78,7 @@ export default class implements Command {
 				await interaction.editReply({
 					content: null,
 					embeds: [embed],
-					components: voiceChannel?.isVoiceBased() ? generateActionRows(crashersButton) : [],
+					components: voiceChannel?.isVoiceBased() ? generateActionRows([crashersButton]) : [],
 				});
 
 				const collectedInteraction = await m

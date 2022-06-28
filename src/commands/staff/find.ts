@@ -91,7 +91,7 @@ export default class implements Command {
 				embed.data.description += `\n${inlineCode((i + 1).toString())}. ${member.toString()} - ${member.id}`;
 			}
 
-			await interaction.editReply({ embeds: [embed.toJSON()], components: generateActionRows(...buttons) });
+			await interaction.editReply({ embeds: [embed.toJSON()], components: generateActionRows(buttons) });
 
 			const collectedInteraction = await m
 				.awaitMessageComponent({

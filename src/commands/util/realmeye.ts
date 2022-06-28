@@ -10,6 +10,7 @@ import { FAME_EMOJI_ID } from '../../constants';
 import { paginate } from '../../functions/paginate';
 
 import type { Command } from '#struct/Command';
+import { generateActionRows } from '#util/util';
 
 export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
@@ -175,7 +176,7 @@ export default class implements Command {
 
 					await interaction.editReply({
 						embeds: [embed],
-						components: [new ActionRowBuilder<ButtonBuilder>().addComponents(viewTopButton)],
+						components: generateActionRows([viewTopButton]),
 					});
 
 					const collectedInteraction = await m

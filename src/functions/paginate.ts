@@ -25,7 +25,7 @@ export async function paginate(interaction: Interaction, embeds: EmbedBuilder[])
 
 	const m = await interaction.editReply({
 		embeds: [embeds[page]],
-		components: generateActionRows(backButton, forwardButton),
+		components: generateActionRows([backButton, forwardButton]),
 	});
 
 	const collector = m.createMessageComponentCollector({
