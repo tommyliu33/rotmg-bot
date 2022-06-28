@@ -1,10 +1,10 @@
-import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, inlineCode } from '@discordjs/builders';
+import { ButtonBuilder, EmbedBuilder, inlineCode } from '@discordjs/builders';
 import { toTitleCase } from '@sapphire/utilities';
 import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { config } from '../../util/config';
 import type { Command } from '#struct/Command';
-
+import { generateActionRows } from '#util/util';
 
 export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
@@ -26,23 +26,16 @@ export default class implements Command {
 
 		if (!channel?.isTextBased()) return;
 		if (!verification_requirements.verification_message) {
-			await interaction.editReply('There is no set verification message to display.');
+			await interaction.editReply('There is no verification message.');
 			return;
 		}
-
-		// TODO: refactor
 
 		const verifyKey = section === 'veteran_raiding' ? 'veteran_verification' : 'main_verification';
 		const verifyButton = new ButtonBuilder().setCustomId(verifyKey).setStyle(ButtonStyle.Primary).setLabel('Verify');
 
-		const opts: { components: any[] } = { components: [] };
-		if (button) {
-			opts.components = [new ActionRowBuilder<ButtonBuilder>().addComponents(verifyButton)];
-		}
-
 		const m = await channel.send({
 			embeds: [embed.setDescription(verification_requirements.verification_message).toJSON()],
-			...opts,
+			components: button ? generateActionRows([verifyButton]) : [],
 		});
 
 		await interaction.editReply(`Done. See it here:\n${m.url}`);
