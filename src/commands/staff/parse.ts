@@ -36,28 +36,28 @@ export default class implements Command {
 		const attachment = interaction.options.getAttachment('screenshot', true);
 		const voiceChannel = interaction.options.getChannel('voice_channel', false) ?? interaction.member.voice.channel;
 
-		await interaction.editReply('Starting parse (if this takes too long, it may have failed)');
+		await interaction.editReply('Starting parse.');
 
 		const url = attachment.url || attachment.proxyURL;
 		const res = await parse(url).catch(async (err: Error) => {
 			if (err.message === 'Not an image') {
-				await interaction.editReply({ content: 'Attachment was not an image.' });
+				await interaction.editReply({ content: 'The attachment is not an image.' });
 				return undefined;
 			}
 
 			if (err.message === 'Headers Timeout Error') {
-				await interaction.editReply({ content: 'Timed out trying to send request, try again.' });
+				await interaction.editReply({ content: 'Timed out.' });
 				return undefined;
 			}
 
 			await interaction.editReply({
-				content: `An error occured while trying to read screenshot.\n${codeBlock(err.message)}`,
+				content: 'Failed to parse screenshot.',
 			});
 			return undefined;
 		});
 
 		if (res) {
-			await interaction.editReply('Parsing image results');
+			await interaction.editReply('Parsing results.');
 			timer.stop();
 
 			const text = res.ParsedResults[0].ParsedText;

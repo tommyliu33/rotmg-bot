@@ -18,12 +18,12 @@ export default class implements Command {
 		const role = await interaction.guild.roles.fetch(user_role_id).catch(() => undefined);
 
 		if (!role) {
-			await interaction.editReply(`Could not find role in the server (it is currently set to: ${user_role_id}).`);
+			await interaction.editReply('Could not find the role in this server.');
 			return;
 		}
 
 		if (!member?.manageable) {
-			await interaction.editReply('I cannot manage this user.');
+			await interaction.editReply('I cannot do that.');
 			return;
 		}
 
@@ -33,7 +33,7 @@ export default class implements Command {
 			type: VerificationType.Main,
 		})
 			.then(async () => {
-				await interaction.editReply(`Successfully verified ${member.toString()}.`);
+				await interaction.editReply('Done.');
 			})
 			.catch(async (err: Error) => {
 				await interaction.editReply(err.message);
