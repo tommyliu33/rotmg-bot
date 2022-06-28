@@ -1,6 +1,13 @@
 import { ButtonBuilder } from '@discordjs/builders';
 import { chunk } from '@sapphire/utilities';
-import { ActionRowBuilder, ButtonStyle, MessageActionRowComponentBuilder, Client } from 'discord.js';
+import {
+	ActionRowBuilder,
+	ButtonStyle,
+	MessageActionRowComponentBuilder,
+	Client,
+	RestOrArray,
+	normalizeArray,
+} from 'discord.js';
 import { nanoid } from 'nanoid';
 import { container } from 'tsyringe';
 import { kClient } from '../tokens';
@@ -81,7 +88,11 @@ export function generateButtonsFromEmojis(emojis: EmojiReaction[]): ButtonBuilde
 }
 
 // Copyright © 2020 The Sapphire Community and its contributors
-export function generateActionRows<Component extends MessageActionRowComponentBuilder>(...components: Component[]) {
+export function generateActionRows<Component extends MessageActionRowComponentBuilder>(
+	components: RestOrArray<Component>
+) {
+	components = normalizeArray(components);
+
 	const chunks = chunk(components, 5);
 	const rows = chunks.map((chunk) => new ActionRowBuilder<Component>().addComponents(...chunk));
 
