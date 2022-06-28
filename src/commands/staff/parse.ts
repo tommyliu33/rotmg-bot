@@ -2,7 +2,7 @@ import { codeBlock } from '@discordjs/builders';
 import { Stopwatch } from '@sapphire/stopwatch';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
-import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, ComponentType } from 'discord.js';
+import { EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 
 import { nanoid } from 'nanoid';
 import { paginate } from '#functions/paginate';
@@ -88,9 +88,7 @@ export default class implements Command {
 						time: 60000 * 5,
 					})
 					.catch(async () => {
-						await m.edit({
-							components: [new ActionRowBuilder<ButtonBuilder>().addComponents(crashersButton.setDisabled(true))],
-						});
+						await m.edit({ components: [] });
 						return undefined;
 					});
 
@@ -132,7 +130,7 @@ export default class implements Command {
 								new EmbedBuilder()
 									.setTitle('Players in voice channel, but not found in screenshot (Possible alts)')
 									.setDescription(codeBlock(inVoiceChannelButNotInScreenshot.join('\n')))
-									.setFooter({ text: 'Not 100% accurate!' })
+									.setFooter({ text: 'May not be 100% accurate' })
 							);
 						}
 					}
