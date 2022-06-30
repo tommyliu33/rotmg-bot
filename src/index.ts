@@ -55,3 +55,5 @@ for await (const dir of readdirp('./events', { fileFilter: '*.js' })) {
 await client.login();
 
 type Constructor<T> = new (...args: any[]) => T;
+
+client.on('error', (error) => logger.error(error));

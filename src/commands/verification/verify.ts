@@ -9,7 +9,7 @@ export default class implements Command {
 			.setCustomId('verification_modal');
 		const nameForm = new TextInputBuilder()
 			.setCustomId('name')
-			.setLabel('What is your ingame name?')
+			.setLabel('Enter your ingame name below')
 			.setStyle(TextInputStyle.Short);
 		await interaction.showModal(modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(nameForm)));
 	}
