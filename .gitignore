@@ -14,5 +14,5 @@ node_modules/
 # log files
 *.log
 
-# sensitive commands
-eval.ts
+# sensitive files
+config.toml
