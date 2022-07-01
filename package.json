@@ -20,7 +20,7 @@
 		"@discordjs/rest": "^0.5.0",
 		"@ltd/j-toml": "^1.30.0",
 		"@sapphire/stopwatch": "^1.4.1",
-		"@sapphire/utilities": "^3.6.2",
+		"@sapphire/utilities": "^3.7.0",
 		"@toommyliu/realmeye-scraper": "github:toommyliu/realmeye-scraper",
 		"common-tags": "^1.8.2",
 		"discord-api-types": "^0.35.0",
