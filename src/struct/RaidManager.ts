@@ -23,7 +23,7 @@ export class RaidManager {
 
 	public init() {
 		const file = readFileSync('../data/dungeons.toml', { encoding: 'utf-8' });
-		const file_ = parse(file, 1.0, '\n');
+		const file_ = parse(file, 1.0, '\n', false);
 
 		for (const [key, dungeon] of Object.entries(file_)) {
 			const dungeon_ = dungeon as unknown as Dungeon;

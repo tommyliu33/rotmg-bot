@@ -2,7 +2,7 @@ import { scrapePlayer, isGraveyardAvailable } from '@toommyliu/realmeye-scraper'
 import type { GuildMember } from 'discord.js';
 import { VerificationType } from './verifyMember';
 
-import { config } from '../../util/config';
+import { guilds } from '#util/mongo';
 
 const DUNGEON_NAMES = [
 	'Oryx Sanctuary',
@@ -32,9 +32,10 @@ export async function checkVerificationStatus<T extends VerificationType>(
 		case VerificationType.Main:
 			break;
 		case VerificationType.Veteran:
+			const doc = await guilds.findOne({ guild_id: member.guild.id });
 			const player = await scrapePlayer(member.displayName).catch(() => undefined);
 
-			if (!player) {
+			if (!player || !doc) {
 				res.status = VerificationStatusCode.Failed;
 			}
 
@@ -53,7 +54,7 @@ export async function checkVerificationStatus<T extends VerificationType>(
 					for (let i = 1; i < DUNGEON_NAMES.length; ++i) {
 						const dungeon = DUNGEON_NAMES[i];
 						const current = player.dungeonCompletions[dungeon];
-						const required = config.veteran_raiding.verification_requirements.dungeon_completions[i];
+						const required = doc!['veteran_raiding']['verification_requirements']['dungeon_completions'][i];
 						const missing = required - current;
 
 						if (!failed && missing > 0) {

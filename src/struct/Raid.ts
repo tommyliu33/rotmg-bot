@@ -16,8 +16,8 @@ import { container } from 'tsyringe';
 import type { Dungeon, RaidManager } from './RaidManager';
 import { kClient, kRaids } from '../tokens';
 
-import { config, type GuildConfig } from '../util/config';
 import { react } from '#functions/react';
+import type { GuildDocument } from '#util/mongo';
 import {
 	ABORT_ID,
 	afkCheckButtons,
@@ -52,8 +52,8 @@ const listButtonsFromType = (type: RaidType) => {
 	return headCountButtons.map((button) => Reflect.get(mappedButtonEmojis, button.data.emoji!.name!) as string);
 };
 
-export function isVeteranSection(config: GuildConfig, id: string): boolean {
-	const { veteran_raiding } = config;
+export function isVeteranSection(doc: GuildDocument, id: string): boolean {
+	const { veteran_raiding } = doc;
 
 	if (veteran_raiding.status_channel_id === id) return true;
 	if (veteran_raiding.control_panel_channel_id === id) return true;
@@ -96,10 +96,13 @@ export class Raid implements RaidBase {
 	public location: string;
 	public locationRevealed: boolean;
 
-	public constructor(raid: Omit<RaidBase, 'mainMessageId'> & { type: RaidType }) {
+	private readonly doc!: GuildDocument;
+
+	public constructor(raid: Omit<RaidBase, 'mainMessageId'> & { type: RaidType; doc: GuildDocument }) {
 		const { guildId, dungeon, memberId, textChannelId, voiceChannelId } = raid;
 
 		Reflect.defineProperty(this, 'guild', { value: this.client.guilds.cache.get(guildId) });
+		Reflect.defineProperty(this, 'doc', { value: raid.doc });
 
 		this.dungeon = dungeon;
 		this.guildId = guildId;
@@ -114,8 +117,8 @@ export class Raid implements RaidBase {
 	}
 
 	public async init() {
-		const isVet = isVeteranSection(config, this.textChannelId);
-		const controlPanelChannelId = config[isVet ? 'veteran_raiding' : 'main_raiding'].control_panel_channel_id;
+		const isVet = isVeteranSection(this.doc, this.textChannelId);
+		const controlPanelChannelId = this.doc[isVet ? 'veteran_raiding' : 'main_raiding'].control_panel_channel_id;
 
 		this.controlPanelId = controlPanelChannelId;
 

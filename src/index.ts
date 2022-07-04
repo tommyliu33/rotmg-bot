@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 
-import { GatewayIntentBits } from 'discord-api-types/v10';
-import { basename, Client, ClientEvents } from 'discord.js';
+import { basename } from 'node:path';
+import { Client, IntentsBitField, ClientEvents } from 'discord.js';
 
 import readdirp from 'readdirp';
 import { container } from 'tsyringe';
@@ -16,14 +16,15 @@ import { RaidManager } from '#struct/RaidManager';
 
 const client = new Client({
 	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMembers,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.GuildVoiceStates,
-		GatewayIntentBits.GuildMessageReactions,
-		GatewayIntentBits.DirectMessages,
-		GatewayIntentBits.DirectMessageReactions,
-		GatewayIntentBits.MessageContent,
+		IntentsBitField.Flags.Guilds,
+		IntentsBitField.Flags.Guilds,
+		IntentsBitField.Flags.GuildMembers,
+		IntentsBitField.Flags.GuildMessages,
+		IntentsBitField.Flags.GuildVoiceStates,
+		IntentsBitField.Flags.GuildMessageReactions,
+		IntentsBitField.Flags.DirectMessages,
+		IntentsBitField.Flags.DirectMessageReactions,
+		IntentsBitField.Flags.MessageContent,
 	],
 });
 
@@ -40,7 +41,7 @@ for await (const dir of readdirp('./commands', { fileFilter: '*.js' })) {
 	const name = basename(dir.fullPath, '.js');
 	commands.set(name, command);
 
-	logger.info(`Registered command: ${name}`);
+	logger.info(`Registered command: ${dir.basename}`);
 }
 container.register(kCommands, { useValue: commands });
 

@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import { REST } from '@discordjs/rest';
-import { Routes, APIApplicationCommand } from 'discord-api-types/v10';
+import { Routes, type APIApplicationCommand } from 'discord-api-types/v10';
 import readdirp from 'readdirp';
 import { logger } from './logger';
 

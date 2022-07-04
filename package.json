@@ -7,7 +7,8 @@
 		"prepare": "husky install",
 		"lint": "eslint src --ext ts .",
 		"lint:fix": "eslint src --ext ts . --fix",
-		"start": "tsup && cd dist && node -r source-map-support/register --experimental-specifier-resolution=node .",	
+		"start": "tsup && cd dist && node -r source-map-support/register --experimental-specifier-resolution=node .",
+		"start:silent": "tsup --silent && cd dist && node -r source-map-support/register --experimental-specifier-resolution=node .",
 		"deploy": "tsup && cd dist && node --experimental-specifier-resolution=node ./util/deploy"
 	},
 	"imports": {
@@ -26,6 +27,7 @@
 		"discord-api-types": "^0.35.0",
 		"discord.js": "^14.0.0-dev.1656060492-e24970e",
 		"dotenv": "^16.0.1",
+		"mongodb": "^4.7.0",
 		"nanoid": "^4.0.0",
 		"petitio": "^1.4.0",
 		"pino": "^8.1.0",

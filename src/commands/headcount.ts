@@ -1,10 +1,10 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 import { inject, injectable } from 'tsyringe';
 import { kRaids } from '../tokens';
-import { config } from '../util/config';
 import type { Command } from '#struct/Command';
 import { isVeteranSection, Raid, RaidType } from '#struct/Raid';
 import type { RaidManager } from '#struct/RaidManager';
+import { guilds } from '#util/mongo';
 
 @injectable()
 export default class implements Command {
@@ -18,7 +18,9 @@ export default class implements Command {
 			return;
 		}
 
-		const isVet = isVeteranSection(config, interaction.channelId);
+		const doc = await guilds.findOne({ guild_id: interaction.guildId });
+
+		const isVet = isVeteranSection(doc!, interaction.channelId);
 		const voiceChannelId = interaction.options.getString('voice_channel', true);
 		const dungeon = this.manager.dungeonCache.get(interaction.options.getString('dungeon', true))!;
 
@@ -27,10 +29,11 @@ export default class implements Command {
 			guildId: interaction.guildId,
 			memberId: interaction.member.id,
 
-			textChannelId: config[isVet ? 'veteran_raiding' : 'main_raiding'].status_channel_id,
+			textChannelId: doc![isVet ? 'veteran_raiding' : 'main_raiding'].status_channel_id,
 			voiceChannelId,
 
 			type: RaidType.Headcount,
+			doc: doc!,
 		});
 
 		await interaction.deleteReply();
@@ -38,8 +41,10 @@ export default class implements Command {
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
-		const isVet = isVeteranSection(config, interaction.channelId);
-		const { voice_channel_ids } = config[isVet ? 'veteran_raiding' : 'main_raiding'];
+		const doc = await guilds.findOne({ guild_id: interaction.guildId });
+
+		const isVet = isVeteranSection(doc!, interaction.channelId);
+		const { voice_channel_ids } = doc![isVet ? 'veteran_raiding' : 'main_raiding'];
 
 		const response = [];
 		for (const id of voice_channel_ids) {

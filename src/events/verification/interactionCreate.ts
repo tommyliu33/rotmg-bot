@@ -4,10 +4,10 @@ import { stripIndents } from 'common-tags';
 import { InteractionType } from 'discord-api-types/v10';
 import { ComponentType, Events, GuildMember, Interaction, TextInputStyle, Colors } from 'discord.js';
 import { nanoid } from 'nanoid';
-import { config } from '../../util/config';
 import { checkVerificationStatus, VerificationStatusCode } from '#functions/verification/checkVerificationStatus';
 import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
 import type { Event } from '#struct/Event';
+import { guilds } from '#util/mongo';
 import { cancelButton, CANCEL_ID, doneButton, DONE_ID, generateActionRows } from '#util/util';
 
 const generateProfileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
@@ -20,11 +20,13 @@ export default class implements Event {
 		if (!interaction.inCachedGuild()) return;
 
 		if (interaction.isButton()) {
+			const doc = await guilds.findOne({ guild_id: interaction.guildId });
 			if (
+				doc &&
 				interaction.customId === 'main_verification' &&
-				interaction.channelId === config['main_raiding']['verification_channel_id']
+				interaction.channelId === doc['main_raiding']['verification_channel_id']
 			) {
-				if (interaction.member.roles.cache.has(config['main_raiding']['user_role_id'])) {
+				if (interaction.member.roles.cache.has(doc['main_raiding']['user_role_id'])) {
 					await interaction.reply({ content: 'You are already verified.', ephemeral: true });
 					return;
 				}
@@ -40,8 +42,9 @@ export default class implements Event {
 
 				await interaction.showModal(modal.addComponents(generateActionRows([nameForm])));
 			} else if (
+				doc &&
 				interaction.customId === 'veteran_verification' &&
-				interaction.channelId === config['veteran_raiding']['verification_channel_id']
+				interaction.channelId === doc['veteran_raiding']['verification_channel_id']
 			) {
 				await interaction.deferReply({ ephemeral: true });
 				const { status, dungeonCompletions } = await checkVerificationStatus(
@@ -75,7 +78,7 @@ export default class implements Event {
 						}
 						break;
 					case VerificationStatusCode.AddRole:
-						await verifyMember(interaction.member, { roleId: config['veteran_raiding']['user_role_id'] });
+						await verifyMember(interaction.member, { roleId: doc['veteran_raiding']['user_role_id'] });
 						break;
 				}
 			}
@@ -129,6 +132,8 @@ export default class implements Event {
 		collector.on('collect', async (collectedInteraction) => {
 			switch (collectedInteraction.customId) {
 				case DONE_ID:
+					const doc = await guilds.findOne({ guild_id: collectedInteraction.guildId! });
+
 					await collectedInteraction.deferReply();
 
 					const player = await scrapePlayer(name).catch(async (err) => {
@@ -147,7 +152,7 @@ export default class implements Event {
 
 					await verifyMember(member, {
 						nickname: name,
-						roleId: config['main_raiding']['user_role_id'],
+						roleId: doc!['main_raiding']['user_role_id'],
 					});
 					await m.channel.send(
 						'You are now verified! If you did not receive the role or a nickname, please contact a staff member.'

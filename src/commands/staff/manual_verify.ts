@@ -1,21 +1,23 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { config } from '../../util/config';
-import { VerificationType, verifyMember } from '#functions/verification/verifyMember';
+import { verifyMember } from '#functions/verification/verifyMember';
 import type { Command } from '#struct/Command';
+import { guilds } from '#util/mongo';
 
 export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: interaction.options.getBoolean('hidden') ?? false });
 
-		const { user_role_id } = config['main_raiding'];
-		if (!user_role_id) {
+		const doc = await guilds.findOne({ guild_id: interaction.guildId });
+		const roleId = doc?.['main_raiding']['user_role_id'] ?? undefined;
+
+		if (!roleId) {
 			await interaction.editReply('No role found.');
 			return;
 		}
 
 		const member = interaction.options.getMember('member');
 		const name = interaction.options.getString('name', true);
-		const role = await interaction.guild.roles.fetch(user_role_id).catch(() => undefined);
+		const role = await interaction.guild.roles.fetch(roleId).catch(() => undefined);
 
 		if (!role) {
 			await interaction.editReply('Could not find the role in this server.');
@@ -30,7 +32,6 @@ export default class implements Command {
 		verifyMember(member, {
 			nickname: name,
 			roleId: role.id,
-			type: VerificationType.Main,
 		})
 			.then(async () => {
 				await interaction.editReply('Done.');
