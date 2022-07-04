@@ -6,7 +6,7 @@ const UA =
 const API = (apiKey: string, url: string) => `https://api.ocr.space/parse/imageurl?apikey=${apiKey}&url=${url}`;
 
 async function isImage(url: string): Promise<boolean> {
-	const req = await fetch(url, 'HEAD');
+	const req = fetch(url, 'HEAD');
 	req.header('user-agent', UA);
 
 	const res = await req.send();
