@@ -49,6 +49,18 @@ interface UserDocument {
 interface UserGuildStats {
 	guild_id: string;
 	dungeon_completions: number[];
-	names?: string[];
+	names?: UserNameData[];
 	verified_at?: Date;
+	notes?: UserNote[];
+}
+
+interface UserNameData {
+	name: string;
+	verified_by?: string;
+	verified_at?: Date;
+}
+
+interface UserNote {
+	message: string;
+	timestamp: Date;
 }
