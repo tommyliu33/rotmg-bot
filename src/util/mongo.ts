@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, type WithId } from 'mongodb';
 
 const DATABASE_NAME = 'rotmg' as const;
 const GUILDS_COLLECTION = 'guilds' as const;
@@ -10,7 +10,17 @@ export const guilds = db.collection<GuildDocument>(GUILDS_COLLECTION);
 export const users = db.collection<UserDocument>(USERS_COLLECTION);
 
 // TODO: we can cache guild docs and update the cache as they are updated
-await mongo.connect();
+void mongo.connect();
+
+export async function createUser(userId: string) {
+	const user = await users.findOne({ user_id: userId });
+	if (user) {
+		return user;
+	}
+
+	void users.insertOne({ guilds: [], user_id: userId });
+	return users.findOne({ user_id: userId }) as Promise<WithId<UserDocument>>;
+}
 
 export interface GuildDocument {
 	guild_id: string;
@@ -43,6 +53,7 @@ interface GuildConfigRaidSection {
 }
 
 interface UserDocument {
+	user_id: string;
 	guilds: UserGuildStats[];
 }
 
@@ -50,17 +61,18 @@ interface UserGuildStats {
 	guild_id: string;
 	dungeon_completions: number[];
 	names?: UserNameData[];
-	verified_at?: Date;
+	verified_timestamp?: number;
 	notes?: UserNote[];
 }
 
 interface UserNameData {
 	name: string;
 	verified_by?: string;
-	verified_at?: Date;
+	verified_timestamp?: number;
 }
 
 interface UserNote {
+	author: string;
 	message: string;
-	timestamp: Date;
+	timestamp: number;
 }

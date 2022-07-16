@@ -5,7 +5,7 @@ import { Routes, type APIApplicationCommand } from 'discord-api-types/v10';
 import readdirp from 'readdirp';
 import { logger } from './logger';
 
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
+const rest = new REST().setToken(process.env.DISCORD_TOKEN!);
 const commands = [];
 
 for await (const dir of readdirp('./interactions', { fileFilter: '*.js' })) {
