@@ -1,9 +1,8 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
-import type { Command } from '#struct/Command';
-
-import { users, createUser } from '#util/mongo';
 import { EmbedBuilder } from '@discordjs/builders';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { paginate } from '#functions/paginate';
+import type { Command } from '#struct/Command';
+import { createUser, users } from '#util/mongo';
 
 export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
