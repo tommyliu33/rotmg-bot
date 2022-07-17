@@ -71,10 +71,7 @@ export default class implements Command {
 				const crashersButton = new ButtonBuilder()
 					.setStyle(ButtonStyle.Primary)
 					.setCustomId(crashersKey)
-					.setLabel('View crashers')
-					.setEmoji({
-						name: '🕵️',
-					});
+					.setLabel('View crashers');
 				await interaction.editReply({
 					content: null,
 					embeds: [embed],

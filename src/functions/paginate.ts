@@ -1,57 +1,56 @@
 import type { EmbedBuilder, Interaction } from 'discord.js';
 
-import { ButtonBuilder, ButtonStyle } from 'discord.js';
+import { ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import { generateActionRows } from '#util/util';
 
-const forwardButton = new ButtonBuilder().setCustomId('forward').setStyle(ButtonStyle.Success).setEmoji({
-	name: '▶️',
-});
+const forwardId = 'forward';
+const forwardButton = new ButtonBuilder().setCustomId(forwardId).setStyle(ButtonStyle.Success).setLabel('>');
 
-const backButton = new ButtonBuilder().setCustomId('back').setStyle(ButtonStyle.Success).setEmoji({
-	name: '◀️',
-});
+const backId = 'back';
+const backButton = new ButtonBuilder().setCustomId(backId).setStyle(ButtonStyle.Success).setLabel('<');
 
 export async function paginate(interaction: Interaction, embeds: EmbedBuilder[]) {
-	if (!interaction.inCachedGuild() || !interaction.isRepliable()) return;
+	if (!interaction.isRepliable()) return;
 
-	let page = 0;
+	let currentPage = 0;
 
-	if (!interaction.deferred) await interaction.deferReply();
-
-	if (embeds.length === 1) {
-		await interaction.editReply({ embeds: [embeds[page]] });
-		return;
+	if (!interaction.deferred) {
+		await interaction.deferReply();
 	}
 
+	const components = generateActionRows([backButton, forwardButton]);
 	const m = await interaction.editReply({
-		embeds: [embeds[page]],
-		components: generateActionRows([backButton, forwardButton]),
+		embeds: [embeds[currentPage]],
+		components,
 	});
 
 	const collector = m.createMessageComponentCollector({
+		componentType: ComponentType.Button,
+		filter: (i) => i.user.id === interaction.user.id,
 		time: 60_000 * 5,
 	});
 
+	// https://github.com/DankMemer/sniper/blob/main/src/paginator.js
 	collector.on('collect', async (collectedInteraction) => {
-		if (!collectedInteraction.isButton()) return;
-		if (collectedInteraction.user.id !== interaction.user.id) {
-			await collectedInteraction.reply({ content: "This button wasn't meant for you.", ephemeral: true });
-			return;
+		switch (collectedInteraction.customId) {
+			case backId:
+				if (currentPage === 0) {
+					await collectedInteraction.deferUpdate();
+					return;
+				}
+
+				currentPage -= 1;
+				await collectedInteraction.update({ embeds: [embeds[currentPage]] });
+				break;
+			case forwardId:
+				if (currentPage === embeds.length - 1) {
+					await collectedInteraction.deferUpdate();
+					return;
+				}
+				currentPage += 1;
+				await collectedInteraction.update({ embeds: [embeds[currentPage]] });
+				break;
 		}
-
-		await collectedInteraction.deferUpdate();
-
-		if (collectedInteraction.customId === 'forward') {
-			page > embeds.length - 1 ? (page = 0) : ++page;
-		} else if (collectedInteraction.customId === 'back') {
-			page < 0 ? (page = embeds.length - 1) : --page;
-		}
-
-		await collectedInteraction
-			.editReply({
-				embeds: [embeds[page]],
-			})
-			.catch(() => undefined);
 	});
 
 	collector.on('end', async () => {
