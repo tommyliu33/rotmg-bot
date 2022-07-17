@@ -17,7 +17,6 @@ import { RaidManager } from '#struct/RaidManager';
 const client = new Client({
 	intents: [
 		IntentsBitField.Flags.Guilds,
-		IntentsBitField.Flags.Guilds,
 		IntentsBitField.Flags.GuildMembers,
 		IntentsBitField.Flags.GuildMessages,
 		IntentsBitField.Flags.GuildVoiceStates,
