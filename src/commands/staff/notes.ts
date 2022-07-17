@@ -55,11 +55,8 @@ export default class implements Command {
 		const guild = doc.guilds.find((user) => user.guild_id === interaction.guildId && user.notes?.length);
 		if (guild?.notes) {
 			const embeds = [];
-			for (const note of guild.notes) {
-				const embed = new EmbedBuilder()
-					.setAuthor({ name: note.author })
-					.setDescription(note.message)
-					.setTimestamp(note.timestamp);
+			for (const { author, message, timestamp } of guild.notes) {
+				const embed = new EmbedBuilder().setAuthor({ name: author }).setDescription(message).setTimestamp(timestamp);
 				embeds.push(embed);
 			}
 
