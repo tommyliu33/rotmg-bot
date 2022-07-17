@@ -53,14 +53,18 @@ export default class implements Command {
 
 		const doc = await createUser(u.id);
 		const guild = doc.guilds.find((user) => user.guild_id === interaction.guildId && user.notes?.length);
-		if (guild?.notes) {
-			const embeds = [];
-			for (const { author, message, timestamp } of guild.notes) {
-				const embed = new EmbedBuilder().setAuthor({ name: author }).setDescription(message).setTimestamp(timestamp);
-				embeds.push(embed);
-			}
 
-			await paginate(interaction, embeds);
+		if (!guild?.notes?.length || guild.notes.length === 0) {
+			await interaction.editReply('No notes found.');
+			return;
 		}
+
+		const embeds = [];
+		for (const { author, message, timestamp } of guild.notes) {
+			const embed = new EmbedBuilder().setAuthor({ name: author }).setDescription(message).setTimestamp(timestamp);
+			embeds.push(embed);
+		}
+
+		await paginate(interaction, embeds);
 	}
 }
