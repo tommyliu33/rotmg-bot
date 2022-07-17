@@ -12,13 +12,23 @@ export const users = db.collection<UserDocument>(USERS_COLLECTION);
 // TODO: we can cache guild docs and update the cache as they are updated
 void mongo.connect();
 
-export async function createUser(userId: string) {
+export async function createUser(userId: string, guildId?: string) {
 	const user = await users.findOne({ user_id: userId });
 	if (user) {
 		return user;
 	}
 
-	void users.insertOne({ guilds: [], user_id: userId });
+	const guilds: UserGuildStats[] = [];
+	if (guildId) {
+		guilds.push({
+			guild_id: guildId,
+			dungeon_completions: [0, 0, 0, 0, 0, 0],
+			names: [],
+			notes: [],
+		});
+	}
+
+	void users.insertOne({ guilds, user_id: userId });
 	return users.findOne({ user_id: userId }) as Promise<WithId<UserDocument>>;
 }
 
