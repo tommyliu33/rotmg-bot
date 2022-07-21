@@ -4,15 +4,9 @@ import {
 	AnyComponentBuilder,
 	ButtonBuilder,
 	ButtonStyle,
-	Client,
 	normalizeArray,
 	RestOrArray,
 } from 'discord.js';
-import { nanoid } from 'nanoid';
-import { container } from 'tsyringe';
-import { kClient } from '../tokens';
-
-import type { EmojiReaction } from '#struct/RaidManager';
 
 export const PARTICIPATE_ID = 'participate' as const;
 export const CHANGE_LOCATION_ID = 'change_location' as const;
@@ -68,24 +62,7 @@ export const afkCheckButtons = [changeLocationButton, revealLocationButton, abor
 
 // #endregion
 
-// #region Message components
-
-export function generateButtonsFromEmojis(emojis: EmojiReaction[]): ButtonBuilder[] {
-	const client = container.resolve<Client>(kClient);
-	const buttons: ButtonBuilder[] = [];
-	for (const { emoji } of emojis) {
-		const button = new ButtonBuilder().setCustomId(nanoid()).setStyle(ButtonStyle.Primary);
-		if (/\p{Emoji_Presentation}/gu.test(emoji)) {
-			button.setEmoji({ name: emoji });
-		} else if (client instanceof Client && client.emojis.cache.has(emoji)) {
-			button.setEmoji({ id: emoji });
-		}
-
-		buttons.push(button);
-	}
-
-	return buttons;
-}
+// #region Message component
 
 // Copyright © 2020 The Sapphire Community and its contributors
 export function generateActionRows<Component extends AnyComponentBuilder>(components: RestOrArray<Component>) {
