@@ -15,4 +15,4 @@ node_modules/
 *.log
 
 # sensitive files
-config.toml
+emojis.toml
