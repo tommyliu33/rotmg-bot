@@ -5,10 +5,13 @@ import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 
 import { nanoid } from 'nanoid';
+
+import type { CommandEntity } from '#components/CommandEntity';
+import { CommandManager } from '#components/CommandManager';
+
 import { paginate } from '#functions/paginate';
 import { parse } from '#functions/parse/parse';
 
-import type { Command } from '#struct/Command';
 import { generateActionRows } from '#util/util';
 
 const clean = (str: string) => str.replace(/[^A-Za-z]/g, '').toLowerCase();
@@ -28,7 +31,10 @@ function getNames(arr: string[]): string[] {
 	return names;
 }
 
-export default class implements Command {
+export default class implements CommandEntity {
+	public name = 'commands:parse';
+	public parent = CommandManager;
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const timer = new Stopwatch();
 

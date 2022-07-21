@@ -6,13 +6,17 @@ import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, escapeMarkdown } from 'discord.js';
 
-import { FAME_EMOJI_ID } from '../../constants';
 import { paginate } from '../../functions/paginate';
 
-import type { Command } from '#struct/Command';
+import type { CommandEntity } from '#components/CommandEntity';
+import { CommandManager } from '#components/CommandManager';
+
 import { generateActionRows } from '#util/util';
 
-export default class implements Command {
+export default class implements CommandEntity {
+	public name = 'commands:realmeye';
+	public parent = CommandManager;
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const m = await interaction.deferReply({ fetchReply: true });
 
@@ -205,7 +209,7 @@ export default class implements Command {
 										(member, i) =>
 											`**${++i}**. ${hyperlink(member.name!, member.realmEyeUrl!)} - ${
 												member.fame?.toLocaleString() ?? 0
-											}${interaction.client.emojis.cache.get(FAME_EMOJI_ID)?.toString() ?? ''}`
+											}`
 									)
 									.join('\n')
 							);

@@ -1,10 +1,14 @@
 import { EmbedBuilder } from '@discordjs/builders';
 import type { ChatInputCommandInteraction } from 'discord.js';
+import type { CommandEntity } from '../../components/CommandEntity';
+
+import { CommandManager } from '../../components/CommandManager';
 import { paginate } from '#functions/paginate';
-import type { Command } from '#struct/Command';
 import { createUser, users } from '#util/mongo';
 
-export default class implements Command {
+export default class implements CommandEntity {
+	public name = 'commands:notes';
+	public parent = CommandManager;
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		switch (interaction.options.getSubcommand(true)) {
 			case 'create':

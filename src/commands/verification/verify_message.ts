@@ -3,12 +3,16 @@ import { toTitleCase } from '@sapphire/utilities';
 import { ButtonStyle } from 'discord-api-types/v10';
 
 import type { ChatInputCommandInteraction } from 'discord.js';
-import type { Command } from '#struct/Command';
+import type { CommandEntity } from '#components/CommandEntity';
+import { CommandManager } from '#components/CommandManager';
 
 import { guilds } from '#util/mongo';
 import { generateActionRows } from '#util/util';
 
-export default class implements Command {
+export default class implements CommandEntity {
+	public name = 'commands:verify_message';
+	public parent = CommandManager;
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 

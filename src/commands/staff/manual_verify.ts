@@ -1,19 +1,22 @@
+import { Inject } from '@ayanaware/bento';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { verifyMember } from '#functions/verification/verifyMember';
-import type { Command } from '#struct/Command';
-import { guilds } from '#util/mongo';
+import type { CommandEntity } from '#components/CommandEntity';
 
-export default class implements Command {
+import { CommandManager } from '#components/CommandManager';
+import { Database } from '#components/Database';
+import { verifyMember } from '#functions/verification/verifyMember';
+
+export default class implements CommandEntity {
+	public name = 'commands:manual_verify';
+	public parent = CommandManager;
+
+	@Inject(Database) private readonly database!: Database;
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: interaction.options.getBoolean('hidden') ?? false });
 
-		const doc = await guilds.findOne({ guild_id: interaction.guildId });
-		const roleId = doc?.['main_raiding']['user_role_id'] ?? undefined;
-
-		if (!roleId) {
-			await interaction.editReply('No role found.');
-			return;
-		}
+		const doc = await this.database.get(interaction.guildId);
+		const roleId = doc['main_raiding']['user_role_id'];
 
 		const member = interaction.options.getMember('member');
 		const name = interaction.options.getString('name', true);
