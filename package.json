@@ -8,8 +8,7 @@
 		"lint": "eslint src --ext ts .",
 		"lint:fix": "eslint src --ext ts . --fix",
 		"start": "tsup && cd dist && node --experimental-specifier-resolution=node .",
-		"start:silent": "tsup --silent && cd dist && node --experimental-specifier-resolution=node .",
-		"deploy": "tsup && cd dist && node --experimental-specifier-resolution=node ./util/deploy"
+		"start:silent": "tsup --silent && cd dist && node --experimental-specifier-resolution=node ."
 	},
 	"dependencies": {
 		"@ayanaware/bento": "^1.0.0-rc.29",
