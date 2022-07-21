@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import 'dotenv/config';
 
 import { Bento, FSEntityLoader, EntityType } from '@ayanaware/bento';
