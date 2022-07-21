@@ -14,7 +14,7 @@
 		"moduleResolution": "node",
 		"baseUrl": ".",
 		"paths": {
-			"#struct/*": ["src/struct/*"],
+			"#components/*": ["src/components/*"],
 			"#functions/*": ["src/functions/*"],
 			"#util/*": ["src/util/*"]
 		},
