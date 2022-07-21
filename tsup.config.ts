@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig((options) => ({
 	clean: true,
-	dts: false,
+	dts: true,
 	entry: ['src/**/*.ts'],
 	format: ['esm'],
 	minify: false,
