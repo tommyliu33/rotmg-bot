@@ -20,9 +20,7 @@ export default class implements CommandEntity {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 
-		if (
-			this.raidManager.raids.get(`${interaction.guildId}-${interaction.member.id}`)?.raidType === RaidType.Headcount
-		) {
+		if (this.raidManager.raids.get(`${interaction.guildId}-${interaction.member.id}`)?.raidType === RaidType.Afkcheck) {
 			await interaction.editReply('You already have an active headcount.');
 			return;
 		}
