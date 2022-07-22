@@ -56,7 +56,7 @@ export type Raid<T extends boolean = false> = PartialRaid & {
 } & T extends true
 	? PartialRaid &
 			Raid & {
-				reactions: Collection<string, Record<string, RaidReactions>>;
+				reactions: Collection<string, RaidReactions>;
 				location: string;
 				locationRevealed: boolean;
 			}
