@@ -13,7 +13,7 @@ const emojis = {
 	'✅': 'Finish',
 };
 
-function setupControlPanelEmbed(channel: ThreadChannel, raidInfo: PartialRaid) {
+async function setupControlPanelEmbed(channel: ThreadChannel, raidInfo: PartialRaid) {
 	const member = channel.guild.members.cache.get(raidInfo.memberId)!;
 
 	const embed = new EmbedBuilder()
@@ -26,17 +26,14 @@ function setupControlPanelEmbed(channel: ThreadChannel, raidInfo: PartialRaid) {
 			[
 				'For any available action, click the corresponding button below',
 				'',
-				'📝 Change location',
-				'🗺️ Reveal location',
-				'🛑 Abort',
-				'❌ End',
-				'✅ Finish',
+				...Object.entries(emojis).map(([key, label]) => `${key} ${label}`),
 			].join('\n')
 		);
 
 	const buttons = Object.keys(emojis).map((emoji, i) =>
 		new ButtonBuilder().setEmoji({ name: emoji }).setCustomId(i.toString()).setStyle(ButtonStyle.Primary)
 	);
+
 	return channel.send({ embeds: [embed], components: generateActionRows(buttons) });
 }
 
