@@ -1,46 +1,72 @@
 import { getBento } from '@ayanaware/bento';
-import { startAfkCheck } from './afkcheck/startAfkCheck';
+import type { Collection } from 'discord.js';
 import { announceRaid } from './announceRaid';
-import { startHeadCount } from './headcount/startHeadCount';
-import { Database } from '../../components/Database';
-import { Discord } from '../../components/Discord';
-import { RaidManager, type Dungeon } from '../../components/RaidManager';
+import { setupControlPanel } from './setupControlPanel';
+import { Discord } from '#components/Discord';
+import { RaidManager, Dungeon } from '#components/RaidManager';
 
 export const enum RaidType {
 	Headcount,
 	Afkcheck,
 }
 
-export async function startRaid(raidInfo: Omit<Raid, 'mainMessageId'>) {
+export async function startRaid(raidInfo: PartialRaid) {
 	const bento = getBento();
 	const discord = bento.getComponent(Discord);
 	const raidManager = bento.getComponent(RaidManager);
-	const database = bento.getComponent(Database);
 
-	const thisArg = { discord, raidManager, database };
+	const guild = discord.client.guilds.cache.get(raidInfo.guildId)!;
+	const member = guild.members.cache.get(raidInfo.memberId)!;
 
-	switch (raidInfo.raidType) {
-		case RaidType.Headcount:
-			await startHeadCount.call(thisArg, raidInfo);
-			break;
-		case RaidType.Afkcheck:
-			await startAfkCheck.call(thisArg, raidInfo);
-			break;
+	const raidType = raidInfo.raidType === RaidType.Headcount ? 'Headcount' : 'Afkcheck';
+	const controlPanel = await setupControlPanel(raidInfo, {
+		name: `${member.displayName}'s ${raidInfo.dungeon.name} ${raidType}`,
+	});
+
+	if (controlPanel) {
+		const { message, thread } = controlPanel;
+
+		const { id } = await announceRaid.call({ discord }, raidInfo);
+		raidManager.raids.set(`${raidInfo.guildId}-${raidInfo.memberId}`, {
+			...raidInfo,
+			mainMessageId: id,
+			controlPanelThreadId: thread.id,
+			controlPanelThreadMessageId: message.id,
+		});
 	}
-
-	const { id } = await announceRaid.call(thisArg.raidManager, raidInfo);
-	raidManager.raids.set(`${raidInfo.guildId}-${raidInfo.memberId}`, { ...raidInfo, mainMessageId: id });
 }
 
-export interface RaidInfo {
+// what we start with
+export interface PartialRaid {
 	dungeon: Dungeon;
 	guildId: string;
 	memberId: string;
-	mainMessageId: string | undefined;
+
 	textChannelId: string;
 	voiceChannelId: string;
+	controlPanelId: string;
 
 	isVet: boolean;
+	raidType: RaidType;
 }
 
-export type Raid = RaidInfo & { raidType: RaidType };
+export type Raid<T extends boolean = false> = PartialRaid & {
+	controlPanelThreadId: string;
+	controlPanelThreadMessageId: string;
+} & T extends true
+	? PartialRaid &
+			Raid & {
+				reactions: Collection<string, Record<string, RaidReactions>>;
+				location: string;
+				locationRevealed: boolean;
+			}
+	: PartialRaid & {
+			mainMessageId: string;
+			controlPanelThreadId: string;
+			controlPanelThreadMessageId: string;
+	  };
+
+interface RaidReactions {
+	confirmed: Set<string>;
+	pending: Set<string>;
+}

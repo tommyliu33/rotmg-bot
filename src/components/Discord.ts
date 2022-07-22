@@ -4,7 +4,7 @@ import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { logger } from '#util/logger';
 
 export class Discord implements Component {
-	public name = 'discord';
+	public name = 'Discord';
 	public api!: ComponentAPI;
 
 	public client!: Client;
@@ -16,7 +16,6 @@ export class Discord implements Component {
 	}
 
 	public async onVerify() {
-		// logger.info('[discord] connecting');
 		return this.connect();
 	}
 
@@ -41,6 +40,6 @@ export class Discord implements Component {
 
 	@Subscribe(Discord, Events.ClientReady)
 	private handleReady() {
-		logger.info('[discord] connected');
+		logger.info('Logged in');
 	}
 }

@@ -7,7 +7,7 @@ import { Discord } from './Discord';
 import { logger } from '#util/logger';
 
 export class CommandManager implements Component {
-	public name = 'command manager';
+	public name = 'Command manager';
 	public api!: ComponentAPI;
 
 	@Inject(Discord) private readonly discord!: Discord;

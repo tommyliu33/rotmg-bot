@@ -1,14 +1,10 @@
 import type { Raid } from './startRaid';
-import type { RaidManager } from '../../components/RaidManager';
+import type { RaidManager } from '#components/RaidManager';
 
-export function abortRaid(this: { raidManager: RaidManager }, raidInfo?: Raid) {
-	if (raidInfo) {
-		const raidKey = `${raidInfo.guildId}-${raidInfo.memberId}`;
+export function abortRaid(this: { raidManager: RaidManager }, raidInfo: Raid<false>) {
+	const raidKey = `${raidInfo.guildId}-${raidInfo.memberId}`;
+	
+	// TODO: this should update the raidInfo message and control panel
 
-		// TODO: this should update the raidInfo message and control panel
-
-		return this.raidManager.raids.delete(raidKey);
-	}
-
-	return false;
+	return this.raidManager.raids.delete(raidKey);
 }

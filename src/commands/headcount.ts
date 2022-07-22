@@ -23,7 +23,7 @@ export default class implements CommandEntity {
 		if (
 			this.raidManager.raids.get(`${interaction.guildId}-${interaction.member.id}`)?.raidType === RaidType.Headcount
 		) {
-			await interaction.editReply('You already have an active headcount.');
+			await interaction.editReply('You already have an active afkcheck.');
 			return;
 		}
 
@@ -37,10 +37,12 @@ export default class implements CommandEntity {
 
 			textChannelId: this.doc[this.isVet ? 'veteran_raiding' : 'main_raiding'].status_channel_id,
 			voiceChannelId,
+			controlPanelId: this.doc[this.isVet ? 'veteran_raiding' : 'main_raiding'].control_panel_channel_id,
 
 			isVet: this.isVet,
 			raidType: RaidType.Headcount,
 		});
+		await interaction.deleteReply();
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {

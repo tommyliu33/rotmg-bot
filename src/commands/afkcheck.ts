@@ -37,10 +37,12 @@ export default class implements CommandEntity {
 
 			textChannelId: this.doc[this.isVet ? 'veteran_raiding' : 'main_raiding'].status_channel_id,
 			voiceChannelId,
+			controlPanelId: this.doc[this.isVet ? 'veteran_raiding' : 'main_raiding'].control_panel_channel_id,
 
 			isVet: this.isVet,
 			raidType: RaidType.Headcount,
 		});
+		await interaction.deleteReply();
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {

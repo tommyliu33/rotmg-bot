@@ -17,9 +17,11 @@ export default class implements CommandEntity {
 		await interaction.deferReply({ ephemeral: true });
 
 		const raid = this.raidManager.raids.get(`${interaction.guildId}-${interaction.member.id}`);
-		const raidFound = abortRaid.call({ raidManager: this.raidManager }, raid);
+		if (raid) {
+			await abortRaid.call({ raidManager: this.raidManager }, raid);
+			await interaction.editReply({ content: 'Raid aborted.' });
+		}
 
-		const reply = raidFound ? 'Raid aborted.' : 'No raid found.';
-		await interaction.editReply({ content: reply });
+		await interaction.editReply('No raid found.');
 	}
 }

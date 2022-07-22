@@ -6,7 +6,7 @@ import { logger } from '#util/logger';
 import { GuildDocument, guilds } from '#util/mongo';
 
 export class Database implements Component {
-	public name = 'database helper';
+	public name = 'Database';
 	public api!: ComponentAPI;
 
 	@Inject(Discord) private readonly discord!: Discord;
@@ -15,7 +15,7 @@ export class Database implements Component {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async onVerify() {
-		logger.info('[database] loaded');
+		logger.info('Database connected');
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

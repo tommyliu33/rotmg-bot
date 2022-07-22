@@ -1,20 +1,20 @@
 // @fs-entity
 import { readFile } from 'node:fs/promises';
-import { Component, ComponentAPI, Inject } from '@ayanaware/bento';
+import { Component, ComponentAPI, Inject, Subscribe } from '@ayanaware/bento';
 import Toml from '@iarna/toml';
-import { Collection } from 'discord.js';
+import { Collection, Events, BaseInteraction } from 'discord.js';
 import { Discord } from './Discord';
 
-import type { RaidInfo, RaidType } from '#functions/raiding/startRaid';
+import type { Raid } from '#functions/raiding/startRaid';
 import { logger } from '#util/logger';
 
 export class RaidManager implements Component {
-	public name = 'raid manager';
+	public name = 'Raid manager';
 	public api!: ComponentAPI;
 
 	@Inject(Discord) private readonly discord!: Discord;
 
-	public readonly raids: Collection<string, RaidInfo & { raidType: RaidType }> = new Collection();
+	public readonly raids: Collection<string, Raid> = new Collection();
 	public readonly dungeons: Map<string, Dungeon> = new Map();
 	private readonly emojis: Map<string, string> = new Map();
 
@@ -69,7 +69,16 @@ export class RaidManager implements Component {
 			this.dungeons.set(key, { ...dungeon_, portal, keys, main, color: Number(dungeon_.color) });
 		}
 
-		logger.info('[raid manager] cached dungeon data');
+		logger.info('Cached dungeon data');
+	}
+
+	// TODO: handle control panel interactions
+	@Subscribe(Discord, Events.InteractionCreate)
+	private handleInteractionCreate(interaction: BaseInteraction) {
+		interaction;
+		// if (!interaction.inCachedGuild() || !interaction.isButton()) return;
+		// const raidKey = this.raids.findKey((raid) => raid.textChannelId === interaction.channelId && raid);
+		// if (!raidKey) return;
 	}
 }
 

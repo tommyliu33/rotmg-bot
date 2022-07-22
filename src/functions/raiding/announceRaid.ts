@@ -1,17 +1,15 @@
-import { getBento } from '@ayanaware/bento';
 import { EmbedBuilder } from '@discordjs/builders';
 
 import type { TextChannel } from 'discord.js';
 import templite from 'templite';
-import type { Raid } from './startRaid';
+import type { PartialRaid } from './startRaid';
 
-import { Discord } from '../../components/Discord';
+import type { Discord } from '#components/Discord';
 
-export function announceRaid(raidInfo: Omit<Raid, 'mainMessageId'>) {
-	const { client } = getBento().getComponent(Discord);
+export function announceRaid(this: { discord: Discord }, raidInfo: Omit<PartialRaid, 'mainMessageId'>) {
 	const { dungeon } = raidInfo;
 
-	const channel = client.channels.cache.get(raidInfo.textChannelId) as TextChannel;
+	const channel = this.discord.client.channels.cache.get(raidInfo.textChannelId) as TextChannel;
 	const member = channel.guild.members.cache.get(raidInfo.memberId)!;
 
 	const embed = new EmbedBuilder()
