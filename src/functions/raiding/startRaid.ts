@@ -1,7 +1,7 @@
 import { getBento } from '@ayanaware/bento';
 import type { Collection } from 'discord.js';
 import { announceRaid } from './announceRaid';
-import { setupControlPanel } from './setupControlPanel';
+import { setupControlPanel, setupControlPanelEmbed } from './controlPanel';
 import { Discord } from '#components/Discord';
 import { RaidManager, Dungeon } from '#components/RaidManager';
 
@@ -22,18 +22,15 @@ export async function startRaid(raidInfo: PartialRaid) {
 	const controlPanel = await setupControlPanel(raidInfo, {
 		name: `${member.displayName}'s ${raidInfo.dungeon.name} ${raidType}`,
 	});
+	const controlPanelMessage = await setupControlPanelEmbed(controlPanel!, raidInfo);
 
-	if (controlPanel) {
-		const { message, thread } = controlPanel;
-
-		const { id } = await announceRaid.call({ discord }, raidInfo);
-		raidManager.raids.set(`${raidInfo.guildId}-${raidInfo.memberId}`, {
-			...raidInfo,
-			mainMessageId: id,
-			controlPanelThreadId: thread.id,
-			controlPanelThreadMessageId: message.id,
-		});
-	}
+	const { id } = await announceRaid.call({ discord }, raidInfo);
+	raidManager.raids.set(`${raidInfo.guildId}-${raidInfo.memberId}`, {
+		...raidInfo,
+		mainMessageId: id,
+		controlPanelThreadId: controlPanel!.id,
+		controlPanelThreadMessageId: controlPanelMessage.id,
+	});
 }
 
 // what we start with

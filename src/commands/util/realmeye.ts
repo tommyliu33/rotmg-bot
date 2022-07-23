@@ -1,5 +1,5 @@
+import { ellipsis } from '@chatsift/discord-utils';
 import { inlineCode, hyperlink } from '@discordjs/builders';
-import { cutText } from '@sapphire/utilities';
 import { scrapePlayer, scrapeGuild } from '@toommyliu/realmeye-scraper';
 import { stripIndents } from 'common-tags';
 import { ButtonStyle } from 'discord-api-types/v10';
@@ -11,7 +11,7 @@ import { paginate } from '../../functions/paginate';
 import type { CommandEntity } from '#components/CommandEntity';
 import { CommandManager } from '#components/CommandManager';
 
-import { generateActionRows } from '#util/util';
+import { generateActionRows } from '#util/components';
 
 export default class implements CommandEntity {
 	public name = 'commands:realmeye';
@@ -153,7 +153,7 @@ export default class implements CommandEntity {
 						{
 							name: `Members (${guild.members?.length.toString() ?? guild.memberCount ?? '0'})`,
 							value: guild.members?.length
-								? cutText(
+								? ellipsis(
 										guild.members
 											.filter((member) => member.name !== 'Private')
 											.map((member) => member.name)
