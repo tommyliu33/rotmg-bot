@@ -33,8 +33,6 @@ export class RaidManager implements Component {
 			const emojis_ = emojis as Record<string, string>;
 			for (const [emojiName, emojiId] of Object.entries(emojis_)) this.emojis.set(emojiName, emojiId);
 		}
-
-		console.log(this.emojis);
 	}
 
 	private resolveEmoji(emojiName: string): string {
