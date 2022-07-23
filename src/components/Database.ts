@@ -20,11 +20,11 @@ export class Database implements Component {
 		return this.mongoClient.db('rotmg-bot');
 	}
 
-	private get guilds() {
+	public get guilds() {
 		return this.db.collection<GuildDocument>('guilds');
 	}
 
-	private get users() {
+	public get users() {
 		return this.db.collection<UserDocument>('users');
 	}
 
