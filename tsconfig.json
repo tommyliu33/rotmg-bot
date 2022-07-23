@@ -18,7 +18,7 @@
 			"#functions/*": ["src/functions/*"],
 			"#util/*": ["src/util/*"]
 		},
-		
+
 		/* Emit */
 		"outDir": "./dist",
 		"sourceMap": true,

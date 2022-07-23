@@ -1,13 +1,7 @@
 {
 	"root": true,
-	"extends": [
-		"marine/node",
-		"marine/prettier"
-	],
+	"extends": ["marine/node", "marine/prettier"],
 	"parserOptions": {
 		"project": "./tsconfig.eslint.json"
-	},
-	"rules": {
-		"no-case-declarations": "off"
 	}
 }
