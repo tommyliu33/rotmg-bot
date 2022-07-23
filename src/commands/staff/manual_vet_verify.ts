@@ -21,7 +21,7 @@ export default class implements CommandEntity {
 		const role = await interaction.guild.roles.fetch(roleId).catch(() => undefined);
 
 		if (!role) {
-			await interaction.editReply('Could not find the role in this server.');
+			await interaction.editReply('I could not find that role.');
 			return;
 		}
 
