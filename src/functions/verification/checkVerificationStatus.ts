@@ -34,7 +34,7 @@ export async function checkVerificationStatus<T extends VerificationType>(
 		case VerificationType.Main:
 			break;
 		case VerificationType.Veteran:
-			const doc = await database.get(member.guild.id);
+			const doc = await database.getGuild(member.guild.id);
 			const player = await scrapePlayer(member.displayName).catch(() => undefined);
 
 			if (!player) {

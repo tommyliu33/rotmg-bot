@@ -1,14 +1,19 @@
+import { Inject } from '@ayanaware/bento';
 import { EmbedBuilder } from '@discordjs/builders';
-import type { ChatInputCommandInteraction } from 'discord.js';
-import type { CommandEntity } from '../../components/CommandEntity';
 
-import { CommandManager } from '../../components/CommandManager';
+import type { ChatInputCommandInteraction } from 'discord.js';
+import type { CommandEntity } from '#components/CommandEntity';
+
+import { CommandManager } from '#components/CommandManager';
+import { Database } from '#components/Database';
 import { paginate } from '#functions/paginate';
-import { createUser, users } from '#util/mongo';
 
 export default class implements CommandEntity {
 	public name = 'commands:notes';
 	public parent = CommandManager;
+
+	@Inject(Database) private readonly database!: Database;
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		switch (interaction.options.getSubcommand(true)) {
 			case 'create':
@@ -26,7 +31,7 @@ export default class implements CommandEntity {
 		const u = interaction.options.getUser('user', true);
 		const message = interaction.options.getString('message', true);
 
-		const doc = await createUser(u.id);
+		const doc = await this.database.getUser(interaction.user.id);
 		const guildIndex = doc.guilds.findIndex((g) => g.guild_id === interaction.guildId);
 
 		if (guildIndex !== -1 && doc.guilds[guildIndex]) {
@@ -42,7 +47,7 @@ export default class implements CommandEntity {
 
 			doc.guilds[guildIndex] = guildStats;
 
-			const res = await users.updateOne({ user_id: u.id }, { $set: doc });
+			const res = await this.database.users.updateOne({ user_id: u.id }, { $set: doc });
 			if (res.acknowledged) {
 				await interaction.editReply('Note added.');
 			} else {
@@ -55,7 +60,7 @@ export default class implements CommandEntity {
 		await interaction.deferReply({ ephemeral: true, fetchReply: true });
 		const u = interaction.options.getUser('user', true);
 
-		const doc = await createUser(u.id);
+		const doc = await this.database.getUser(interaction.user.id);
 		const guild = doc.guilds.find((user) => user.guild_id === interaction.guildId && user.notes?.length);
 
 		if (!guild?.notes?.length || guild.notes.length === 0) {

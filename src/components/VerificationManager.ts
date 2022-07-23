@@ -40,7 +40,7 @@ export class VerificationManager implements Component {
 		if (!interaction.inCachedGuild()) return;
 
 		if (interaction.isButton()) {
-			const guild = await this.database.get(interaction.guildId);
+			const guild = await this.database.getGuild(interaction.guildId);
 
 			if (
 				interaction.customId === 'main_verification' &&
@@ -172,10 +172,10 @@ export class VerificationManager implements Component {
 						await collectedInteraction.editReply('The code was not found.');
 						return;
 					}
-					const guild = await this.database.get(member.guild.id);
+					const guild = await this.database.getGuild(member.guild.id);
 
-					void verifyMember(member, { roleId: guild['main_raiding']['user_role_id'] });
-					void collectedInteraction.editReply('You are now verified!');
+					await verifyMember(member, { roleId: guild['main_raiding']['user_role_id'] });
+					await collectedInteraction.editReply('You are now verified!');
 
 					try {
 						await collectedInteraction.deleteReply();

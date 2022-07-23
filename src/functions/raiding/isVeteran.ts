@@ -1,4 +1,4 @@
-import type { GuildDocument } from '#util/mongo';
+import type { GuildDocument } from '#components/Database';
 
 export function isVeteran(doc: GuildDocument, id: string): boolean {
 	const { veteran_raiding } = doc;
