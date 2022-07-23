@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		/* Projects */
-		"incremental": true,
+		// "incremental": true,
 		"composite": true,
 
 		/* Language and Environment */
@@ -14,14 +14,15 @@
 		"moduleResolution": "node",
 		"baseUrl": ".",
 		"paths": {
-			"#struct/*": ["src/struct/*"],
+			"#components/*": ["src/components/*"],
 			"#functions/*": ["src/functions/*"],
 			"#util/*": ["src/util/*"]
 		},
-		
+
 		/* Emit */
 		"outDir": "./dist",
 		"sourceMap": true,
+		"declaration": true,
 		"importHelpers": true,
 		"importsNotUsedAsValues": "error",
 

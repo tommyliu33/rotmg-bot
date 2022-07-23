@@ -1,8 +1,13 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import type { Command } from '#struct/Command';
+import type { CommandEntity } from '#components/CommandEntity';
 
-export default class implements Command {
-	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
-		await interaction.reply('pong.');
+import { CommandManager } from '#components/CommandManager';
+
+export default class implements CommandEntity {
+	public name = 'commands:ping';
+	public parent = CommandManager;
+
+	public run(interaction: ChatInputCommandInteraction<'cached'>) {
+		void interaction.reply('pong.');
 	}
 }

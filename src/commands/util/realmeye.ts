@@ -1,18 +1,22 @@
+import { ellipsis } from '@chatsift/discord-utils';
 import { inlineCode, hyperlink } from '@discordjs/builders';
-import { cutText } from '@sapphire/utilities';
 import { scrapePlayer, scrapeGuild } from '@toommyliu/realmeye-scraper';
 import { stripIndents } from 'common-tags';
 import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, escapeMarkdown } from 'discord.js';
 
-import { FAME_EMOJI_ID } from '../../constants';
 import { paginate } from '../../functions/paginate';
 
-import type { Command } from '#struct/Command';
-import { generateActionRows } from '#util/util';
+import type { CommandEntity } from '#components/CommandEntity';
+import { CommandManager } from '#components/CommandManager';
 
-export default class implements Command {
+import { generateActionRows } from '#util/components';
+
+export default class implements CommandEntity {
+	public name = 'commands:realmeye';
+	public parent = CommandManager;
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const m = await interaction.deferReply({ fetchReply: true });
 
@@ -77,6 +81,7 @@ export default class implements Command {
 							return undefined;
 						});
 
+					// TODO: remove stripIndents / common-tags
 					if (collectedInteraction?.customId === 'view_characters') {
 						const embeds = [];
 						if (player.characters?.length) {
@@ -149,7 +154,7 @@ export default class implements Command {
 						{
 							name: `Members (${guild.members?.length.toString() ?? guild.memberCount ?? '0'})`,
 							value: guild.members?.length
-								? cutText(
+								? ellipsis(
 										guild.members
 											.filter((member) => member.name !== 'Private')
 											.map((member) => member.name)
@@ -205,7 +210,7 @@ export default class implements Command {
 										(member, i) =>
 											`**${++i}**. ${hyperlink(member.name!, member.realmEyeUrl!)} - ${
 												member.fame?.toLocaleString() ?? 0
-											}${interaction.client.emojis.cache.get(FAME_EMOJI_ID)?.toString() ?? ''}`
+											}`
 									)
 									.join('\n')
 							);

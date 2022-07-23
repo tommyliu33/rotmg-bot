@@ -1,8 +1,9 @@
-import { userMention, inlineCode, time } from '@discordjs/builders';
+import { inlineCode, time, userMention } from '@discordjs/builders';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
-import { EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
-import type { Command } from '#struct/Command';
-import { generateActionRows } from '#util/util';
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
+import type { CommandEntity } from '#components/CommandEntity';
+import { CommandManager } from '#components/CommandManager';
+import { generateActionRows } from '#util/components';
 
 const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
 
@@ -44,7 +45,10 @@ function generateMemberInformation(member: GuildMember) {
 	return embed;
 }
 
-export default class implements Command {
+export default class implements CommandEntity {
+	public name = 'commands:find';
+	public parent = CommandManager;
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const name = interaction.options.getString('name', true);
 		const hide = interaction.options.getBoolean('hide', false) ?? false;
@@ -79,19 +83,21 @@ export default class implements Command {
 		const embed = new EmbedBuilder();
 
 		if (members_.size < 10) {
-			embed.setDescription('Multiple matches found, manual selection required\n');
-
 			const buttons = [];
+			const description = ['Multiple matches found, manual selection required:', ''];
 			for (let i = 0; i < members_.size; ++i) {
 				buttons.push(
 					new ButtonBuilder().setEmoji({ name: emojis[i] }).setCustomId(i.toString()).setStyle(ButtonStyle.Primary)
 				);
 
 				const member = members_.at(i)!;
-				embed.data.description += `\n${inlineCode((i + 1).toString())}. ${member.toString()} - ${member.id}`;
+				description.push(
+					`${inlineCode((i + 1).toString())}. ${member.toString()} ${member.user.tag} ${inlineCode(member.id)}`
+				);
 			}
 
-			await interaction.editReply({ embeds: [embed.toJSON()], components: generateActionRows(buttons) });
+			embed.setDescription(description.join('\n'));
+			await interaction.editReply({ embeds: [embed], components: generateActionRows(buttons) });
 
 			const collectedInteraction = await m
 				.awaitMessageComponent({
@@ -108,8 +114,7 @@ export default class implements Command {
 				const index = Number(collectedInteraction.customId);
 				const member = members_.at(index)!;
 
-				const embed = generateMemberInformation(member);
-				await collectedInteraction.update({ embeds: [embed.toJSON()], components: [] });
+				await collectedInteraction.update({ embeds: [generateMemberInformation(member)], components: [] });
 			}
 			return;
 		}

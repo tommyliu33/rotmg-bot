@@ -1,14 +1,17 @@
 import { ButtonBuilder, EmbedBuilder, inlineCode } from '@discordjs/builders';
-import { toTitleCase } from '@sapphire/utilities';
 import { ButtonStyle } from 'discord-api-types/v10';
 
 import type { ChatInputCommandInteraction } from 'discord.js';
-import type { Command } from '#struct/Command';
+import type { CommandEntity } from '#components/CommandEntity';
+import { CommandManager } from '#components/CommandManager';
 
+import { generateActionRows } from '#util/components';
 import { guilds } from '#util/mongo';
-import { generateActionRows } from '#util/util';
 
-export default class implements Command {
+export default class implements CommandEntity {
+	public name = 'commands:verify_message';
+	public parent = CommandManager;
+
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 
@@ -19,9 +22,7 @@ export default class implements Command {
 
 		const { verification_requirements, verification_channel_id } = doc![section];
 
-		const embed = new EmbedBuilder().setTitle(
-			`${inlineCode(interaction.guild.name)} ${toTitleCase(section)} Section Verification`
-		);
+		const embed = new EmbedBuilder().setTitle(`${inlineCode(interaction.guild.name)} ${section} Section Verification`);
 
 		const channel = await interaction.guild.channels.fetch(verification_channel_id).catch(async () => {
 			await interaction.editReply('The verification channel could not be found.');
