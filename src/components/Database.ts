@@ -56,7 +56,7 @@ export class Database implements Component {
 
 	public async getUser(userId: string) {
 		if (this.userCache.has(userId)) {
-			return this.guildCache.get(userId)!;
+			return this.userCache.get(userId)!;
 		}
 
 		const user = await this.users.findOne({ user_id: userId });
