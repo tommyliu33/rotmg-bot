@@ -38,7 +38,7 @@ export default class implements CommandEntity {
 			controlPanelId: this.doc[this.isVet ? 'veteran_raiding' : 'main_raiding'].control_panel_channel_id,
 
 			isVet: this.isVet,
-			raidType: RaidType.Headcount,
+			raidType: RaidType.Afkcheck,
 		});
 		await interaction.deleteReply();
 	}

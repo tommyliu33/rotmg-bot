@@ -5,6 +5,8 @@ import type { PartialRaid } from './startRaid';
 import type { Discord } from '#components/Discord';
 import { generateButtonsFromEmoji, generateActionRows } from '#util/components';
 
+const raidType = ['Headcount', 'Afkcheck'];
+
 export function announceRaid(this: { discord: Discord }, raidInfo: Omit<PartialRaid, 'mainMessageId'>) {
 	const { dungeon } = raidInfo;
 
@@ -13,7 +15,7 @@ export function announceRaid(this: { discord: Discord }, raidInfo: Omit<PartialR
 
 	const desc = templite(
 		`
-	A {{dungeon_name}} headcount has been started by {{raid_leader}}.
+	A {{dungeon_name}} {{raid_type}} has been started by {{raid_leader}}.
 	React with {{dungeon_portal}} if you plan to join.
 	React with {{dungeon_key}} if you have a key.
 	Otherwise react with your role, gear, and class choices below.
@@ -23,6 +25,7 @@ export function announceRaid(this: { discord: Discord }, raidInfo: Omit<PartialR
 			raid_leader: member.displayName,
 			dungeon_portal: dungeon.portal,
 			dungeon_key: dungeon.keys.map((k) => k.emoji).join(''),
+			raid_type: raidType[raidInfo.raidType],
 		}
 	);
 
