@@ -1,19 +1,21 @@
 import { getBento } from '@ayanaware/bento';
-import { EmbedBuilder, ButtonBuilder } from '@discordjs/builders';
-import { ButtonStyle, ChannelType, ThreadChannel } from 'discord.js';
-import type { PartialRaid } from './startRaid';
+import { EmbedBuilder } from '@discordjs/builders';
+import { ThreadChannel, ChannelType } from 'discord.js';
+import { PartialRaid, RaidType } from './startRaid';
 import { Discord } from '../../components/Discord';
-import { generateActionRows } from '#util/util';
+import { afkCheckButtons, generateActionRows, headCountButtons } from '#util/components';
 
-const emojis = {
-	'📝': 'Change location',
-	'🗺️': 'Reveal location',
-	'🛑': 'Abort',
-	'❌': 'End',
-	'✅': 'Finish',
-};
+const emojis = [
+	['🛑', '❌'],
+	['📝', '🗺️', '🛑', '❌', '✅'],
+];
 
-async function setupControlPanelEmbed(channel: ThreadChannel, raidInfo: PartialRaid) {
+const emojiLabels = [
+	['Abort', 'End'],
+	['Change location', 'Reveal location', 'Abort', 'End', 'Finish'],
+];
+
+export async function setupControlPanelEmbed(channel: ThreadChannel, raidInfo: PartialRaid) {
 	const member = channel.guild.members.cache.get(raidInfo.memberId)!;
 
 	const embed = new EmbedBuilder()
@@ -26,14 +28,11 @@ async function setupControlPanelEmbed(channel: ThreadChannel, raidInfo: PartialR
 			[
 				'For any available action, click the corresponding button below',
 				'',
-				...Object.entries(emojis).map(([key, label]) => `${key} ${label}`),
+				...emojis[raidInfo.raidType].map((e, i) => `${e} ${emojiLabels[raidInfo.raidType][i]}`),
 			].join('\n')
 		);
 
-	const buttons = Object.keys(emojis).map((emoji, i) =>
-		new ButtonBuilder().setEmoji({ name: emoji }).setCustomId(i.toString()).setStyle(ButtonStyle.Primary)
-	);
-
+	const buttons = raidInfo.raidType === RaidType.Headcount ? headCountButtons : afkCheckButtons;
 	return channel.send({ embeds: [embed], components: generateActionRows(buttons) });
 }
 
@@ -48,8 +47,7 @@ export async function setupControlPanel(raidInfo: PartialRaid, data?: ControlPan
 				name: data?.name ?? 'Control panel',
 			});
 
-			const message = await setupControlPanelEmbed(thread, raidInfo);
-			return { message, thread };
+			return thread;
 		}
 	}
 
