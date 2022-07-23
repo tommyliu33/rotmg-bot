@@ -106,13 +106,12 @@ export class Database implements Component {
 
 	private async createUser(userId: string) {
 		const doc: UserDocument = { user_id: userId, guilds: [] };
-		doc.guilds ??=
-			this.discord.client.guilds.cache
-				.filter((g) => g.members.cache.has(userId))
-				.map((g) => ({
-					guild_id: g.id,
-					dungeon_completions: [0, 0, 0, 0, 0, 0],
-				})) ?? [];
+		doc.guilds ??= this.discord.client.guilds.cache
+			.filter((g) => g.members.cache.has(userId))
+			.map((g) => ({
+				guild_id: g.id,
+				dungeon_completions: [0, 0, 0, 0, 0, 0],
+			}));
 
 		await this.users.insertOne(doc);
 	}
