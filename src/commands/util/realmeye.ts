@@ -81,6 +81,7 @@ export default class implements CommandEntity {
 							return undefined;
 						});
 
+					// TODO: remove stripIndents / common-tags
 					if (collectedInteraction?.customId === 'view_characters') {
 						const embeds = [];
 						if (player.characters?.length) {
