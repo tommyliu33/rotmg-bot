@@ -72,43 +72,43 @@ export class VerificationManager implements Component {
 					await interaction.reply({ content: 'You are already verified for this section.', ephemeral: true });
 					return;
 				}
-			}
 
-			await interaction.deferReply({ ephemeral: true });
+				await interaction.deferReply({ ephemeral: true });
 
-			const { status, dungeonCompletions } = await checkVerificationStatus(
-				interaction.member,
-				VerificationType.Veteran
-			);
+				const { status, dungeonCompletions } = await checkVerificationStatus(
+					interaction.member,
+					VerificationType.Veteran
+				);
 
-			switch (status) {
-				case VerificationStatusCode.Ignore:
-				case VerificationStatusCode.SetName:
-					break;
-				case VerificationStatusCode.Failed:
-					await interaction.editReply('Realmeye profile not found or available.');
-					break;
-				case VerificationStatusCode.Missing:
-					{
-						const embed = new EmbedBuilder()
-							.setColor('Red')
-							.setTitle('Requirements not met')
-							.setThumbnail(interaction.member.displayAvatarURL());
-						for (const dungeon of Object.values(dungeonCompletions)) {
-							if (dungeon.missing < 0) continue;
+				switch (status) {
+					case VerificationStatusCode.Ignore:
+					case VerificationStatusCode.SetName:
+						break;
+					case VerificationStatusCode.Failed:
+						await interaction.editReply('Realmeye profile not found or available.');
+						break;
+					case VerificationStatusCode.Missing:
+						{
+							const embed = new EmbedBuilder()
+								.setColor('Red')
+								.setTitle('Requirements not met')
+								.setThumbnail(interaction.member.displayAvatarURL());
+							for (const dungeon of Object.values(dungeonCompletions)) {
+								if (dungeon.missing < 0) continue;
 
-							embed.addFields({
-								name: dungeon.dungeonName,
-								value: `${dungeon.current} (${dungeon.missing} more)`,
-							});
+								embed.addFields({
+									name: dungeon.dungeonName,
+									value: `${dungeon.current} (${dungeon.missing} more)`,
+								});
+							}
+
+							await interaction.editReply({ embeds: [embed] });
 						}
-
-						await interaction.editReply({ embeds: [embed] });
-					}
-					break;
-				case VerificationStatusCode.AddRole:
-					await verifyMember(interaction.member, { roleId: guild['veteran_raiding']['user_role_id'] });
-					break;
+						break;
+					case VerificationStatusCode.AddRole:
+						await verifyMember(interaction.member, { roleId: guild['veteran_raiding']['user_role_id'] });
+						break;
+				}
 			}
 		}
 	}
