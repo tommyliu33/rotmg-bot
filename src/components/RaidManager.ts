@@ -18,7 +18,7 @@ export class RaidManager implements Component {
 
 	public readonly raids: Collection<string, Raid> = new Collection();
 	public readonly dungeons: Map<string, Dungeon> = new Map();
-	private readonly emojis: Map<string, string> = new Map();
+	public readonly emojis: Map<string, string> = new Map();
 
 	public async onVerify() {
 		await this.mapEmojis();
@@ -33,6 +33,8 @@ export class RaidManager implements Component {
 			const emojis_ = emojis as Record<string, string>;
 			for (const [emojiName, emojiId] of Object.entries(emojis_)) this.emojis.set(emojiName, emojiId);
 		}
+
+		console.log(this.emojis);
 	}
 
 	private resolveEmoji(emojiName: string): string {

@@ -1,25 +1,15 @@
-import { EmbedBuilder } from '@discordjs/builders';
-
-import type { TextChannel } from 'discord.js';
+import { type TextChannel, EmbedBuilder } from 'discord.js';
 import templite from 'templite';
 import type { PartialRaid } from './startRaid';
 
 import type { Discord } from '#components/Discord';
+import { generateButtonsFromEmoji, generateActionRows } from '#util/components';
 
 export function announceRaid(this: { discord: Discord }, raidInfo: Omit<PartialRaid, 'mainMessageId'>) {
 	const { dungeon } = raidInfo;
 
 	const channel = this.discord.client.channels.cache.get(raidInfo.textChannelId) as TextChannel;
 	const member = channel.guild.members.cache.get(raidInfo.memberId)!;
-
-	const embed = new EmbedBuilder()
-		.setColor(dungeon.color)
-		.setTimestamp()
-		.setThumbnail(dungeon.images[Math.floor(Math.random() * dungeon.images.length)])
-		.setAuthor({
-			name: `${dungeon.name} started by ${member.displayName}`,
-			iconURL: member.displayAvatarURL(),
-		});
 
 	const desc = templite(
 		`
@@ -36,6 +26,28 @@ export function announceRaid(this: { discord: Discord }, raidInfo: Omit<PartialR
 		}
 	);
 
-	embed.setDescription(desc);
-	return channel.send({ embeds: [embed] });
+	const embed = new EmbedBuilder()
+		.setColor(dungeon.color)
+		.setTimestamp()
+		.setThumbnail(dungeon.images[Math.floor(Math.random() * dungeon.images.length)])
+		.setAuthor({
+			name: `${dungeon.name} started by ${member.displayName}`,
+			iconURL: member.displayAvatarURL(),
+		})
+		.setDescription(desc);
+
+	const emojis = [
+		{
+			emoji: dungeon.portal,
+		},
+		...dungeon.keys,
+		...dungeon.main,
+	];
+
+	const buttons = generateButtonsFromEmoji(
+		emojis.map((reaction) => ({
+			emoji: reaction.emoji.split(':')[2].slice(0, -1),
+		}))
+	);
+	return channel.send({ embeds: [embed], components: generateActionRows(buttons) });
 }

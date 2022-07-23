@@ -33,14 +33,14 @@ export function generateActionRows<Component extends AnyComponentBuilder>(compon
 	return rows;
 }
 
-export function generateButtonsFromEmoji(reactions: EmojiReaction[]) {
+export function generateButtonsFromEmoji(reactions: Omit<EmojiReaction, 'max'>[]) {
 	const buttons = [];
 	for (const reaction of reactions) {
 		const id = nanoid();
-		buttons.push(new ButtonBuilder().setEmoji({ name: reaction.emoji }).setStyle(ButtonStyle.Primary).setCustomId(id));
+		buttons.push(new ButtonBuilder().setEmoji({ id: reaction.emoji }).setStyle(ButtonStyle.Primary).setCustomId(id));
 	}
 
-	return generateActionRows(buttons);
+	return buttons;
 }
 
 export const participateButton = getBaseButton().setCustomId(PARTICIPATE_ID).setEmoji({
