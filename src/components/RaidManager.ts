@@ -7,8 +7,8 @@ import { Discord } from './Discord';
 import { addReaction, getReaction, hasReacted, removeReaction } from '#functions/raiding/afkcheck/reactions';
 
 import { Raid, RaidType } from '#functions/raiding/startRaid';
+import { generateActionRows } from '#util/components';
 import { logger } from '#util/logger';
-import { generateActionRows } from '#util/util';
 
 export class RaidManager implements Component {
 	public name = 'Raid manager';

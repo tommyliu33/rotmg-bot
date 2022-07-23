@@ -24,7 +24,7 @@ import { Discord } from './Discord';
 import { checkVerificationStatus, VerificationStatusCode } from '#functions/verification/checkVerificationStatus';
 import { verifyMember, VerificationType } from '#functions/verification/verifyMember';
 
-import { cancelButton, doneButton, generateActionRows } from '#util/util';
+import { cancelButton, doneButton, generateActionRows } from '#util/components';
 
 const generateProfileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
 

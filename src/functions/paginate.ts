@@ -1,7 +1,7 @@
 import type { EmbedBuilder, Interaction } from 'discord.js';
 
 import { ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
-import { generateActionRows } from '#util/util';
+import { generateActionRows } from '#util/components';
 
 const forwardId = 'forward';
 const forwardButton = new ButtonBuilder().setCustomId(forwardId).setStyle(ButtonStyle.Success).setLabel('>');

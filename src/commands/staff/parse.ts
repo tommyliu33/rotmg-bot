@@ -1,8 +1,14 @@
 import { codeBlock } from '@discordjs/builders';
 import { Stopwatch } from '@sapphire/stopwatch';
-import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 
-import { EmbedBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
+import {
+	EmbedBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+	ComponentType,
+	type ChatInputCommandInteraction,
+	type GuildMember,
+} from 'discord.js';
 
 import { nanoid } from 'nanoid';
 
@@ -11,8 +17,7 @@ import { CommandManager } from '#components/CommandManager';
 
 import { paginate } from '#functions/paginate';
 import { parse } from '#functions/parse/parse';
-
-import { generateActionRows } from '#util/util';
+import { generateActionRows } from '#util/components';
 
 const clean = (str: string) => str.replace(/[^A-Za-z]/g, '').toLowerCase();
 

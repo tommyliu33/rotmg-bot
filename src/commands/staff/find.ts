@@ -3,7 +3,7 @@ import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
 import type { CommandEntity } from '#components/CommandEntity';
 import { CommandManager } from '#components/CommandManager';
-import { generateActionRows } from '#util/util';
+import { generateActionRows } from '#util/components';
 
 const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
 
