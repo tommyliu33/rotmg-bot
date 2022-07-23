@@ -1,16 +1,19 @@
+import { Inject } from '@ayanaware/bento';
 import { ButtonBuilder, EmbedBuilder, inlineCode } from '@discordjs/builders';
 import { ButtonStyle } from 'discord-api-types/v10';
 
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { CommandEntity } from '#components/CommandEntity';
-import { CommandManager } from '#components/CommandManager';
 
+import { CommandManager } from '#components/CommandManager';
+import { Database } from '#components/Database';
 import { generateActionRows } from '#util/components';
-import { guilds } from '#util/mongo';
 
 export default class implements CommandEntity {
 	public name = 'commands:verify_message';
 	public parent = CommandManager;
+
+	@Inject(Database) private readonly database!: Database;
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
@@ -18,9 +21,9 @@ export default class implements CommandEntity {
 		const section = interaction.options.getString('section', true) as 'main_raiding' | 'veteran_raiding';
 		const button = interaction.options.getBoolean('button', false) ?? false;
 
-		const doc = await guilds.findOne({ guild_id: interaction.guildId });
+		const doc = await this.database.getGuild(interaction.guildId);
 
-		const { verification_requirements, verification_channel_id } = doc![section];
+		const { verification_requirements, verification_channel_id } = doc[section];
 
 		const embed = new EmbedBuilder().setTitle(`${inlineCode(interaction.guild.name)} ${section} Section Verification`);
 

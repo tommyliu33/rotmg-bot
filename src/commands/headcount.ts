@@ -4,15 +4,16 @@ import type { CommandEntity } from '../components/CommandEntity';
 
 import { CommandManager } from '../components/CommandManager';
 import { RaidManager } from '../components/RaidManager';
+import { type GuildDocument, Database } from '#components/Database';
 import { isVeteran } from '#functions/raiding/isVeteran';
 import { startRaid, RaidType } from '#functions/raiding/startRaid';
-import { GuildDocument, guilds } from '#util/mongo';
 
 export default class implements CommandEntity {
 	public name = 'commands:headcount';
 	public parent = CommandManager;
 
 	@Inject(RaidManager) private readonly raidManager!: RaidManager;
+	@Inject(Database) private readonly database!: Database;
 
 	private doc!: GuildDocument;
 	private isVet = false;
@@ -46,14 +47,14 @@ export default class implements CommandEntity {
 	}
 
 	public async autocomplete(interaction: AutocompleteInteraction<'cached'>) {
-		const doc = await guilds.findOne({ guild_id: interaction.guildId });
-		this.doc = doc!;
+		const doc = await this.database.getGuild(interaction.guildId);
+		this.doc = doc;
 
-		const isVet = isVeteran(doc!, interaction.channelId);
+		const isVet = isVeteran(doc, interaction.channelId);
 		this.isVet = isVet;
 
 		// TODO: probably have a component for all of database stuff
-		const { voice_channel_ids } = doc![isVet ? 'veteran_raiding' : 'main_raiding'];
+		const { voice_channel_ids } = doc[isVet ? 'veteran_raiding' : 'main_raiding'];
 
 		const choices = [];
 		for (const id of voice_channel_ids) {

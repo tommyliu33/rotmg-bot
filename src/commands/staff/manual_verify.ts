@@ -15,7 +15,7 @@ export default class implements CommandEntity {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: interaction.options.getBoolean('hidden') ?? false });
 
-		const doc = await this.database.get(interaction.guildId);
+		const doc = await this.database.getGuild(interaction.guildId);
 		const roleId = doc['main_raiding']['user_role_id'];
 
 		const member = interaction.options.getMember('member');
