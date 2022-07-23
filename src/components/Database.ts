@@ -17,7 +17,7 @@ export class Database implements Component {
 	private readonly userCache: Map<string, UserDocument> = new Map();
 
 	private get db() {
-		return this.mongoClient.db('rotmg-bot');
+		return this.mongoClient.db('rotmg');
 	}
 
 	public get guilds() {
@@ -31,8 +31,6 @@ export class Database implements Component {
 	public async onVerify() {
 		await this.mongoClient.connect();
 		logger.info('Database connected');
-
-		await this.createGuild('test');
 	}
 
 	public async onUnload() {
@@ -67,8 +65,8 @@ export class Database implements Component {
 		return user as UserDocument;
 	}
 
-	private async createGuild(guildId: string) {
-		const res = await this.guilds.insertOne({
+	private createGuild(guildId: string) {
+		return this.guilds.insertOne({
 			guild_id: guildId,
 			main_raiding: {
 				category_id: '',
@@ -100,11 +98,9 @@ export class Database implements Component {
 				voice_channel_ids: ['', '', '', '', ''],
 			},
 		});
-
-		console.log(res);
 	}
 
-	private async createUser(userId: string) {
+	private createUser(userId: string) {
 		const doc: UserDocument = { user_id: userId, guilds: [] };
 		doc.guilds ??= this.discord.client.guilds.cache
 			.filter((g) => g.members.cache.has(userId))
@@ -113,7 +109,7 @@ export class Database implements Component {
 				dungeon_completions: [0, 0, 0, 0, 0, 0],
 			}));
 
-		await this.users.insertOne(doc);
+		return this.users.insertOne(doc);
 	}
 }
 
