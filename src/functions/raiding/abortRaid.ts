@@ -1,5 +1,5 @@
 import { type TextChannel, type ThreadChannel, EmbedBuilder } from 'discord.js';
-import type { Raid } from './startRaid';
+import { Raid, RaidType } from './startRaid';
 import type { Discord } from '#components/Discord';
 import type { RaidManager } from '#components/RaidManager';
 
@@ -17,12 +17,14 @@ export function abortRaid(this: { discord: Discord; raidManager: RaidManager }, 
 		const member = guild.members.cache.get(raidInfo.memberId)!;
 
 		if (statusChannelMessage) {
+			const raidType = raidInfo.raidType === RaidType.Afkcheck ? 'Afkcheck' : 'Headcount';
 			const firstEmbed = new EmbedBuilder()
 				.setColor('DarkRed')
 				.setAuthor({
-					name: `Aborted by ${member.displayName}`,
+					name: `This ${raidType} was aborted by ${member.displayName}`,
 					iconURL: member.displayAvatarURL(),
 				})
+				.setDescription(`This ${raidType} would have been for ${raidInfo.dungeon.name}`)
 				.setTimestamp();
 
 			void statusChannelMessage.edit({ content: ' ', components: [], embeds: [firstEmbed] });
