@@ -23,7 +23,7 @@ export default class implements CommandEntity {
 		await interaction.deferReply();
 
 		if (this.raidManager.raids.get(`${interaction.guildId}-${interaction.member.id}`)?.raidType === RaidType.Afkcheck) {
-			await interaction.editReply('You already have an active headcount.');
+			await interaction.editReply('You already have an active afkcheck.');
 			return;
 		}
 
