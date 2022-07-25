@@ -1,10 +1,24 @@
-// @fs-entity
 import { readFile } from 'node:fs/promises';
 import { Component, ComponentAPI, Inject, Subscribe } from '@ayanaware/bento';
 import Toml from '@iarna/toml';
-import { Collection, Events, BaseInteraction, ComponentType, GuildEmoji, ButtonBuilder, ButtonStyle } from 'discord.js';
+import {
+	Collection,
+	Events,
+	BaseInteraction,
+	ComponentType,
+	ButtonBuilder,
+	ButtonStyle,
+	ButtonComponent,
+	parseEmoji,
+} from 'discord.js';
 import { Discord } from './Discord';
-import { addReaction, getReaction, hasReacted, removeReaction } from '#functions/raiding/afkcheck/reactions';
+import {
+	addReaction,
+	getReaction,
+	hasReactedState,
+	removeReaction,
+	isReaction,
+} from '#functions/raiding/afkcheck/reactions';
 
 import { Raid, RaidType } from '#functions/raiding/startRaid';
 import { generateActionRows } from '#util/components';
@@ -77,9 +91,9 @@ export class RaidManager implements Component {
 	@Subscribe(Discord, Events.InteractionCreate)
 	private async handleInteractionCreate(interaction: BaseInteraction) {
 		if (!interaction.inCachedGuild() || !interaction.isButton()) return;
+
 		const raidKey = this.raids.findKey(
-			(raid) =>
-				raid.textChannelId === interaction.channelId && raid.controlPanelThreadMessageId === interaction.message.id
+			(raid) => raid.textChannelId === interaction.channelId && raid.mainMessageId === interaction.message.id
 		);
 		if (!raidKey) return;
 
@@ -88,41 +102,53 @@ export class RaidManager implements Component {
 
 		const reply = await interaction.deferReply({ fetchReply: true, ephemeral: true });
 
-		const { components } = reply;
-		const row = components.find((row) => row.components.find((comp) => comp.type === ComponentType.Button));
-
-		let index = -1;
-		let clickedEmoji: GuildEmoji | undefined;
-
-		for (let i = 0; i < row!.components.length; ++i) {
-			const component = row!.components[i];
-			if (component.type === ComponentType.Button && component.customId === interaction.customId) {
-				const emoji = this.discord.client.emojis.cache.get(component.emoji!.id!);
-				if (!emoji) continue;
-
-				clickedEmoji = emoji;
-				index = i;
-				break;
-			}
+		const button = interaction.message.resolveComponent(interaction.customId) as ButtonComponent | undefined;
+		if (!button) {
+			await interaction.editReply('An error occured trying to process your action. (1)');
+			return;
 		}
-
-		if (!clickedEmoji) return;
 
 		const raid_ = raid as Raid<true>;
 		const { dungeon } = raid;
 
-		const emojiRule = dungeon.keys.find((key) => key.emoji === clickedEmoji?.id);
-		if (!emojiRule) return;
+		if (button.data.emoji?.id === parseEmoji(dungeon.portal)!.id) {
+			if (raid_.users.has(interaction.user.id)) {
+				await interaction.editReply('You are already in this run.');
+				return;
+			}
 
-		if (!raid_.reactions.has(emojiRule.emoji)) {
-			raid_.reactions.set(emojiRule.emoji, { pending: new Set(), confirmed: new Set() });
+			raid_.users.add(interaction.user.id);
+			this.raids.set(raidKey, raid_);
+
+			await interaction.editReply('You joined this run.');
+			return;
 		}
 
-		const emojiId = emojiRule.emoji;
+		const keyReact = dungeon.keys.find((key) => parseEmoji(key.emoji)!.id === button.data.emoji?.id);
+		if (!keyReact) {
+			if (isReaction(raid_, button.data.emoji!.id!)) {
+				await interaction.editReply(`You reacted to bringing a ${button.data.emoji!.name!}.`);
+				return;
+			}
+
+			await interaction.editReply('An error occured trying to process your action.');
+			return;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (!raid_.reactions) raid_.reactions = new Collection();
+		if (!raid_.reactions.has(keyReact.emoji))
+			raid_.reactions.set(keyReact.emoji, { pending: new Set(), confirmed: new Set() });
+
+		const emojiId = keyReact.emoji;
 		const userId = interaction.user.id;
 
-		if (hasReacted(raid_, emojiId, userId, 'confirmed')) {
+		if (hasReactedState(raid_, emojiId, userId, 'confirmed')) {
 			await interaction.editReply('You already confirmed your reaction.');
+			return;
+		} else if (hasReactedState(raid_, emojiId, userId, 'pending')) {
+			// TODO: allow user to confirm / deny if they deleted the original followup message
+			await interaction.editReply('I await your confirmation. If you dismissed the original message, react below.');
 			return;
 		}
 
@@ -131,13 +157,14 @@ export class RaidManager implements Component {
 		const yesKey = 'yes';
 		const cancelKey = 'cancel';
 
-		const yesButton = new ButtonBuilder().setCustomId(yesKey).setLabel('Yes').setStyle(ButtonStyle.Primary);
-		const cancelButton = new ButtonBuilder().setCustomId(cancelKey).setLabel('Cancel').setStyle(ButtonStyle.Danger);
+		const yesButton = new ButtonBuilder().setCustomId(yesKey).setLabel('Yes').setStyle(ButtonStyle.Success);
+		const cancelButton = new ButtonBuilder().setCustomId(cancelKey).setLabel('Cancel').setStyle(ButtonStyle.Secondary);
 
 		await interaction.editReply({
-			content: 'Click yes/cancel to confirm/cancel.',
+			content: `Are you sure you want to confirm ${emojiId}?\nYou must bring it to this run.`,
 			components: generateActionRows([yesButton, cancelButton]),
 		});
+
 		const collectedInteraction = await reply
 			.awaitMessageComponent({
 				filter: async (i) => {
@@ -149,7 +176,7 @@ export class RaidManager implements Component {
 			})
 			.catch(async () => {
 				await collectedInteraction?.editReply({
-					content: 'Timed out, your reaction was not confirmed.',
+					content: 'You failed to react in time, your reaction was dismissed.',
 					components: [],
 				});
 				removeReaction(raid_, emojiId, userId, 'pending');
@@ -159,26 +186,24 @@ export class RaidManager implements Component {
 		if (collectedInteraction?.customId === yesKey) {
 			addReaction(raid_, emojiId, userId, 'confirmed');
 			removeReaction(raid_, emojiId, userId, 'pending');
-			await collectedInteraction.editReply({ content: 'Confirmed.', components: [] });
+			await collectedInteraction.editReply({ content: `You confirmed bringing ${emojiId}.`, components: [] });
 		} else if (collectedInteraction?.customId === cancelKey) {
 			removeReaction(raid_, emojiId, userId, 'pending');
-			await collectedInteraction.editReply({ content: 'Cancelled.', components: [] });
+			await collectedInteraction.editReply({ content: 'You clicked cancel.', components: [] });
 		}
 
-		if (getReaction(raid_, emojiId, 'confirmed').size + 1 > emojiRule.max) {
-			let i = 0;
-			const buttons = [];
-			for (const comp of row!.components) {
-				if (comp.type === ComponentType.Button) {
-					const button = new ButtonBuilder(comp.data);
-					if (i === index) button.setDisabled(true);
-					buttons.push(button);
+		if (getReaction(raid_, emojiId, 'confirmed').size + 1 > keyReact.max) {
+			const { components } = interaction.message;
+			const actionRowIndex = components.findIndex((row) => row.components.includes(button));
+			const buttonIndex = components[actionRowIndex]!.components.findIndex(
+				(component) => component.customId === interaction.customId
+			);
 
-					++i;
-				}
+			if (components[actionRowIndex].components[buttonIndex]) {
+				// @ts-expect-error
+				components[actionRowIndex].components[buttonIndex] = new ButtonBuilder(button.data).setDisabled(true);
+				await interaction.message.edit({ components });
 			}
-
-			await interaction.message.edit({ components: generateActionRows(buttons) });
 		}
 	}
 }

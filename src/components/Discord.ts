@@ -1,4 +1,3 @@
-// @fs-entity
 import { Component, ComponentAPI, Subscribe } from '@ayanaware/bento';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { logger } from '#util/logger';

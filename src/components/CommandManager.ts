@@ -1,4 +1,3 @@
-// @fs-entity
 import { Component, ComponentAPI, Inject, Subscribe } from '@ayanaware/bento';
 import { AutocompleteInteraction, BaseInteraction, Events, InteractionType } from 'discord.js';
 import type { CommandEntity } from './CommandEntity';

@@ -1,4 +1,3 @@
-// @fs-entity
 import { Component, ComponentAPI, Inject, Subscribe } from '@ayanaware/bento';
 
 import { hyperlink, codeBlock } from '@discordjs/builders';

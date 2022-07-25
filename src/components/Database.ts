@@ -1,4 +1,3 @@
-// @fs-entity
 import { Component, ComponentAPI, Inject } from '@ayanaware/bento';
 import { MongoClient } from 'mongodb';
 import { Discord } from './Discord';

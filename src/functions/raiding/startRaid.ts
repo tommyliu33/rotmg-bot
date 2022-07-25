@@ -30,6 +30,7 @@ export async function startRaid(raidInfo: PartialRaid) {
 		mainMessageId: id,
 		controlPanelThreadId: controlPanel!.id,
 		controlPanelThreadMessageId: controlPanelMessage.id,
+		users: new Set(),
 	});
 }
 
@@ -50,6 +51,7 @@ export interface PartialRaid {
 export type Raid<T extends boolean = false> = PartialRaid & {
 	controlPanelThreadId: string;
 	controlPanelThreadMessageId: string;
+	users: Set<string>;
 } & T extends true
 	? PartialRaid &
 			Raid & {
@@ -61,6 +63,7 @@ export type Raid<T extends boolean = false> = PartialRaid & {
 			mainMessageId: string;
 			controlPanelThreadId: string;
 			controlPanelThreadMessageId: string;
+			users: Set<string>;
 	  };
 
 interface RaidReactions {
