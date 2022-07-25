@@ -104,7 +104,7 @@ export class RaidManager implements Component {
 
 		const button = interaction.message.resolveComponent(interaction.customId) as ButtonComponent | undefined;
 		if (!button) {
-			await interaction.editReply('An error occured trying to process your action. (1)');
+			await interaction.editReply('An error occured trying to process your action.');
 			return;
 		}
 
@@ -147,25 +147,22 @@ export class RaidManager implements Component {
 			await interaction.editReply('You already confirmed your reaction.');
 			return;
 		} else if (hasReactedState(raid_, emojiId, userId, 'pending')) {
-			// TODO: allow user to confirm / deny if they deleted the original followup message
-			await interaction.editReply({
-				content: 'I await your original confirmation. If you dismissed the original message, react below.',
-			});
-
+			await removeReaction(raid_, emojiId, userId, 'pending');
+			await interaction.editReply('Your original reaction was dismissed, re-react to start confirmation.');
 			return;
 		}
 
 		addReaction(raid_, emojiId, userId, 'pending');
 
 		const yesKey = 'yes';
-		const cancelKey = 'cancel';
+		const noKey = 'no';
 
 		const yesButton = new ButtonBuilder().setCustomId(yesKey).setLabel('Yes').setStyle(ButtonStyle.Success);
-		const cancelButton = new ButtonBuilder().setCustomId(cancelKey).setLabel('Cancel').setStyle(ButtonStyle.Secondary);
+		const noButton = new ButtonBuilder().setCustomId(noKey).setLabel('No').setStyle(ButtonStyle.Secondary);
 
 		await interaction.editReply({
 			content: `Are you sure you want to confirm ${emojiId}?\nYou must bring it to this run.`,
-			components: generateActionRows([yesButton, cancelButton]),
+			components: generateActionRows([yesButton, noButton]),
 		});
 
 		const collectedInteraction = await reply
@@ -190,7 +187,7 @@ export class RaidManager implements Component {
 			addReaction(raid_, emojiId, userId, 'confirmed');
 			removeReaction(raid_, emojiId, userId, 'pending');
 			await collectedInteraction.editReply({ content: `You confirmed bringing ${emojiId}.`, components: [] });
-		} else if (collectedInteraction?.customId === cancelKey) {
+		} else if (collectedInteraction?.customId === noKey) {
 			removeReaction(raid_, emojiId, userId, 'pending');
 			await collectedInteraction.editReply({ content: 'You cancelled your reaction.', components: [] });
 		}
