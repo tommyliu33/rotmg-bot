@@ -23,9 +23,6 @@ async function generateMemberInformation(member: GuildMember) {
 	const user = await database.getUser(member.user.id);
 	const guildStats = user.guilds.find((g) => g.guild_id === member.guild.id);
 
-	if (!guildStats) {
-	}
-
 	const roles = member.roles.cache
 		.filter((r) => r.id !== member.guild.id)
 		.sort((b, a) => b.position - a.position)
