@@ -148,7 +148,10 @@ export class RaidManager implements Component {
 			return;
 		} else if (hasReactedState(raid_, emojiId, userId, 'pending')) {
 			// TODO: allow user to confirm / deny if they deleted the original followup message
-			await interaction.editReply('I await your confirmation. If you dismissed the original message, react below.');
+			await interaction.editReply({
+				content: 'I await your original confirmation. If you dismissed the original message, react below.',
+			});
+
 			return;
 		}
 
@@ -175,8 +178,8 @@ export class RaidManager implements Component {
 				time: 60_000,
 			})
 			.catch(async () => {
-				await collectedInteraction?.editReply({
-					content: 'You failed to react in time, your reaction was dismissed.',
+				await interaction.editReply({
+					content: 'You failed to react in time.\nYou may dismiss this message.',
 					components: [],
 				});
 				removeReaction(raid_, emojiId, userId, 'pending');
@@ -189,7 +192,7 @@ export class RaidManager implements Component {
 			await collectedInteraction.editReply({ content: `You confirmed bringing ${emojiId}.`, components: [] });
 		} else if (collectedInteraction?.customId === cancelKey) {
 			removeReaction(raid_, emojiId, userId, 'pending');
-			await collectedInteraction.editReply({ content: 'You clicked cancel.', components: [] });
+			await collectedInteraction.editReply({ content: 'You cancelled your reaction.', components: [] });
 		}
 
 		if (getReaction(raid_, emojiId, 'confirmed').size + 1 > keyReact.max) {
