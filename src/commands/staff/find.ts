@@ -1,47 +1,56 @@
+import { getComponent } from '@ayanaware/bento';
+import { ellipsis } from '@chatsift/discord-utils';
 import { inlineCode, time, userMention } from '@discordjs/builders';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
 import type { CommandEntity } from '#components/CommandEntity';
 import { CommandManager } from '#components/CommandManager';
+import { Database } from '#components/Database';
 import { generateActionRows } from '#util/components';
 
+const dungeonNames = [
+	'Oryx Sanctuary',
+	'The Void',
+	'The Shatters',
+	'Cultist Hideout',
+	'The Nest',
+	'Fungal/Crystal Cavern',
+];
 const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
 
-function generateMemberInformation(member: GuildMember) {
+async function generateMemberInformation(member: GuildMember) {
+	const database = getComponent(Database);
+	const user = await database.getUser(member.user.id);
+	const guildStats = user.guilds.find((g) => g.guild_id === member.guild.id);
+
+	if (!guildStats) {
+	}
+
+	const roles = member.roles.cache
+		.filter((r) => r.id !== member.guild.id)
+		.sort((b, a) => b.position - a.position)
+		.map((r) => r.toString())
+		.join(', ');
+
 	const embed = new EmbedBuilder()
 		.setColor(member.displayColor)
 		.setAuthor({ name: member.displayName, iconURL: member.displayAvatarURL() })
-		.setThumbnail(member.displayAvatarURL())
-		.addFields(
-			{
-				name: 'Mention',
-				value: userMention(member.id),
-				inline: true,
-			},
-			{
-				name: 'User Id',
-				value: member.id,
-				inline: true,
-			},
-			{
-				name: 'Joined server',
-				value: time(member.joinedAt!, 'R'),
-				inline: false,
-			},
-			{
-				name: 'Account created',
-				value: time(member.user.createdAt, 'R'),
-				inline: true,
-			},
-			{
-				name: 'Roles',
-				value: member.roles.cache
-					.filter((role) => role.id !== member.guild.id)
-					.sort((a, b) => b.position - a.position)
-					.map((role) => role.toString())
-					.join(', '),
-			}
-		);
+		.setThumbnail(member.displayAvatarURL()).setDescription(`
+${userMention(member.id)} ${member.id}
+
+Joined at ${time(member.joinedAt!, 'R')}
+Created at ${time(member.user.createdAt, 'R')}
+
+Roles ${ellipsis(roles, 2046)}
+		`);
+
+	if (guildStats?.dungeon_completions) {
+		embed.addFields({
+			name: 'Logged completions',
+			value: guildStats.dungeon_completions.map((n, i) => `${dungeonNames[i]}: ${n}`).join('\n'),
+		});
+	}
+
 	return embed;
 }
 
@@ -56,12 +65,12 @@ export default class implements CommandEntity {
 		const m = await interaction.deferReply({ ephemeral: hide, fetchReply: true });
 
 		const members = await interaction.guild.members.fetch({ query: name, limit: 10 }).catch(async () => {
-			await interaction.editReply('Could not fetch members.');
+			await interaction.editReply('I could not fetch server members.');
 			return undefined;
 		});
 		if (!members) return;
 
-		const members_ = members.filter((member) => {
+		const filteredMembers = members.filter((member) => {
 			if (member.displayName.toLowerCase().includes(name.toLowerCase())) return true;
 			if (member.displayName.toLowerCase() === name.toLowerCase()) return true;
 			if (member.displayName.includes(' | ')) {
@@ -72,25 +81,28 @@ export default class implements CommandEntity {
 			return false;
 		});
 
-		if (members_.size === 1) {
-			const member = members_.first()!;
-			const embed = generateMemberInformation(member);
+		if (filteredMembers.size > 10) {
+			await interaction.editReply('Too many members found, limit your search query.');
+			return;
+		}
 
-			await interaction.editReply({ embeds: [embed] });
+		if (filteredMembers.size === 1) {
+			const member = filteredMembers.first()!;
+			await interaction.editReply({ embeds: [await generateMemberInformation(member)] });
 			return;
 		}
 
 		const embed = new EmbedBuilder();
 
-		if (members_.size < 10) {
+		if (filteredMembers.size < 10) {
 			const buttons = [];
 			const description = ['Multiple matches found, manual selection required:', ''];
-			for (let i = 0; i < members_.size; ++i) {
+			for (let i = 0; i < filteredMembers.size; ++i) {
 				buttons.push(
 					new ButtonBuilder().setEmoji({ name: emojis[i] }).setCustomId(i.toString()).setStyle(ButtonStyle.Primary)
 				);
 
-				const member = members_.at(i)!;
+				const member = filteredMembers.at(i)!;
 				description.push(
 					`${inlineCode((i + 1).toString())}. ${member.toString()} ${member.user.tag} ${inlineCode(member.id)}`
 				);
@@ -111,16 +123,9 @@ export default class implements CommandEntity {
 				});
 
 			if (collectedInteraction?.customId) {
-				const index = Number(collectedInteraction.customId);
-				const member = members_.at(index)!;
-
-				await collectedInteraction.update({ embeds: [generateMemberInformation(member)], components: [] });
+				const member = filteredMembers.at(Number(collectedInteraction.customId))!;
+				await collectedInteraction.update({ embeds: [await generateMemberInformation(member)], components: [] });
 			}
-			return;
 		}
-
-		await interaction.editReply({
-			embeds: [embed.setDescription('Too many members found, narrow your search.')],
-		});
 	}
 }
