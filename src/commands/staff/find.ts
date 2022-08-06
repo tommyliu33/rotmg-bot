@@ -20,9 +20,9 @@ const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'
 
 async function generateMemberInformation(member: GuildMember) {
 	const database = container.resolve<PrismaClient>(kPrisma);
-	const user = await database.users.findFirstOrThrow({ where: { user_id: member.user.id } });
+	const user = await database.users.findFirstOrThrow({ where: { userId: member.user.id } });
 
-	const guildStats = user.guilds.find((g) => g.guild_id === member.guild.id);
+	const guildStats = user.guilds.find((g) => g.guildId === member.guild.id);
 
 	const roles = member.roles.cache
 		.filter((r) => r.id !== member.guild.id)
@@ -42,10 +42,10 @@ Created at ${time(member.user.createdAt, 'R')}
 Roles ${ellipsis(roles, 2046)}
 		`);
 
-	if (guildStats?.dungeon_completions) {
+	if (guildStats?.dungeonCompletions) {
 		embed.addFields({
 			name: 'Logged completions',
-			value: guildStats.dungeon_completions.map((n, i) => `${dungeonNames[i]}: ${n}`).join('\n'),
+			value: guildStats.dungeonCompletions.map((n, i) => `${dungeonNames[i]}: ${n}`).join('\n'),
 		});
 	}
 

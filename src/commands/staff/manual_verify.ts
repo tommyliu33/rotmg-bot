@@ -14,10 +14,10 @@ export default class implements Command {
 
 		const doc = await this.prisma.guilds.findFirst({
 			where: {
-				guild_id: interaction.guildId,
+				guildId: interaction.guildId,
 			},
 		});
-		const roleId = doc!['main_raiding']['user_role_id'];
+		const roleId = doc!.mainRaiding.userRoleId;
 
 		const member = interaction.options.getMember('member');
 		const name = interaction.options.getString('name', true);
