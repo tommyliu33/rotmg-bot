@@ -1,26 +1,20 @@
-import { Inject } from '@ayanaware/bento';
-
 import type { ChatInputCommandInteraction } from 'discord.js';
-import type { CommandEntity } from '../components/CommandEntity';
-
-import { CommandManager } from '../components/CommandManager';
-import { RaidManager } from '../components/RaidManager';
-import { Discord } from '#components/Discord';
+import { inject, injectable } from 'tsyringe';
+import { RaidManager } from '../struct/RaidManager';
+import { kRaids } from '../tokens';
 import { abortRaid } from '#functions/raiding/abortRaid';
+import type { Command } from '#struct/Command';
 
-export default class implements CommandEntity {
-	public name = 'commands:abort';
-	public parent = CommandManager;
-
-	@Inject(Discord) private readonly discord!: Discord;
-	@Inject(RaidManager) private readonly raidManager!: RaidManager;
+@injectable()
+export default class implements Command {
+	public constructor(@inject(kRaids) public readonly raidManager: RaidManager) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: true });
 
 		const raid = this.raidManager.raids.get(`${interaction.guildId}-${interaction.member.id}`);
 		if (raid) {
-			await abortRaid.call({ raidManager: this.raidManager, discord: this.discord }, raid);
+			await abortRaid(raid);
 			await interaction.editReply({ content: 'Raid aborted.' });
 			return;
 		}

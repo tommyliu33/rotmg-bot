@@ -1,51 +1,45 @@
-import { Component, ComponentAPI, Inject, Subscribe } from '@ayanaware/bento';
-
-import { hyperlink, codeBlock } from '@discordjs/builders';
+import type { PrismaClient } from '@prisma/client';
 import { scrapePlayer } from '@toommyliu/realmeye-scraper';
 import {
 	BaseInteraction,
-	ModalSubmitInteraction,
 	Events,
 	EmbedBuilder,
 	ModalBuilder,
 	TextInputBuilder,
 	TextInputStyle,
-	InteractionType,
 	GuildMember,
 	ComponentType,
+	codeBlock,
+	hyperlink,
 } from 'discord.js';
-
 import { nanoid } from 'nanoid';
-
-import { Database } from './Database';
-import { Discord } from './Discord';
-
+import { inject, injectable } from 'tsyringe';
+import { kPrisma } from '../../tokens';
 import { checkVerificationStatus, VerificationStatusCode } from '#functions/verification/checkVerificationStatus';
 import { verifyMember, VerificationType } from '#functions/verification/verifyMember';
-
+import type { Event } from '#struct/Event';
 import { cancelButton, doneButton, generateActionRows } from '#util/components';
 
 const generateProfileUrl = (name: string) => `https://www.realmeye.com/player/${name}`;
 
-export class VerificationManager implements Component {
-	public name = 'Verification manager';
-	public api!: ComponentAPI;
+@injectable()
+export default class implements Event {
+	public event = Events.InteractionCreate;
+	public name = 'Guild verification interaction handling';
 
-	@Inject(Discord) private readonly discord!: Discord;
-	@Inject(Database) private readonly database!: Database;
+	public constructor(@inject(kPrisma) public readonly prisma: PrismaClient) {}
 
-	@Subscribe(Discord, Events.InteractionCreate)
-	private async handlebuttonInteraction(interaction: BaseInteraction): Promise<void> {
+	public async run(interaction: BaseInteraction) {
 		if (!interaction.inCachedGuild()) return;
 
 		if (interaction.isButton()) {
-			const guild = await this.database.getGuild(interaction.guildId);
+			const guild = await this.prisma.guilds.findFirstOrThrow({ where: { guildId: interaction.guildId } });
 
 			if (
 				interaction.customId === 'main_verification' &&
-				interaction.channelId === guild['main_raiding']['verification_channel_id']
+				interaction.channelId === guild.mainRaiding.verificationChannelId
 			) {
-				if (interaction.member.roles.cache.has(guild['main_raiding']['user_role_id'])) {
+				if (interaction.member.roles.cache.has(guild.mainRaiding.verificationChannelId)) {
 					await interaction.reply({ content: 'You are already verified for this section.', ephemeral: true });
 					return;
 				}
@@ -65,9 +59,9 @@ export class VerificationManager implements Component {
 				await interaction.showModal(modal);
 			} else if (
 				interaction.customId === 'veteran_verification' &&
-				interaction.channelId === guild['veteran_raiding']['verification_channel_id']
+				interaction.channelId === guild.veteranRaiding.verificationChannelId
 			) {
-				if (interaction.member.roles.cache.has(guild['veteran_raiding']['user_role_id'])) {
+				if (interaction.member.roles.cache.has(guild.veteranRaiding.userRoleId)) {
 					await interaction.reply({ content: 'You are already verified for this section.', ephemeral: true });
 					return;
 				}
@@ -105,19 +99,13 @@ export class VerificationManager implements Component {
 						}
 						break;
 					case VerificationStatusCode.AddRole:
-						await verifyMember(interaction.member, { roleId: guild['veteran_raiding']['user_role_id'] });
+						await verifyMember(interaction.member, { roleId: guild.veteranRaiding.userRoleId });
 						break;
 				}
 			}
 		}
-	}
 
-	@Subscribe(Discord, Events.InteractionCreate)
-	private async handleModalInteraction(interaction: ModalSubmitInteraction) {
-		if (!interaction.inCachedGuild()) return;
-
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (interaction.type === InteractionType.ModalSubmit) {
+		if (interaction.isModalSubmit()) {
 			await interaction.reply({ content: 'Check your messages to continue.', ephemeral: true });
 
 			const channel = await interaction.user.createDM().catch(() => {
@@ -171,9 +159,9 @@ export class VerificationManager implements Component {
 						await collectedInteraction.editReply('The code was not found.');
 						return;
 					}
-					const guild = await this.database.getGuild(member.guild.id);
+					const guild = await this.prisma.guilds.findFirstOrThrow({ where: { guildId: member.guild.id } });
 
-					await verifyMember(member, { roleId: guild['main_raiding']['user_role_id'] });
+					await verifyMember(member, { roleId: guild.mainRaiding.userRoleId });
 					await collectedInteraction.editReply('You are now verified!');
 
 					try {

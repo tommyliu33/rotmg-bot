@@ -1,11 +1,11 @@
-import { getComponent } from '@ayanaware/bento';
 import { ellipsis } from '@chatsift/discord-utils';
 import { inlineCode, time, userMention } from '@discordjs/builders';
+import type { PrismaClient } from '@prisma/client';
 import type { ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js';
-import type { CommandEntity } from '#components/CommandEntity';
-import { CommandManager } from '#components/CommandManager';
-import { Database } from '#components/Database';
+import { container } from 'tsyringe';
+import { kPrisma } from '../../tokens';
+import type { Command } from '#struct/Command';
 import { generateActionRows } from '#util/components';
 
 const dungeonNames = [
@@ -19,8 +19,9 @@ const dungeonNames = [
 const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
 
 async function generateMemberInformation(member: GuildMember) {
-	const database = getComponent(Database);
-	const user = await database.getUser(member.user.id);
+	const database = container.resolve<PrismaClient>(kPrisma);
+	const user = await database.users.findFirstOrThrow({ where: { user_id: member.user.id } });
+
 	const guildStats = user.guilds.find((g) => g.guild_id === member.guild.id);
 
 	const roles = member.roles.cache
@@ -51,10 +52,7 @@ Roles ${ellipsis(roles, 2046)}
 	return embed;
 }
 
-export default class implements CommandEntity {
-	public name = 'commands:find';
-	public parent = CommandManager;
-
+export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const name = interaction.options.getString('name', true);
 		const hide = interaction.options.getBoolean('hide', false) ?? false;

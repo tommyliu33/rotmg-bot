@@ -9,7 +9,7 @@ import {
 } from 'discord.js';
 import { nanoid } from 'nanoid';
 
-import type { EmojiReaction } from '#components/RaidManager';
+import type { EmojiReaction } from '#struct/RaidManager';
 
 export const PARTICIPATE_ID = 'participate' as const;
 export const CHANGE_LOCATION_ID = 'change_location' as const;

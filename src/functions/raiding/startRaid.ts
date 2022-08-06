@@ -1,9 +1,9 @@
-import { getBento } from '@ayanaware/bento';
-import type { Collection } from 'discord.js';
+import type { Collection, Client } from 'discord.js';
+import { container } from 'tsyringe';
 import { announceRaid } from './announceRaid';
 import { setupControlPanel, setupControlPanelEmbed } from './controlPanel';
-import { Discord } from '#components/Discord';
-import { RaidManager, Dungeon } from '#components/RaidManager';
+import { kClient, kRaids } from '../../tokens';
+import type { RaidManager, Dungeon } from '#struct/RaidManager';
 
 export const enum RaidType {
 	Headcount,
@@ -11,11 +11,10 @@ export const enum RaidType {
 }
 
 export async function startRaid(raidInfo: PartialRaid) {
-	const bento = getBento();
-	const discord = bento.getComponent(Discord);
-	const raidManager = bento.getComponent(RaidManager);
+	const client = container.resolve<Client>(kClient);
+	const raidManager = container.resolve<RaidManager>(kRaids);
 
-	const guild = discord.client.guilds.cache.get(raidInfo.guildId)!;
+	const guild = client.guilds.cache.get(raidInfo.guildId)!;
 	const member = guild.members.cache.get(raidInfo.memberId)!;
 
 	const raidType = raidInfo.raidType === RaidType.Headcount ? 'Headcount' : 'Afkcheck';
@@ -24,7 +23,7 @@ export async function startRaid(raidInfo: PartialRaid) {
 	});
 	const controlPanelMessage = await setupControlPanelEmbed(controlPanel!, raidInfo);
 
-	const { id } = await announceRaid.call({ discord }, raidInfo);
+	const { id } = await announceRaid(raidInfo);
 	raidManager.raids.set(`${raidInfo.guildId}-${raidInfo.memberId}`, {
 		...raidInfo,
 		mainMessageId: id,

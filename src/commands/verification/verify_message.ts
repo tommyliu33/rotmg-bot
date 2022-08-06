@@ -1,48 +1,45 @@
-import { Inject } from '@ayanaware/bento';
 import { ButtonBuilder, EmbedBuilder, inlineCode } from '@discordjs/builders';
+import type { PrismaClient } from '@prisma/client';
 import { ButtonStyle } from 'discord-api-types/v10';
-
 import type { ChatInputCommandInteraction } from 'discord.js';
-import type { CommandEntity } from '#components/CommandEntity';
-
-import { CommandManager } from '#components/CommandManager';
-import { Database } from '#components/Database';
+import { injectable, inject } from 'tsyringe';
+import { kPrisma } from '../../tokens';
+import type { Command } from '#struct/Command';
 import { generateActionRows } from '#util/components';
 
-export default class implements CommandEntity {
-	public name = 'commands:verify_message';
-	public parent = CommandManager;
-
-	@Inject(Database) private readonly database!: Database;
+@injectable()
+export default class implements Command {
+	public constructor(@inject(kPrisma) public readonly prisma: PrismaClient) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply();
 
-		const section = interaction.options.getString('section', true) as 'main_raiding' | 'veteran_raiding';
+		const section = interaction.options.getString('section', true) as 'mainRaiding' | 'veteranRaiding';
 		const button = interaction.options.getBoolean('button', false) ?? false;
 
-		const doc = await this.database.getGuild(interaction.guildId);
+		const doc = await this.prisma.guilds.findFirst({ where: { guildId: interaction.guildId } });
+		if (!doc) return;
 
-		const { verification_requirements, verification_channel_id } = doc[section];
+		const { verificationRequirements, verificationChannelId } = doc[section];
 
 		const embed = new EmbedBuilder().setTitle(`${inlineCode(interaction.guild.name)} ${section} Section Verification`);
 
-		const channel = await interaction.guild.channels.fetch(verification_channel_id).catch(async () => {
+		const channel = await interaction.guild.channels.fetch(verificationChannelId).catch(async () => {
 			await interaction.editReply('The verification channel could not be found.');
 			return undefined;
 		});
 
 		if (!channel?.isTextBased()) return;
-		if (!verification_requirements.verification_message) {
+		if (!verificationRequirements.verificationMessage) {
 			await interaction.editReply('There is no verification message.');
 			return;
 		}
 
-		const verifyKey = section === 'veteran_raiding' ? 'veteran_verification' : 'main_verification';
+		const verifyKey = section === 'veteranRaiding' ? 'veteran_verification' : 'main_verification';
 		const verifyButton = new ButtonBuilder().setCustomId(verifyKey).setStyle(ButtonStyle.Primary).setLabel('Verify');
 
 		const m = await channel.send({
-			embeds: [embed.setDescription(verification_requirements.verification_message).toJSON()],
+			embeds: [embed.setDescription(verificationRequirements.verificationMessage).toJSON()],
 			components: button ? generateActionRows([verifyButton]) : [],
 		});
 

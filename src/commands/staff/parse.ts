@@ -1,6 +1,5 @@
 import { codeBlock } from '@discordjs/builders';
 import { Stopwatch } from '@sapphire/stopwatch';
-
 import {
 	EmbedBuilder,
 	ButtonBuilder,
@@ -9,14 +8,10 @@ import {
 	type ChatInputCommandInteraction,
 	type GuildMember,
 } from 'discord.js';
-
 import { nanoid } from 'nanoid';
-
-import type { CommandEntity } from '#components/CommandEntity';
-import { CommandManager } from '#components/CommandManager';
-
 import { paginate } from '#functions/paginate';
 import { parse } from '#functions/parse/parse';
+import type { Command } from '#struct/Command';
 import { generateActionRows } from '#util/components';
 
 const clean = (str: string) => str.replace(/[^A-Za-z]/g, '').toLowerCase();
@@ -36,10 +31,7 @@ function getNames(arr: string[]): string[] {
 	return names;
 }
 
-export default class implements CommandEntity {
-	public name = 'commands:parse';
-	public parent = CommandManager;
-
+export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const timer = new Stopwatch();
 

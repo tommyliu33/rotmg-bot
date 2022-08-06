@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+type GuildsMainRaiding {
+  categoryId               String                                    @map("category_id")
+  controlPanelChannelId    String                                    @map("control_panel_channel_id")
+  leaderRoleId             String                                    @map("leader_role_id")
+  statusChannelId          String                                    @map("status_channel_id")
+  userRoleId               String                                    @map("user_role_id")
+  verificationChannelId    String                                    @map("verification_channel_id")
+  verificationRequirements GuildsMainRaidingVerificationRequirements @map("verification_requirements")
+  voiceChannelIds          String[]                                  @map("voice_channel_ids")
+}
+
+type GuildsMainRaidingVerificationRequirements {
+  hiddenLocation      Boolean @map("hidden_location")
+  minimumCharacters   Int     @map("minimum_characters")
+  minimumFame         Int     @map("minimum_fame")
+  minimumRank         Int     @map("minimum_rank")
+  verificationMessage String  @map("verification_message")
+}
+
+type GuildsVeteranRaiding {
+  categoryId               String                                       @map("category_id")
+  controlPanelChannelId    String                                       @map("control_panel_channel_id")
+  leaderRoleId             String                                       @map("leader_role_id")
+  statusChannelId          String                                       @map("status_channel_id")
+  userRoleId               String                                       @map("user_role_id")
+  verificationChannelId    String                                       @map("verification_channel_id")
+  verificationRequirements GuildsVeteranRaidingVerificationRequirements @map("verification_requirements")
+  voiceChannelIds          String[]                                     @map("voice_channel_ids")
+}
+
+type GuildsVeteranRaidingVerificationRequirements {
+  dungeonCompletions  Int[]  @map("dungeon_completions")
+  verificationMessage String @map("verification_message")
+}
+
+type UsersGuilds {
+  dungeonCompletions Int[]              @map("dungeon_completions")
+  guildId            String             @map("guild_id")
+  names              UsersGuildsNames[]
+  notes              UsersGuildsNotes[]
+  verifiedTimestamp  Float              @map("verified_timestamp")
+}
+
+type UsersGuildsNames {
+  name              String
+  verifiedBy        String @map("verified_by")
+  verifiedTimestamp Float  @map("verified_timestamp")
+}
+
+type UsersGuildsNotes {
+  author    String
+  message   String
+  timestamp Float
+}
+
+model guilds {
+  id             String               @id @default(auto()) @map("_id") @db.ObjectId
+  guildId        String               @map("guild_id")
+  mainRaiding    GuildsMainRaiding    @map("main_raiding")
+  veteranRaiding GuildsVeteranRaiding @map("veteran_raiding")
+}
+
+model users {
+  id     String        @id @default(auto()) @map("_id") @db.ObjectId
+  guilds UsersGuilds[]
+  userId String        @map("user_id")
+}

@@ -1,22 +1,23 @@
-import { Inject } from '@ayanaware/bento';
+import { PrismaClient } from '@prisma/client';
 import type { ChatInputCommandInteraction } from 'discord.js';
-import type { CommandEntity } from '#components/CommandEntity';
-
-import { CommandManager } from '#components/CommandManager';
-import { Database } from '#components/Database';
+import { injectable, inject } from 'tsyringe';
+import { kPrisma } from '../../tokens';
 import { verifyMember } from '#functions/verification/verifyMember';
+import type { Command } from '#struct/Command';
 
-export default class implements CommandEntity {
-	public name = 'commands:manual_verify';
-	public parent = CommandManager;
-
-	@Inject(Database) private readonly database!: Database;
+@injectable()
+export default class implements Command {
+	public constructor(@inject(kPrisma) public readonly prisma: PrismaClient) {}
 
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		await interaction.deferReply({ ephemeral: interaction.options.getBoolean('hidden') ?? false });
 
-		const doc = await this.database.getGuild(interaction.guildId);
-		const roleId = doc['main_raiding']['user_role_id'];
+		const doc = await this.prisma.guilds.findFirst({
+			where: {
+				guild_id: interaction.guildId,
+			},
+		});
+		const roleId = doc!['main_raiding']['user_role_id'];
 
 		const member = interaction.options.getMember('member');
 		const name = interaction.options.getString('name', true);

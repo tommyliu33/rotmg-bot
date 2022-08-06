@@ -1,8 +1,8 @@
-import { getBento } from '@ayanaware/bento';
 import { EmbedBuilder } from '@discordjs/builders';
-import { ThreadChannel, ChannelType } from 'discord.js';
+import { type Client, ThreadChannel, ChannelType } from 'discord.js';
+import { container } from 'tsyringe';
 import { PartialRaid, RaidType } from './startRaid';
-import { Discord } from '../../components/Discord';
+import { kClient } from '../../tokens';
 import { afkCheckButtons, generateActionRows, headCountButtons } from '#util/components';
 
 const emojis = [
@@ -37,9 +37,9 @@ export async function setupControlPanelEmbed(channel: ThreadChannel, raidInfo: P
 }
 
 export async function setupControlPanel(raidInfo: PartialRaid, data?: ControlPanelThreadData) {
-	const discord = getBento().getComponent(Discord);
+	const client = container.resolve<Client>(kClient);
 
-	const guild = await discord.client.guilds.fetch(raidInfo.guildId).catch(() => undefined);
+	const guild = await client.guilds.fetch(raidInfo.guildId).catch(() => undefined);
 	if (guild) {
 		const channel = await guild.channels.fetch(raidInfo.controlPanelId).catch(() => undefined);
 		if (channel?.type === ChannelType.GuildText) {

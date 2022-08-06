@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		/* Projects */
-		// "incremental": true,
+		"incremental": true,
 		"composite": true,
 
 		/* Language and Environment */
@@ -12,11 +12,10 @@
 		/* Modules */
 		"module": "ESNext",
 		"moduleResolution": "node",
-		"baseUrl": ".",
 		"paths": {
-			"#components/*": ["src/components/*"],
-			"#functions/*": ["src/functions/*"],
-			"#util/*": ["src/util/*"]
+			"#functions/*": ["./src/functions/*"],
+			"#struct/*": ["./src/struct/*"],
+			"#util/*": ["./src/util/*"]
 		},
 
 		/* Emit */

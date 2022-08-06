@@ -1,8 +1,9 @@
-import { getBento } from '@ayanaware/bento';
+import type { PrismaClient } from '@prisma/client';
 import { scrapePlayer, isGraveyardAvailable } from '@toommyliu/realmeye-scraper';
 import type { GuildMember } from 'discord.js';
+import { container } from 'tsyringe';
 import { VerificationType } from './verifyMember';
-import { Database } from '#components/Database';
+import { kPrisma } from '../../tokens';
 
 const DUNGEON_NAMES = [
 	'Oryx Sanctuary',
@@ -26,7 +27,7 @@ export async function checkVerificationStatus<T extends VerificationType>(
 	member: GuildMember,
 	type: VerificationType
 ): Promise<VerificationStatus<T>> {
-	const database = getBento().getComponent(Database);
+	const prisma = container.resolve<PrismaClient>(kPrisma);
 
 	const res: VerificationStatus<typeof type> = Object.create({}) as VerificationStatus<typeof type>;
 
@@ -34,7 +35,7 @@ export async function checkVerificationStatus<T extends VerificationType>(
 		case VerificationType.Main:
 			break;
 		case VerificationType.Veteran:
-			const doc = await database.getGuild(member.guild.id);
+			const doc = await prisma.guilds.findFirstOrThrow({ where: { guildId: member.guild.id } });
 			const player = await scrapePlayer(member.displayName).catch(() => undefined);
 
 			if (!player) {
@@ -56,7 +57,7 @@ export async function checkVerificationStatus<T extends VerificationType>(
 					for (let i = 1; i < DUNGEON_NAMES.length; ++i) {
 						const dungeon = DUNGEON_NAMES[i];
 						const current = player.dungeonCompletions[dungeon];
-						const required = doc['veteran_raiding']['verification_requirements']['dungeon_completions'][i];
+						const required = doc.veteranRaiding.verificationRequirements.dungeonCompletions[i];
 						const missing = required - current;
 
 						if (!failed && missing > 0) {

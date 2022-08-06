@@ -5,18 +5,11 @@ import { stripIndents } from 'common-tags';
 import { ButtonStyle } from 'discord-api-types/v10';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ComponentType, escapeMarkdown } from 'discord.js';
-
 import { paginate } from '../../functions/paginate';
-
-import type { CommandEntity } from '#components/CommandEntity';
-import { CommandManager } from '#components/CommandManager';
-
+import type { Command } from '#struct/Command';
 import { generateActionRows } from '#util/components';
 
-export default class implements CommandEntity {
-	public name = 'commands:realmeye';
-	public parent = CommandManager;
-
+export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const m = await interaction.deferReply({ fetchReply: true });
 

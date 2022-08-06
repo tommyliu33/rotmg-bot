@@ -1,13 +1,12 @@
-import type { GuildDocument } from '#components/Database';
+import type { guilds } from '@prisma/client';
+export function isVeteran(doc: guilds, id: string): boolean {
+	const { veteranRaiding } = doc;
 
-export function isVeteran(doc: GuildDocument, id: string): boolean {
-	const { veteran_raiding } = doc;
-
-	if (veteran_raiding.status_channel_id === id) return true;
-	if (veteran_raiding.control_panel_channel_id === id) return true;
-	if (veteran_raiding.category_id === id) return true;
-	if (veteran_raiding.voice_channel_ids.includes(id)) return true;
-	if (veteran_raiding.verification_channel_id === id) return true;
+	if (veteranRaiding.statusChannelId === id) return true;
+	if (veteranRaiding.controlPanelChannelId === id) return true;
+	if (veteranRaiding.categoryId === id) return true;
+	if (veteranRaiding.voiceChannelIds.includes(id)) return true;
+	if (veteranRaiding.verificationChannelId === id) return true;
 
 	return false;
 }

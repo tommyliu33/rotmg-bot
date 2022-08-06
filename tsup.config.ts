@@ -2,8 +2,8 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig((options) => ({
 	clean: true,
-	dts: true,
-	entry: ['src/**/*.ts'],
+	dts: false,
+	entry: ['./src/'],
 	format: ['esm'],
 	minify: false,
 	watch: options.watch,

@@ -1,12 +1,8 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-import type { CommandEntity } from '#components/CommandEntity';
-import { CommandManager } from '#components/CommandManager';
+import type { Command } from '#struct/Command';
 
-export default class implements CommandEntity {
-	public name = 'commands:verify';
-	public parent = CommandManager;
-
+export default class implements Command {
 	public async run(interaction: ChatInputCommandInteraction<'cached'>) {
 		const modal = new ModalBuilder()
 			.setTitle(`${interaction.guild.name} Verification`)

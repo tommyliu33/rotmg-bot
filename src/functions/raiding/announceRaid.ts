@@ -1,16 +1,17 @@
-import { type TextChannel, EmbedBuilder } from 'discord.js';
+import { type Client, type TextChannel, EmbedBuilder } from 'discord.js';
 import templite from 'templite';
+import { container } from 'tsyringe';
 import type { PartialRaid } from './startRaid';
-
-import type { Discord } from '#components/Discord';
+import { kClient } from '../../tokens';
 import { generateButtonsFromEmoji, generateActionRows } from '#util/components';
 
 const raidType = ['Headcount', 'Afkcheck'];
 
-export function announceRaid(this: { discord: Discord }, raidInfo: Omit<PartialRaid, 'mainMessageId'>) {
+export function announceRaid(raidInfo: Omit<PartialRaid, 'mainMessageId'>) {
+	const client = container.resolve<Client>(kClient);
 	const { dungeon } = raidInfo;
 
-	const channel = this.discord.client.channels.cache.get(raidInfo.textChannelId) as TextChannel;
+	const channel = client.channels.cache.get(raidInfo.textChannelId) as TextChannel;
 	const member = channel.guild.members.cache.get(raidInfo.memberId)!;
 
 	const desc = templite(
@@ -46,6 +47,8 @@ export function announceRaid(this: { discord: Discord }, raidInfo: Omit<PartialR
 		...dungeon.keys,
 		...dungeon.main,
 	];
+
+	console.log(emojis);
 
 	const buttons = generateButtonsFromEmoji(
 		emojis.map((reaction) => ({
