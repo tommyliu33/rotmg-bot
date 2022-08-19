@@ -26,7 +26,7 @@
 		"httpie": "^2.0.0-next.13",
 		"mongodb": "^4.7.0",
 		"nanoid": "^4.0.0",
-		"pino": "^8.1.0",
+		"pino": "^8.4.2",
 		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
 		"templite": "^1.2.0",
