@@ -5,8 +5,8 @@
 	"license": "UNLICENSED",
 	"scripts": {
 		"prepare": "husky install",
-		"lint": "eslint src --ext ts .",
-		"lint:fix": "eslint src --ext ts . --fix",
+		"lint": "eslint src --ext ts . && prettier --check --plugin-search-dir=. .",
+		"lint:fix": "eslint src --ext ts . --fix  && prettier --write --plugin-search-dir=. .",
 		"start": "tsup && cd dist && node --experimental-specifier-resolution=node .",
 		"start:silent": "tsup --silent && cd dist && node --experimental-specifier-resolution=node .",
 		"dev": "tsc-watch --onSuccess \"cd dist && --experimental-specifier-resolution=node .\""
@@ -47,6 +47,7 @@
 		"eslint-plugin-prettier": "^4.2.1",
 		"husky": "^8.0.1",
 		"prettier": "^2.7.1",
+		"prettier-eslint": "^15.0.1",
 		"prisma": "^4.3.1",
 		"tsc-watch": "^5.0.3",
 		"tsup": "^6.2.3",
