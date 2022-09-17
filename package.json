@@ -33,7 +33,7 @@
 		"tsyringe": "^4.7.0"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^17.0.3",
+		"@commitlint/cli": "^17.1.2",
 		"@commitlint/config-angular": "^17.0.3",
 		"@types/common-tags": "^1.8.1",
 		"@types/iarna__toml": "^2.0.2",
