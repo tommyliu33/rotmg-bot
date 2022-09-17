@@ -10,6 +10,7 @@
 		"emitDecoratorMetadata": true,
 
 		/* Modules */
+		"baseUrl": ".",
 		"module": "ESNext",
 		"moduleResolution": "node",
 		"paths": {
@@ -20,7 +21,6 @@
 
 		/* Emit */
 		"outDir": "./dist",
-		"sourceMap": true,
 		"declaration": true,
 		"importHelpers": true,
 		"importsNotUsedAsValues": "error",
@@ -41,5 +41,5 @@
 		/* Completeness */
 		"skipLibCheck": true
 	},
-	"include": ["./src/**.ts"]
+	"include": ["./src/**/*.ts"]
 }

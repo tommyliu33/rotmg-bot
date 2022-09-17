@@ -28,7 +28,7 @@ export function abortRaid(raidInfo: Raid) {
 					name: `This ${raidType} was aborted by ${member.displayName}`,
 					iconURL: member.displayAvatarURL(),
 				})
-				.setDescription(`This ${raidType} would have been for ${raidInfo.dungeon.name}`)
+				// .setDescription(`This ${raidType} would have been for ${raidInfo.dungeon.name}`)
 				.setTimestamp();
 
 			void statusChannelMessage.edit({ content: ' ', components: [], embeds: [firstEmbed] });

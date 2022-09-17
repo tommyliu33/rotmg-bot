@@ -48,12 +48,11 @@ export function announceRaid(raidInfo: Omit<PartialRaid, 'mainMessageId'>) {
 		...dungeon.main,
 	];
 
-	console.log(emojis);
-
-	const buttons = generateButtonsFromEmoji(
-		emojis.map((reaction) => ({
-			emoji: reaction.emoji.split(':')[2].slice(0, -1),
-		}))
-	);
-	return channel.send({ embeds: [embed], components: generateActionRows(buttons) });
+	// const buttons = generateButtonsFromEmoji(
+	// 	emojis.map((reaction) => ({
+	// 		emoji: reaction.emoji.split(':')[2].slice(0, -1),
+	// 	}))
+	// );
+	// return channel.send({ embeds: [embed], components: generateActionRows(buttons) });
+	return channel.send({ embeds: [embed] });
 }

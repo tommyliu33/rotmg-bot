@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { injectable, inject } from 'tsyringe';
-import { kPrisma } from '../../tokens';
+import { kPrisma } from '../../tokens.js';
 import { verifyMember } from '#functions/verification/verifyMember';
 import type { Command } from '#struct/Command';
 

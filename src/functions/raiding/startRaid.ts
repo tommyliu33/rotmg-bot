@@ -2,6 +2,7 @@ import type { Collection, Client } from 'discord.js';
 import { container } from 'tsyringe';
 import { announceRaid } from './announceRaid';
 import { setupControlPanel, setupControlPanelEmbed } from './controlPanel';
+import { controlPanelListener } from './interactions/listener';
 import { kClient, kRaids } from '../../tokens';
 import type { RaidManager, Dungeon } from '#struct/RaidManager';
 
@@ -24,13 +25,15 @@ export async function startRaid(raidInfo: PartialRaid) {
 	const controlPanelMessage = await setupControlPanelEmbed(controlPanel!, raidInfo);
 
 	const { id } = await announceRaid(raidInfo);
-	raidManager.raids.set(`${raidInfo.guildId}-${raidInfo.memberId}`, {
-		...raidInfo,
+	const newRaid: Raid = Object.assign(raidInfo as Raid, {
 		mainMessageId: id,
 		controlPanelThreadId: controlPanel!.id,
 		controlPanelThreadMessageId: controlPanelMessage.id,
 		users: new Set(),
 	});
+
+	raidManager.raids.set(`${raidInfo.guildId}-${raidInfo.memberId}`, newRaid);
+	controlPanelListener(newRaid);
 }
 
 // what we start with
@@ -64,6 +67,14 @@ export type Raid<T extends boolean = false> = PartialRaid & {
 			controlPanelThreadMessageId: string;
 			users: Set<string>;
 	  };
+
+export function isAfkcheck(raid: PartialRaid | Raid): raid is Raid<true> {
+	return raid.raidType === RaidType.Afkcheck;
+}
+
+export function isHeadcount(raid: PartialRaid | Raid) {
+	return raid.raidType === RaidType.Headcount;
+}
 
 interface RaidReactions {
 	confirmed: Set<string>;

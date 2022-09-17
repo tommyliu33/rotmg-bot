@@ -1,8 +1,8 @@
 import { EmbedBuilder } from '@discordjs/builders';
-import { type Client, ThreadChannel, ChannelType } from 'discord.js';
+import { ChannelType, type ThreadChannel, type Client } from 'discord.js';
 import { container } from 'tsyringe';
 import { PartialRaid, RaidType } from './startRaid';
-import { kClient } from '../../tokens';
+import { kClient } from '../../tokens.js';
 import { afkCheckButtons, generateActionRows, headCountButtons } from '#util/components';
 
 const emojis = [
@@ -33,7 +33,9 @@ export async function setupControlPanelEmbed(channel: ThreadChannel, raidInfo: P
 		);
 
 	const buttons = raidInfo.raidType === RaidType.Headcount ? headCountButtons : afkCheckButtons;
-	return channel.send({ embeds: [embed], components: generateActionRows(buttons) });
+	const m = await channel.send({ embeds: [embed], components: generateActionRows(buttons) });
+
+	return m;
 }
 
 export async function setupControlPanel(raidInfo: PartialRaid, data?: ControlPanelThreadData) {

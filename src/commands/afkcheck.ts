@@ -50,7 +50,6 @@ export default class implements Command {
 		const isVet = isVeteran(doc, interaction.channelId);
 		this.isVet = isVet;
 
-		// TODO: probably have a component for all of database stuff
 		const { voiceChannelIds } = doc[isVet ? 'veteranRaiding' : 'mainRaiding'];
 
 		const choices = [];
