@@ -1,6 +1,6 @@
 {
 	"root": true,
-	"extends": ["marine/node", "marine/prettier"],
+	"extends": ["neon/node", "neon/prettier"],
 	"parserOptions": {
 		"project": "./tsconfig.eslint.json"
 	},
