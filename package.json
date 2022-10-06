@@ -21,7 +21,7 @@
 		"@sapphire/stopwatch": "^1.4.1",
 		"@toommyliu/realmeye-scraper": "github:toommyliu/realmeye-scraper",
 		"common-tags": "^1.8.2",
-		"discord-api-types": "^0.37.10",
+		"discord-api-types": "^0.37.12",
 		"discord.js": "14.3.0",
 		"dotenv": "^16.0.2",
 		"httpie": "^2.0.0-next.13",
