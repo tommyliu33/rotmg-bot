@@ -1,18 +1,13 @@
-# editor settings
-.idea/
-.vscode/
+node_modules
+.env
 
-# typescript distribution
-dist/
+**/dist/*
 
-# node modules
-node_modules/
-
-# environment variables
-*.env
-
-# log files
-*.log
-
-# sensitive files
-emojis.toml
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+logs

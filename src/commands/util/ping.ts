@@ -1,8 +1,8 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ApplicationCommandType, ChatInputCommandInteraction } from 'discord.js';
 import type { Command } from '#struct/Command';
 
-export default class implements Command {
-	public run(interaction: ChatInputCommandInteraction<'cached'>) {
-		void interaction.reply('pong.');
+export default class implements Command<ApplicationCommandType.ChatInput> {
+	public async handle(interaction: ChatInputCommandInteraction<'cached'>) {
+		await interaction.reply('pong.');
 	}
 }

@@ -1,5 +1,4 @@
-export default {
+export const PingCommand = {
 	name: 'ping',
-	description: 'pong.',
-	options: [],
+	description: 'pong',
 } as const;

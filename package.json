@@ -1,65 +1,59 @@
 {
 	"name": "rotmg-bot",
-	"version": "1.0.0-dev",
-	"main": "index.js",
-	"license": "UNLICENSED",
+	"packageManager": "yarn@3.2.4",
+	"main": "./dist/index.js",
+	"version": "2.0.0-dev",
+	"type": "module",
+	"license": "",
 	"scripts": {
-		"prepare": "husky install",
-		"lint": "eslint src --ext ts . && prettier --check --plugin-search-dir=. .",
-		"lint:fix": "eslint src --ext ts . --fix  && prettier --write --plugin-search-dir=. .",
-		"start": "tsup && cd dist && node --experimental-specifier-resolution=node .",
-		"start:silent": "tsup --silent && cd dist && node --experimental-specifier-resolution=node .",
-		"dev": "tsc-watch --onSuccess \"cd dist && --experimental-specifier-resolution=node .\""
+		"lint": "eslint src --ext .ts && prettier --check --plugin-search-dir=. .",
+		"build": "tsc",
+		"format": "prettier --write --plugin-search-dir=. .",
+		"prepare": "is-ci || husky install",
+		"start-bot": "dotenv -e .env -- node ./dist/index.js",
+		"deploy-commands": "dotenv -e .env -- node ./dist/deploy.js",
+		"update": "yarn upgrade-interactive"
+	},
+	"engines": {
+		"node": ">=16.9.0"
+	},
+	"imports": {
+		"#struct/*": "./dist/struct/*.js",
+		"#util/*": "./dist/util/*.js"
 	},
 	"dependencies": {
-		"@chatsift/discord-utils": "^0.2.2",
-		"@chatsift/utils": "^0.2.0",
-		"@discordjs/builders": "^0.15.0",
-		"@discordjs/rest": "^1.1.0",
-		"@iarna/toml": "^2.2.5",
-		"@prisma/client": "^4.3.1",
-		"@sapphire/stopwatch": "^1.4.1",
-		"@toommyliu/realmeye-scraper": "github:toommyliu/realmeye-scraper",
-		"common-tags": "^1.8.2",
-		"discord-api-types": "^0.37.10",
-		"discord.js": "14.3.0",
-		"dotenv": "^16.0.2",
-		"httpie": "^2.0.0-next.13",
-		"nanoid": "^4.0.0",
-		"pino": "^8.5.0",
+		"discord-api-types": "^0.37.15",
+		"discord.js": "^14.6.0",
+		"pino": "^8.7.0",
 		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
-		"templite": "^1.2.0",
+		"tslib": "^2.4.0",
 		"tsyringe": "^4.7.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^17.1.2",
 		"@commitlint/config-angular": "^17.1.0",
-		"@types/common-tags": "^1.8.1",
-		"@types/iarna__toml": "^2.0.2",
-		"@types/node": "^18.7.18",
-		"@typescript-eslint/eslint-plugin": "^5.37.0",
-		"@typescript-eslint/parser": "^5.37.0",
-		"eslint": "^8.23.1",
-		"eslint-config-neon": "^0.1.33",
-		"eslint-config-prettier": "^8.5.0",
-		"eslint-plugin-import": "^2.26.0",
-		"eslint-plugin-prettier": "^4.2.1",
+		"@types/node": "^16.18.2",
+		"@typescript-eslint/eslint-plugin": "^5.41.0",
+		"@typescript-eslint/parser": "^5.41.0",
+		"dotenv-cli": "^6.0.0",
+		"eslint": "^8.26.0",
+		"eslint-config-neon": "^0.1.39",
+		"eslint-plugin-typescript-sort-keys": "^2.1.0",
 		"husky": "^8.0.1",
+		"is-ci": "^3.0.1",
 		"prettier": "^2.7.1",
 		"prettier-eslint": "^15.0.1",
-		"prisma": "^4.3.1",
-		"tsc-watch": "^5.0.3",
-		"tsup": "^6.2.3",
-		"typescript": "^4.8.3"
+		"typescript": "^4.8.4"
 	},
-	"engines": {
-		"node": ">=16.9.x || >=18"
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
 	},
-	"type": "module",
-	"imports": {
-		"#functions/*": "./dist/functions/*.js",
-		"#struct/*": "./dist/struct/*.js",
-		"#util/*": "./dist/util/*.js"
+	"lint-staged": {
+		"*.ts": [
+			"eslint --fix"
+		]
 	}
 }

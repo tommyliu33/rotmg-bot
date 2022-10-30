@@ -1,12 +1,14 @@
-import { Events } from 'discord.js';
+import { Client, type Events } from 'discord.js';
+import { inject, injectable } from 'tsyringe';
 import type { Event } from '#struct/Event';
 import { logger } from '#util/logger';
+import { kClient } from '#util/tokens';
 
-export default class implements Event {
-	public name = 'Client ready';
-	public event = Events.ClientReady;
+@injectable()
+export default class implements Event<typeof Events.ClientReady> {
+	public constructor(@inject(kClient) private readonly client: Client) {}
 
-	public run() {
+	public handle() {
 		logger.info('Logged in');
 	}
 }

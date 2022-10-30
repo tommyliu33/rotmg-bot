@@ -1,9 +1,19 @@
-import type { Events } from 'discord.js';
+import { basename, extname } from 'node:path';
+import type { ClientEvents } from 'discord.js';
 
-export interface Event {
-	event: Values<typeof Events>;
+export type Event<T extends keyof ClientEvents = keyof ClientEvents> = {
+	handle(...args: ClientEvents[T]): Awaited<unknown>;
+	readonly name?: T;
+};
+
+export type EventInfo = {
 	name: string;
-	run: (...args: any[]) => Promise<void> | void;
-}
+};
 
-type Values<T> = T[keyof T];
+export function eventInfo(path: string): EventInfo | null {
+	if (extname(path) !== '.js') {
+		return null;
+	}
+
+	return { name: basename(path, '.js') };
+}
